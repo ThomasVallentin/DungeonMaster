@@ -1,0 +1,1 @@
+#define DECLARE_PTR_TYPE(_type) class _type; typedef std::shared_ptr<_type> _type##Ptr

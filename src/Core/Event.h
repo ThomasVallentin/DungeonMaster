@@ -1,8 +1,8 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#define DEFINE_EVENT_TYPE(_type) EventType GetType() const override { return EventType::_type; }  \
-                                 const char* GetName() const override { return #_type; }   
+#define DEFINE_EVENT_TYPE(_type) inline EventType GetType() const override { return EventType::_type; }  \
+                                 inline const char* GetName() const override { return #_type; }   
 
 
 enum class EventType {
@@ -28,8 +28,8 @@ public:
     WindowResizedEvent(const float& width, const float& height) : 
             m_width(width), m_height(height) {}
 
-    float GetWidth() const { return m_width; }
-    float GetHeight() const { return m_height; }
+    inline float GetWidth() const { return m_width; }
+    inline float GetHeight() const { return m_height; }
 
     DEFINE_EVENT_TYPE(WindowResized)
 
@@ -55,8 +55,8 @@ public:
     explicit KeyEvent(const int& key, const int& modifiers) : 
             m_key(key), m_modifiers(modifiers) {}
 
-    int GetKey() const { return m_key; }
-    int GetModifiers() const { return m_modifiers; }
+    inline int GetKey() const { return m_key; }
+    inline int GetModifiers() const { return m_modifiers; }
 
 private:
     int m_key;
@@ -96,8 +96,8 @@ public:
     explicit MouseButtonEvent(const int& button, const int& modifiers) : 
             m_button(button), m_modifiers(modifiers) {}
 
-    int GetButton() const { return m_button; }
-    int GetModifiers() const { return m_modifiers; }
+    inline int GetButton() const { return m_button; }
+    inline int GetModifiers() const { return m_modifiers; }
 
 private:
     int m_button;
@@ -134,8 +134,8 @@ public:
     MouseMovedEvent(const float& posX, const float& posY) : 
             m_posX(posX), m_posY(posY) {}
 
-    float GetPosX() const { return m_posX; }
-    float GetPosY() const { return m_posY; }
+    inline float GetPosX() const { return m_posX; }
+    inline float GetPosY() const { return m_posY; }
 
     DEFINE_EVENT_TYPE(MouseMoved)
 
@@ -150,8 +150,8 @@ public:
     MouseScrolledEvent(const float& offsetX, const float& offsetY) : 
             m_offsetX(offsetX), m_offsetY(offsetY) {}
 
-    float GetOffsetX() const { return m_offsetX; }
-    float GetOffsetY() const { return m_offsetY; }
+    inline float GetOffsetX() const { return m_offsetX; }
+    inline float GetOffsetY() const { return m_offsetY; }
 
     DEFINE_EVENT_TYPE(MouseScrolled)
 

@@ -1,7 +1,10 @@
 #include "FileUtils.h"
 
+#include <unistd.h>
+#include <limits.h>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 
 bool ReadFile(const std::string& filePath, std::string& outContent)

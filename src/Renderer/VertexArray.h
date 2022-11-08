@@ -9,9 +9,10 @@
 #include <memory>
 
 
+class VertexArray;
+
+
 DECLARE_PTR_TYPE(VertexArray);
-
-
 
 
 // == VertexArray ==
@@ -42,7 +43,7 @@ private:
     VertexBufferVector m_vertexBuffers;
     std::shared_ptr<IndexBuffer> m_indexBuffer;
 
-    GLuint m_id;
+    GLuint m_id = 0;
 };
 
 

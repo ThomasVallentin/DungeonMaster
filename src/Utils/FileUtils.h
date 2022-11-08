@@ -3,6 +3,7 @@
 
 #include <string>
 
+
 bool ReadFile(const std::string& filePath, std::string& outContent);
 
 

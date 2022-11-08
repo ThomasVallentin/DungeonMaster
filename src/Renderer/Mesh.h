@@ -10,6 +10,9 @@
 #include <memory>
 
 
+class Mesh;
+
+
 DECLARE_PTR_TYPE(Mesh);
 
 

@@ -9,6 +9,8 @@
 #include <memory>
 #include <string>
 
+class Shader;
+
 
 DECLARE_PTR_TYPE(Shader);
 
@@ -54,7 +56,7 @@ private:
 
     bool CompileShader(const GLint &type, const char* shaderSource, GLuint& outId) const;
     
-    GLuint m_id;
+    GLuint m_id = 0;
 };
 
 #endif  // SHADER_H

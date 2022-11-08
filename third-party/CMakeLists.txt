@@ -9,3 +9,10 @@ target_include_directories(glad PUBLIC glad/include)
 
 # == glm ==
 add_subdirectory(glm)
+
+# == stb == 
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE stb/)
+
+# == assimp ==
+add_subdirectory(assimp)

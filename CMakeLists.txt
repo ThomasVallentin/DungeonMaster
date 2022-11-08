@@ -15,16 +15,23 @@ add_subdirectory(third-party)
 set(DungeonMaster_SOURCES src/main.cpp
                           src/Core/Application.cpp
                           src/Core/Window.cpp
+                          src/Core/Image.cpp
                           src/Utils/FileUtils.cpp
+                          src/Utils/TypeUtils.cpp
+                          src/Renderer/Mesh.cpp
                           src/Renderer/Shader.cpp
+                          src/Renderer/Texture.cpp
                           src/Renderer/VertexBuffer.cpp
                           src/Renderer/VertexArray.cpp
-                          src/Renderer/Mesh.cpp
 )
 
 add_executable(DungeonMaster ${DungeonMaster_SOURCES})
-target_include_directories(DungeonMaster PUBLIC src/)
+target_include_directories(DungeonMaster PUBLIC 
+                           src/)
+
 target_link_libraries(DungeonMaster PUBLIC 
                       glad
                       glfw
-                      glm)
+                      glm
+                      stb
+                      assimp)

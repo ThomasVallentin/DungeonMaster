@@ -10,6 +10,10 @@
 #include <memory>
 
 
+class VertexBuffer;
+class IndexBuffer;
+
+
 DECLARE_PTR_TYPE(VertexBuffer);
 DECLARE_PTR_TYPE(IndexBuffer);
 
@@ -77,7 +81,6 @@ public:
     inline VertexBufferAttrVector::const_iterator begin() const { return m_attributes.begin(); }
     inline VertexBufferAttrVector::const_iterator end() const { return m_attributes.end(); }
 
-
 private:
     VertexBufferAttrVector m_attributes;
     GLuint m_stride = 0;
@@ -130,7 +133,7 @@ public:
 private:
     IndexBuffer();
 
-    GLuint m_id;
+    GLuint m_id = 0;
     GLuint m_count;
 
 };

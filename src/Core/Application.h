@@ -1,12 +1,14 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <stdint.h>
-#include <memory>
+#include "Core/Foundations.h"
+
+#include <filesystem>
+
 
 class Window;
-
 class Event;
+
 
 class Application
 {
@@ -21,14 +23,17 @@ public:
 
     inline Window& GetWindow() const { return *m_window; };
 
+    static std::string GetResourcePath(const std::string& path);
+
 private:
     Application(int argc, char* argv[]);
     ~Application() = default;
 
 private:
+    std::filesystem::path m_appRootPath;
     uint32_t m_exitCode = 0;
-    std::unique_ptr<Window> m_window;
 
+    std::unique_ptr<Window> m_window;
     bool m_isRunning;
 
     static Application* s_instance;

@@ -1,8 +1,9 @@
 #include "Application.h"
 
+#include "Renderer/Mesh.h"
 #include "Renderer/Shader.h"
 #include "Renderer/VertexArray.h"
-#include "Renderer/Mesh.h"
+#include "Renderer/Texture.h"
 
 #include "Window.h"
 #include "Event.h"
@@ -20,6 +21,10 @@ Application& Application::Init(int argc, char* argv[])
     }
 
     s_instance = new Application(argc, argv);
+
+    std::string appPath = argv[0];
+    s_instance->m_appRootPath = std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path();
+
     return *s_instance;
 }
 
@@ -36,8 +41,9 @@ void Application::Run()
 
     // VertexBuffer
     Vertex vertices[] = {{{-0.5, -0.5, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},
-                         {{0.0,   0.5, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},
-                         {{0.5,  -0.5, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}}
+                         {{-0.5,  0.5, 0.0}, {0.0, 0.0, 0.0}, {0.0, 1.0}},
+                         {{ 0.5,  0.5, 0.0}, {0.0, 0.0, 0.0}, {1.0, 1.0}},
+                         {{ 0.5, -0.5, 0.0}, {0.0, 0.0, 0.0}, {1.0, 0.0}}
                         };
     VertexBufferPtr vtxBuffer = VertexBuffer::Create(vertices, sizeof(vertices));
     vtxBuffer->SetLayout({{"aPosition",  3, GL_FLOAT, false},
@@ -46,41 +52,23 @@ void Application::Run()
                          });
 
     // IndexBuffer
-    GLuint indices[] = {0, 1, 2};
-    IndexBufferPtr idxBuffer = IndexBuffer::Create(indices, 3); 
+    GLuint indices[] = {0, 1, 2,
+                        2, 3, 0};
+    IndexBufferPtr idxBuffer = IndexBuffer::Create(indices, 6); 
 
     VertexArrayPtr vtxArray = VertexArray::Create();
     vtxArray->AddVertexBuffer(vtxBuffer);
     vtxArray->SetIndexBuffer(idxBuffer);
 
-    ShaderPtr shader = Shader::Open("/home/tvallentin/Projects/M2/Synthese_Image/DungeonMaster/build/resources/Shaders/default.vert",
-                                    "/home/tvallentin/Projects/M2/Synthese_Image/DungeonMaster/build/resources/Shaders/default.frag");
+    ShaderPtr shader = Shader::Open(GetResourcePath("Shaders/default.vert"),
+                                    GetResourcePath("Shaders/default.frag"));
 
+    TexturePtr texture = Texture::Open({GetResourcePath("Textures/Checker.jpg"), ColorSpace::Raw});
+    LOG_INFO("texture is valid : %d", texture->IsValid());
 
-    // auto sizof = sizeof(vertices);
-    // GLuint vbo;
-    // glGenBuffers(1, &vbo);
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // GLuint ebo;
-    // glGenBuffers(1, &ebo);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // GLuint vao;
-    // glGenVertexArrays(1, &vao);
-    // glBindVertexArray(vao);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (const void*)(sizeof(float) * 3));
-    // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (const void*)(sizeof(float) * 5));
-    // glEnableVertexAttribArray(0);
-    // glEnableVertexAttribArray(1);
-    // glEnableVertexAttribArray(2);
-
-    // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    shader->Bind();
+    texture->Bind(0);
+    shader->SetInt("uTexture", 0);
 
     while (m_isRunning) 
     {
@@ -90,6 +78,7 @@ void Application::Run()
         // Update game here
         vtxArray->Bind();
         shader->Bind();
+        
         glDrawElements(GL_TRIANGLES, 
                        vtxArray->GetIndexBuffer()->GetCount(),
                        GL_UNSIGNED_INT,
@@ -110,4 +99,9 @@ void Application::OnEvent(Event* event)
             break;
         }
     }
+}
+
+std::string Application::GetResourcePath(const std::string& path)
+{
+    return Get().m_appRootPath / "resources" / path;
 }

@@ -6,7 +6,7 @@
 #include "Renderer/FrameBuffer.h"
 #include "Renderer/Camera.h"
 
-#include "Game/EntityRegistry.h"
+#include "Game/Scene.h"
 
 #include <filesystem>
 
@@ -44,7 +44,7 @@ private:
     CameraPtr m_camera;
     FrameBufferPtr m_renderBuffer;
 
-    EntityRegistry registry;
+    ScenePtr m_scene;
 
     static Application* s_instance;
 };

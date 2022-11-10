@@ -8,11 +8,11 @@
 #include <stdexcept>
 
 
-class EntityRegistry
+class EntityIndex
 {
 public:
-    EntityRegistry();
-    ~EntityRegistry();
+    EntityIndex();
+    ~EntityIndex();
 
     // Entity management
 
@@ -25,8 +25,8 @@ public:
     template<typename ComponentType, typename... Args>
     ComponentType& EmplaceComponent(const uint32_t& entity, Args&&... args)
     {
-        auto it = m_registry.find(entity);
-        if (it == m_registry.end()) 
+        auto it = m_data.find(entity);
+        if (it == m_data.end()) 
         {
             throw std::runtime_error("Access was made to a non-existing entity !");
         }
@@ -46,8 +46,8 @@ public:
     template<typename ComponentType>
     ComponentType& GetComponent(const uint32_t& entity) 
     {
-        auto it = m_registry.find(entity);
-        if (it == m_registry.end()) 
+        auto it = m_data.find(entity);
+        if (it == m_data.end()) 
         {
             throw std::runtime_error("Access was made to a non-existing entity !");
         }
@@ -66,8 +66,8 @@ public:
     template<typename ComponentType>
     ComponentType* FindComponent(const uint32_t& entity) const 
     {
-        auto it = m_registry.find(entity);
-        if (it == m_registry.end()) 
+        auto it = m_data.find(entity);
+        if (it == m_data.end()) 
         {
             return nullptr;
         }
@@ -86,8 +86,8 @@ public:
     template<typename ComponentType>
     void RemoveComponent(const uint32_t& entity) 
     {
-        auto it = m_registry.find(entity);
-        if (it == m_registry.end()) 
+        auto it = m_data.find(entity);
+        if (it == m_data.end()) 
         {
             return;
         }
@@ -108,7 +108,7 @@ public:
 
 private:
     uint32_t m_last_uuid = 0;
-    std::unordered_map<uint32_t, std::vector<std::any>> m_registry;
+    std::unordered_map<uint32_t, std::vector<std::any>> m_data;
 };
 
 

@@ -5,7 +5,7 @@
 #include "Renderer/VertexArray.h"
 #include "Renderer/Texture.h"
 
-#include "Game/EntityRegistry.h"
+#include "Game/Entity.h"
 
 #include "Window.h"
 #include "Event.h"
@@ -59,6 +59,7 @@ Application::Application(int argc, char* argv[])
                                           glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 1 });
+    m_scene = Scene::Create();
 
 }
 
@@ -67,21 +68,13 @@ void Application::Run()
 {
     m_isRunning = true;
 
-    uint32_t entity = registry.Create();
+    Entity entity = m_scene->CreateEntity("toto");
     LOG_INFO("Entity %u", entity);
     
-    auto& component = registry.EmplaceComponent<Xform>(entity, glm::mat4(2.0f));
-
-    auto& comp = registry.GetComponent<Xform>(entity);
-    LOG_INFO("%f", comp.xform[0][0]);
-
-    component.xform = glm::mat4(14.0f);
-
-    comp = registry.GetComponent<Xform>(entity);
-    LOG_INFO("%f", comp.xform[0][0]);
-
-    registry.Clear();
-    registry.Clear();
+    auto& component = entity.EmplaceComponent<Xform>(glm::mat4(2.0f));
+    
+    LOG_INFO(entity.GetName().c_str());
+    m_scene.reset();
 
     // VertexBuffer
     Vertex vertices[] = {{{-0.5, -0.25, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},

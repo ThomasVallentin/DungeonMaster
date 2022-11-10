@@ -28,6 +28,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Utils/FileUtils.cpp
                           src/Utils/TypeUtils.cpp
                           src/Renderer/Mesh.cpp
+                          src/Renderer/Camera.cpp
                           src/Renderer/Shader.cpp
                           src/Renderer/Texture.cpp
                           src/Renderer/FrameBuffer.cpp

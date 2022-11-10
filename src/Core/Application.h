@@ -4,6 +4,7 @@
 #include "Foundations.h"
 
 #include "Renderer/FrameBuffer.h"
+#include "Renderer/Camera.h"
 
 #include <filesystem>
 
@@ -39,6 +40,7 @@ private:
     std::unique_ptr<Window> m_window;
     bool m_isRunning;
 
+    CameraPtr m_camera;
     FrameBufferPtr m_renderBuffer;
 
     static Application* s_instance;

@@ -10,6 +10,7 @@
 #include "Logging.h"
 
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <sstream>
 
@@ -37,6 +38,10 @@ Application::Application(int argc, char* argv[])
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), 
+                                          glm::vec3(0.0f, 0.0f, 0.0f), 
+                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
+                              {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 1 });
 }
 
@@ -71,7 +76,6 @@ void Application::Run()
 
     TexturePtr texture = Texture::Create(512, 512, GL_RGBA8);
 
-    
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (m_isRunning) 
     {
@@ -84,6 +88,7 @@ void Application::Run()
         // Update game here
         vtxArray->Bind();
         shader->Bind();
+        shader->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix());
         shader->SetInt("uTexture", 0);
         texture->Bind(0);
 
@@ -117,6 +122,9 @@ void Application::OnEvent(Event* event)
         case EventType::WindowResized:
         {
             WindowResizedEvent* resizeEvent = dynamic_cast<WindowResizedEvent*>(event);
+            ProjectionSpecs projSpecs = m_camera->GetProjectionSpecs();
+
+            m_camera->SetAspectRatio((float)resizeEvent->GetWidth() / (float)resizeEvent->GetHeight());
             m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
             break;
         }

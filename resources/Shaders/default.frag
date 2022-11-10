@@ -10,5 +10,5 @@ out vec4 fFragColor;
 
 void main() 
 {
-    fFragColor = texture2D(uTexture, vTexCoords);
+    fFragColor = vec4(vLocalPos, 1.0);
 }

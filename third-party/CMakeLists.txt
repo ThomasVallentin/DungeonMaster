@@ -15,6 +15,11 @@ add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE stb/)
 
 # == assimp ==
+
+if(POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)  # Disable the warning since these are 
+endif()
 set(ASSIMP_BUILD_TESTS OFF)
 set(ASSIMP_INSTALL OFF)
+
 add_subdirectory(assimp)

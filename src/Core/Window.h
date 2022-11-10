@@ -39,6 +39,8 @@ public:
     void OnUpdate();
     void SwapBuffer() const; 
 
+    void SetTitle(const std::string& title);
+
 private:
     void OnEvent(Event& event);
 

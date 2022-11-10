@@ -1,7 +1,9 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include "Core/Foundations.h"
+#include "Foundations.h"
+
+#include "Renderer/FrameBuffer.h"
 
 #include <filesystem>
 
@@ -24,6 +26,7 @@ public:
     inline Window& GetWindow() const { return *m_window; };
 
     static std::string GetResourcePath(const std::string& path);
+    static double GetCurrentTime();
 
 private:
     Application(int argc, char* argv[]);
@@ -35,6 +38,8 @@ private:
 
     std::unique_ptr<Window> m_window;
     bool m_isRunning;
+
+    FrameBufferPtr m_renderBuffer;
 
     static Application* s_instance;
 };

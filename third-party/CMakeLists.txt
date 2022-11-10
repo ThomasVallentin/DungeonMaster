@@ -15,4 +15,6 @@ add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE stb/)
 
 # == assimp ==
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_INSTALL OFF)
 add_subdirectory(assimp)

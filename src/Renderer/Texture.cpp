@@ -38,18 +38,14 @@ Texture::Texture()
     // Default filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
 
 Texture::Texture(const uint32_t& width, const uint32_t& height,
-                 const GLenum& internalFormat, 
-                 const GLenum& dataFormat) : 
+                 const GLenum& internalFormat) : 
         m_width(width),
         m_height(height),
-        m_internalFormat(internalFormat),
-        m_dataFormat(dataFormat) 
+        m_internalFormat(internalFormat)
 {
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_2D, m_id);
@@ -63,8 +59,6 @@ Texture::Texture(const uint32_t& width, const uint32_t& height,
     // Default filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
 
@@ -89,7 +83,9 @@ bool Texture::IsValid() const
     return m_id;
 }
 
-void Texture::SetData(void* data, const uint32_t& size, const GLenum& dataType) const
+void Texture::SetData(void* data, const uint32_t& size, 
+                      const GLenum& dataFormat,
+                      const GLenum& dataType) const
 {
     uint32_t channels = ChannelsOfGLType(m_internalFormat);
     uint32_t internalSize = m_width * m_height * channels;
@@ -97,7 +93,8 @@ void Texture::SetData(void* data, const uint32_t& size, const GLenum& dataType) 
            "The passed data does not match the texture's requirements."
            "Expected %dx%dx%d=%d, got %d",
            m_width, m_height, channels, internalSize, size);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_dataFormat, dataType, data);
+
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, dataFormat, dataType, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
@@ -109,17 +106,15 @@ void Texture::SetData(const uint32_t& width, const uint32_t& height, void* data,
     m_width = width;
     m_height = height;
     m_internalFormat = internalFormat;
-    m_dataFormat = dataFormat;
 
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, dataType, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 TexturePtr Texture::Create(const uint32_t& width, const uint32_t& height,
-                           const GLenum& internalFormat, 
-                           const GLenum& dataFormat)
+                           const GLenum& internalFormat)
 {
-    Texture* texture = new Texture(width, height, internalFormat, dataFormat);
+    Texture* texture = new Texture(width, height, internalFormat);
     return TexturePtr(texture);
 }
 

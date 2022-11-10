@@ -104,10 +104,10 @@ Window::Window(const WindowSettings& settings) :
     // Initialize GLAD
     gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
-    LOG_DEBUG("Successfully loaded OpenGL !\n"
-              "            Vendor: %s\n"
-              "            Renderer: %s\n"
-              "            Version: %s", 
+    LOG_INFO("Successfully loaded OpenGL !\n"
+             "            Vendor: %s\n"
+             "            Renderer: %s\n"
+             "            Version: %s", 
               glGetString(GL_VENDOR), 
               glGetString(GL_RENDERER), 
               glGetString(GL_VERSION));
@@ -117,6 +117,7 @@ Window::Window(const WindowSettings& settings) :
 
     // Enabling depth
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
 }
 
 Window::~Window()
@@ -141,6 +142,11 @@ void Window::OnUpdate()
 {
     glfwPollEvents();
     glfwSwapBuffers(m_window);
+}
+
+void Window::SetTitle(const std::string& title)
+{
+    glfwSetWindowTitle(m_window, title.c_str());
 }
 
 void Window::ErrorHandler(int error, const char* description)

@@ -51,10 +51,14 @@ public:
 #define LOG_WARNING(...) Logger::warning(__VA_ARGS__)
 #define LOG_ERROR(...)   Logger::error(__VA_ARGS__)
 
+#define ENABLE_ASSERTS
+
 #ifdef ENABLE_ASSERTS
 #define ASSERT(check, ...)    if (!(check)) { LOG_ERROR(__VA_ARGS__); }
+#define ASSERT_OR_RETURN(check, returnValue, ...)    if (!(check)) { LOG_ERROR(__VA_ARGS__); return returnValue; }
 #else
 #define ASSERT(...)
+#define ASSERT_OR_RETURN(...)
 #endif
 
 #endif  // LOGGING_H

@@ -6,12 +6,13 @@
 #include "Renderer/FrameBuffer.h"
 #include "Renderer/Camera.h"
 
+#include "Game/EntityRegistry.h"
+
 #include <filesystem>
 
 
 class Window;
 class Event;
-
 
 class Application
 {
@@ -42,6 +43,8 @@ private:
 
     CameraPtr m_camera;
     FrameBufferPtr m_renderBuffer;
+
+    EntityRegistry registry;
 
     static Application* s_instance;
 };

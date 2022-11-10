@@ -25,6 +25,7 @@ Window::Window(const WindowSettings& settings) :
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);          
 
         s_glfwHasBeenInitialized = true;
     }
@@ -35,6 +36,9 @@ Window::Window(const WindowSettings& settings) :
         return;
     }
     glfwMakeContextCurrent(m_window);
+
+    // Enable VSync
+    glfwSwapInterval(1);
 
     // Pass internal data to the window
     glfwSetWindowUserPointer(m_window, &m_internalData);
@@ -102,7 +106,8 @@ Window::Window(const WindowSettings& settings) :
     });
 
     // Initialize GLAD
-    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        return;
 
     LOG_INFO("Successfully loaded OpenGL !\n"
              "            Vendor: %s\n"
@@ -111,9 +116,6 @@ Window::Window(const WindowSettings& settings) :
               glGetString(GL_VENDOR), 
               glGetString(GL_RENDERER), 
               glGetString(GL_VERSION));
-
-    // Enable VSync
-    glfwSwapInterval(1);
 
     // Enabling depth
     glEnable(GL_DEPTH_TEST);

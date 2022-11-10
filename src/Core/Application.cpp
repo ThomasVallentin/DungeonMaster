@@ -5,6 +5,8 @@
 #include "Renderer/VertexArray.h"
 #include "Renderer/Texture.h"
 
+#include "Game/EntityRegistry.h"
+
 #include "Window.h"
 #include "Event.h"
 #include "Logging.h"
@@ -16,6 +18,20 @@
 
 
 Application* Application::s_instance = nullptr;
+
+
+struct Xform 
+{
+    Xform(const glm::mat4& mat) : xform(mat) {
+        LOG_INFO("Bim ! Alive !!!");
+    }
+
+    ~Xform() {
+        LOG_INFO("AAAAAAAAaaarggggg !!!");
+    }
+    
+    glm::mat4 xform;
+};
 
 
 Application& Application::Init(int argc, char* argv[])
@@ -43,12 +59,29 @@ Application::Application(int argc, char* argv[])
                                           glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 1 });
+
 }
 
 
 void Application::Run()
 {
     m_isRunning = true;
+
+    uint32_t entity = registry.Create();
+    LOG_INFO("Entity %u", entity);
+    
+    auto& component = registry.EmplaceComponent<Xform>(entity, glm::mat4(2.0f));
+
+    auto& comp = registry.GetComponent<Xform>(entity);
+    LOG_INFO("%f", comp.xform[0][0]);
+
+    component.xform = glm::mat4(14.0f);
+
+    comp = registry.GetComponent<Xform>(entity);
+    LOG_INFO("%f", comp.xform[0][0]);
+
+    registry.Clear();
+    registry.Clear();
 
     // VertexBuffer
     Vertex vertices[] = {{{-0.5, -0.25, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},

@@ -34,6 +34,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Renderer/FrameBuffer.cpp
                           src/Renderer/VertexBuffer.cpp
                           src/Renderer/VertexArray.cpp
+                          src/Game/EntityRegistry.cpp
 )
 
 add_executable(${DungeonMaster_EXE} ${DungeonMaster_SOURCES})

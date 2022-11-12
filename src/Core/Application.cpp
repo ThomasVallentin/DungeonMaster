@@ -72,42 +72,15 @@ void Application::Run()
 {
     m_isRunning = true;
 
-    // VertexBuffer
-    Vertex vertices[] = {{{-0.5, -0.25, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},
-                         {{-0.5,  0.5, 0.0}, {0.0, 0.0, 0.0}, {0.0, 1.0}},
-                         {{ 0.5,  0.5, 0.0}, {0.0, 0.0, 0.0}, {1.0, 1.0}},
-                         {{ 0.5, -0.5, 0.0}, {0.0, 0.0, 0.0}, {1.0, 0.0}}
-                        };
-    VertexBufferPtr vtxBuffer = VertexBuffer::Create(vertices, sizeof(vertices));
-    vtxBuffer->SetLayout({{"aPosition",  3, GL_FLOAT, false},
-                          {"aNormal",    3, GL_FLOAT, false},
-                          {"aTexCoords", 2, GL_FLOAT, false}
-                         });
-
-
-    // IndexBuffer
-    GLuint indices[] = {0, 1, 2,
-                        2, 3, 0};
-    IndexBufferPtr idxBuffer = IndexBuffer::Create(indices, 6); 
-
-    VertexArrayPtr vtxArray = VertexArray::Create();
-    vtxArray->AddVertexBuffer(vtxBuffer);
-    vtxArray->SetIndexBuffer(idxBuffer);
-
     auto& resolver = Resolver::Get(); 
     ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                     resolver.Resolve("Shaders/default.frag"));
 
-    TexturePtr texture = Texture::Create(512, 512, GL_RGBA8);
-
     ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
-    for (const auto& mesh : model.Get()->GetMeshes())
-    {
-        LOG_INFO(mesh.GetIdentifier().c_str());
-    }
-
+    ResourceHandle<Texture> texture = ResourceManager::LoadTexture("Textures/Checker.jpg");
+    
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    while (m_isRunning) 
+    while (m_isRunning)
     {
         double time = GetCurrentTime();
 
@@ -122,11 +95,10 @@ void Application::Run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Update game here
-        vtxArray->Bind();
         shader->Bind();
         shader->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix());
-        shader->SetInt("uTexture", 0);
-        texture->Bind(0);
+        shader->SetInt("uTexture", 1);
+        texture.Get()->Bind(1);
 
         for (const auto& mesh : model.Get()->GetMeshes())
         {

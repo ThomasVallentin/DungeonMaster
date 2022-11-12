@@ -6,34 +6,42 @@
 #include <stb_image.h>
 
 
-ImageMap ImageRegistry::s_registry;
+ColorSpace GuessColorSpace(const std::string& ext) 
+{
+    if (ext == "png")
+        return ColorSpace::sRGB;
+    if (ext == "jpg")
+        return ColorSpace::sRGB;
+    if (ext == "jpeg")
+        return ColorSpace::sRGB;
+    if (ext == "bmp")
+        return ColorSpace::sRGB;
+    if (ext == "tga")
+        return ColorSpace::Raw;
+    if (ext == "hdr")
+        return ColorSpace::Raw;
+    if (ext == "pgm")
+        return ColorSpace::Raw;
+    if (ext == "ppm")
+        return ColorSpace::Raw;
 
-
-ImageConstWeakPtr Image::Read(const ImageSpecs& specs) {
-    return ImageRegistry::ReadImage(specs);
+    return ColorSpace::Raw;
 }
 
 
-ImageConstWeakPtr ImageRegistry::FindImage(const ImageSpecs& specs) {
-    auto it = s_registry.find(specs);
-    if (it != s_registry.end()) {
-        return ImageConstWeakPtr(it->second);
-    }
+ImagePtr Image::Read(const std::string& path, 
+                              const ColorSpace& inputColorSpace) {
 
-    return ImageConstWeakPtr();
-}
-
-
-ImageConstWeakPtr ImageRegistry::ReadImage(const ImageSpecs& specs) {
-    // Try to find the image in the registry
-    ImageConstWeakPtr result = FindImage(specs);
-    if (!result.expired()) {
-        return result;
+    ColorSpace colorSpace = inputColorSpace;
+    if (colorSpace == ColorSpace::None)
+    {
+        const size_t dot = path.find_last_of(".");
+        colorSpace = GuessColorSpace(path.substr(dot));
     }
 
     // Simple gamma handling based on the input colorspace of the image. 
-    // Further work should be achieved if we want more advanced color spaces
-    switch (specs.inputColorSpace) {
+    // Further work should be achieved if we want a more advanced color system
+    switch (colorSpace) {
         case ColorSpace::Raw:
             stbi_ldr_to_hdr_gamma(1.0f);
             break;
@@ -44,16 +52,19 @@ ImageConstWeakPtr ImageRegistry::ReadImage(const ImageSpecs& specs) {
     }
     stbi_set_flip_vertically_on_load(true); 
 
+
     // Image doesn't exist, opening it
     int width, height, channels;
-    float *img = stbi_loadf(specs.filePath.c_str(), &width, &height, &channels, 0);
+    float *img = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
     if(img == nullptr) {
-        LOG_ERROR("Could not open image %s...", specs.filePath.c_str());
-        return ImageConstWeakPtr();
+        LOG_ERROR("Could not read image %s...", path.c_str());
+        return ImagePtr();
     }
 
-    ImagePtr image = std::shared_ptr<Image>(new Image(width, height));
-    auto pixels = image->GetPixels();
+    Image* image = new Image(width, height);
+    image->m_inputColorSpace = colorSpace;
+    image->m_filePath = path;
+    glm::vec4* pixels = image->GetPixels();
 
     switch (channels) {
         case 4:
@@ -80,12 +91,10 @@ ImageConstWeakPtr ImageRegistry::ReadImage(const ImageSpecs& specs) {
 
         default:
             LOG_ERROR("Invalid image channel count : %d", channels);
-            return ImageConstWeakPtr();
+            return ImagePtr();
     }
 
     stbi_image_free(img);
 
-    s_registry.insert( { specs, image } );
-    
-    return ImageConstWeakPtr(image);
+    return ImagePtr(image);
 }

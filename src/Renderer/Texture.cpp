@@ -111,6 +111,11 @@ void Texture::SetData(const uint32_t& width, const uint32_t& height, void* data,
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
+TexturePtr Texture::Create()
+{
+    return TexturePtr();
+}
+
 TexturePtr Texture::Create(const uint32_t& width, const uint32_t& height,
                            const GLenum& internalFormat)
 {
@@ -118,19 +123,20 @@ TexturePtr Texture::Create(const uint32_t& width, const uint32_t& height,
     return TexturePtr(texture);
 }
 
-TexturePtr Texture::Open(const ImageSpecs& specs, const GLenum& internalFormat)
+TexturePtr Texture::Open(const std::string& path, 
+                         const ColorSpace& colorSpace,
+                         const GLenum& internalFormat)
 {
-    ImageConstWeakPtr image = Image::Read(specs);
-    return Texture::FromImage(image, internalFormat);
+    return Texture::FromImage(Image::Read(path, colorSpace), internalFormat);
 }
 
-TexturePtr Texture::FromImage(const ImageConstWeakPtr& image, const GLenum& internalFormat)
+TexturePtr Texture::FromImage(const ImagePtr& image, const GLenum& internalFormat)
 {
-    if (auto img = image.lock()) {
+    if (image) {
         Texture* texture = new Texture();
-        texture->SetData(img->GetWidth(), 
-                         img->GetHeight(),
-                         (void*)img->GetPixels(),
+        texture->SetData(image->GetWidth(), 
+                         image->GetHeight(),
+                         (void*)image->GetPixels(),
                          internalFormat,
                          // dataFormat and dataType are fixed since we only consider images composed of glm::vec4. 
                          // This should change in the future when the Image implementation will be improved.

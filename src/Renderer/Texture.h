@@ -31,11 +31,15 @@ public:
                  const GLenum& dataFormat = GL_RGBA, 
                  const GLenum& dataType = GL_FLOAT);
 
-    static TexturePtr Create(const uint32_t &width, const uint32_t &height,
+    static TexturePtr Create();
+    static TexturePtr Create(const uint32_t &width, 
+                             const uint32_t &height,
                              const GLenum& internalFormat);
-    static TexturePtr Open(const ImageSpecs& specs, const GLenum& internalFormat = GL_RGBA8);
-    static TexturePtr FromImage(const ImageConstWeakPtr& image, const GLenum& internalFormat = GL_RGBA8);
-    
+    static TexturePtr Open(const std::string& path, 
+                           const ColorSpace& colorSpace=ColorSpace::None,
+                           const GLenum& internalFormat = GL_RGBA8);
+    static TexturePtr FromImage(const ImagePtr& image, const GLenum& internalFormat = GL_RGBA8);
+
 private:
     Texture();
     Texture(const uint32_t &width, const uint32_t &height,

@@ -155,3 +155,23 @@ ResourceHandle<Model> ResourceManager::LoadModel(const std::string& path)
     AssimpModelLoader loader;
     return loader.Load(resolver.Resolve(identifier));
 }
+
+ResourceHandle<Texture> ResourceManager::LoadTexture(const std::string& path) 
+{
+    auto& resolver = Resolver::Get();
+
+    std::string identifier = resolver.AsIdentifier(path);
+    ResourceHandle<Texture> handle = GetResource<Texture>(identifier);
+    if (handle.Get()) 
+    {
+        return handle;
+    }
+
+    ImagePtr image = Image::Read(resolver.Resolve(path));
+    if (!image)
+    {
+        return ResourceHandle<Texture>();
+    }
+
+    return CreateResource<Texture>(identifier, Texture::FromImage(image));
+}

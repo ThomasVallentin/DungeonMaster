@@ -47,13 +47,30 @@ private:
 class ResourceManager {
 public:
     template <typename T>
-    static ResourceHandle<T> CreateResource(const std::string& identifier, const bool& hasOwner=false)
+    static ResourceHandle<T> CreateResource(const std::string& identifier, 
+                                            const bool& hasOwner = false)
     {
         // TODO: Generate properly unique identifiers
-        Resource<T>* res = new Resource<T>{T::Create(), hasOwner};
-        auto resource = std::shared_ptr<Resource<T>>(res);
-        s_resources<T>.insert({ identifier, resource });
-        return {identifier, resource};
+        Resource<T>* resource = new Resource<T>{T::Create(), hasOwner};
+        std::shared_ptr<Resource<T>> resourcePtr(resource);
+
+        s_resources<T>.insert({ identifier, resourcePtr });
+
+        return { identifier, resourcePtr };
+    }
+
+    template <typename T>
+    static ResourceHandle<T> CreateResource(const std::string& identifier, 
+                                            const std::shared_ptr<T>& data, 
+                                            const bool& hasOwner = false)
+    {
+        // TODO: Generate properly unique identifiers
+        Resource<T>* resource = new Resource<T>{data, hasOwner};
+        std::shared_ptr<Resource<T>> resourcePtr(resource);
+
+        s_resources<T>.insert({ identifier, resourcePtr });
+
+        return { identifier, resourcePtr };
     }
 
     template <typename T>
@@ -63,7 +80,7 @@ public:
         if (it == s_resources<T>.end()) 
             return {identifier};
     
-        return {identifier, it->second};
+        return { identifier, it->second };
     }
 
     template <typename T>
@@ -83,9 +100,11 @@ public:
     }
 
     static ResourceHandle<Model> LoadModel(const std::string& path);
-    // static ResourceHandle<Texture> LoadTexture(const std::string& path);
+    static ResourceHandle<Texture> LoadTexture(const std::string& path);
 
 private:
+
+
     template <typename T>
     static std::unordered_map<std::string, std::shared_ptr<Resource<T>>> s_resources;
 };

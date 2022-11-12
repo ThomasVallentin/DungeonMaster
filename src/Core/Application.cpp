@@ -6,7 +6,12 @@
 #include "Renderer/Texture.h"
 
 #include "Game/Entity.h"
+#include "Game/Components.h"
 
+#include "ResourceManagement/Model.h"
+#include "ResourceManagement/ResourceManager.h"
+
+#include "Resolver.h"
 #include "Window.h"
 #include "Event.h"
 #include "Logging.h"
@@ -50,31 +55,22 @@ Application& Application::Init(int argc, char* argv[])
 Application::Application(int argc, char* argv[])
 {
     std::string appPath = argv[0];
-    m_appRootPath = std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path();
+    Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 700.0f, 1200.0f), 
                                           glm::vec3(0.0f, 0.0f, 0.0f), 
-                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
+                                          glm::vec3(0.0f, 250.0f, 0.0f)), 
                               {});
-    m_renderBuffer = FrameBuffer::Create({ 1280, 720, 1 });
+    m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();
-
 }
 
 
 void Application::Run()
 {
     m_isRunning = true;
-
-    Entity entity = m_scene->CreateEntity("toto");
-    LOG_INFO("Entity %u", entity);
-    
-    auto& component = entity.EmplaceComponent<Xform>(glm::mat4(2.0f));
-    
-    LOG_INFO(entity.GetName().c_str());
-    m_scene.reset();
 
     // VertexBuffer
     Vertex vertices[] = {{{-0.5, -0.25, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0}},
@@ -88,6 +84,7 @@ void Application::Run()
                           {"aTexCoords", 2, GL_FLOAT, false}
                          });
 
+
     // IndexBuffer
     GLuint indices[] = {0, 1, 2,
                         2, 3, 0};
@@ -97,15 +94,28 @@ void Application::Run()
     vtxArray->AddVertexBuffer(vtxBuffer);
     vtxArray->SetIndexBuffer(idxBuffer);
 
-    ShaderPtr shader = Shader::Open(GetResourcePath("Shaders/default.vert"),
-                                    GetResourcePath("Shaders/default.frag"));
+    auto& resolver = Resolver::Get(); 
+    ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
+                                    resolver.Resolve("Shaders/default.frag"));
 
     TexturePtr texture = Texture::Create(512, 512, GL_RGBA8);
+
+    ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
+    for (const auto& mesh : model.Get()->GetMeshes())
+    {
+        LOG_INFO(mesh.GetIdentifier().c_str());
+    }
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (m_isRunning) 
     {
         double time = GetCurrentTime();
+
+        // for (auto& [entity, script] : m_scene.Traverse<ScriptedComponent>())
+        // {
+        //     script.OnUpdate();
+        // }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         m_renderBuffer->Bind();
@@ -118,11 +128,22 @@ void Application::Run()
         shader->SetInt("uTexture", 0);
         texture->Bind(0);
 
-        glDrawElements(GL_TRIANGLES, 
-                       vtxArray->GetIndexBuffer()->GetCount(),
-                       GL_UNSIGNED_INT,
-                       nullptr);
+        for (const auto& mesh : model.Get()->GetMeshes())
+        {
+            mesh.Get()->Bind();
 
+            glDrawElements(GL_TRIANGLES, 
+                        mesh.Get()->GetElementCount(),
+                        GL_UNSIGNED_INT,
+                        nullptr);
+        }
+
+        // glDrawElements(GL_TRIANGLES, 
+        //                vtxArray->GetIndexBuffer()->GetCount(),
+        //                GL_UNSIGNED_INT,
+        //                nullptr);
+
+        m_camera->SetViewMatrix(glm::rotate(m_camera->GetViewMatrix(), 0.01f, glm::vec3(0, 1, 0)));
         m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
         m_renderBuffer->Unbind();
 
@@ -155,11 +176,11 @@ void Application::OnEvent(Event* event)
             break;
         }
     }
-}
 
-std::string Application::GetResourcePath(const std::string& path)
-{
-    return Get().m_appRootPath / "resources" / path;
+    // for (auto& [entity, script] : m_scene.Traverse<ScriptedComponent>())
+    // {
+    //     script.OnEvent(event);
+    // }
 }
 
 double Application::GetCurrentTime()

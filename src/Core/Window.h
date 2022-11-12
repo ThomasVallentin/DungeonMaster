@@ -8,7 +8,6 @@
 class Event;
 class GLFWwindow;
 
-typedef std::function<void(Event*)> EventHandler;
 
 static bool s_glfwHasBeenInitialized = false;
 

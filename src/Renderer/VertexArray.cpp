@@ -34,7 +34,7 @@ void VertexArray::AddVertexBuffer(std::shared_ptr<VertexBuffer> &vertexBuffer)
 
     GLuint i = 0;
     const auto& layout = vertexBuffer->GetLayout();
-    for (const auto& attribute : layout) {
+    for (const auto& attribute : layout.GetAttributes()) {
         glVertexAttribPointer(i, 
                               attribute.dimension, 
                               attribute.type, 
@@ -56,6 +56,7 @@ void VertexArray::SetIndexBuffer(std::shared_ptr<IndexBuffer> &indexBuffer)
     indexBuffer->Bind();
 
     m_indexBuffer = indexBuffer;
+    Unbind();
 }
 
 VertexArrayPtr VertexArray::Create()

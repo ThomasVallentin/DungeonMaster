@@ -1,22 +1,24 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "Core/Logging.h"
 
-#include "Core/Foundations.h"
+#include "VertexArray.h"
 
 #include <glm/glm.hpp>
 
-#include <vector>
-#include <memory>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 
 class Mesh;
 
-
 DECLARE_PTR_TYPE(Mesh);
 
 
-struct Vertex {
+struct Vertex
+{
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoords;
@@ -26,15 +28,31 @@ struct Vertex {
 class Mesh
 {
 public:
-    ~Mesh();
+    ~Mesh() = default;
 
-    static MeshPtr Create() { return nullptr; };
+    inline const std::vector<Vertex> &GetVertices() const { return m_vertices; }
+    void SetVertices(const std::vector<Vertex> &vertices);
+
+    inline const std::vector<uint32_t> &GetIndices() const { return m_indices; }
+    void SetIndices(const std::vector<uint32_t> &indices);
+
+    inline void Bind() const { m_vertexArray->Bind(); }
+    inline uint32_t GetElementCount() const { return m_vertexArray->GetIndexBuffer()->GetCount(); }
+
+    static MeshPtr Create();
+    static MeshPtr Create(const std::vector<Vertex> &vertices, 
+                          const std::vector<uint32_t> &indices);
 
 private:
     Mesh();
+    explicit Mesh(const std::vector<Vertex> &vertices, 
+                  const std::vector<uint32_t> &indices);
+    void CreateVertexArray();
 
     std::vector<Vertex> m_vertices;
-
+    std::vector<uint32_t> m_indices;
+    VertexArrayPtr m_vertexArray;
 };
 
-#endif  // MESH_H
+
+#endif // MESH_H

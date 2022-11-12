@@ -89,7 +89,7 @@ bool IndexBuffer::IsValid() const
     return m_id;
 }
 
-void IndexBuffer::SetData(GLuint* indices, const GLuint& count) {
+void IndexBuffer::SetData(const GLuint* indices, const uint32_t& count) {
     Bind();
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(GLuint), indices, GL_STATIC_DRAW);
     m_count = count;
@@ -102,7 +102,7 @@ IndexBufferPtr IndexBuffer::Create()
     return IndexBufferPtr(buffer);
 }
 
-IndexBufferPtr IndexBuffer::Create(GLuint* indices, const GLuint& count)
+IndexBufferPtr IndexBuffer::Create(GLuint* indices, const uint32_t& count)
 {
     IndexBuffer* buffer = new IndexBuffer();
     buffer->SetData(indices, count);

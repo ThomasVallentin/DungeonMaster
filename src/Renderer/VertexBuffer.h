@@ -76,11 +76,6 @@ public:
     inline const VertexBufferAttrVector &GetAttributes() const { return m_attributes; }
     inline GLuint GetStride() const { return m_stride; };
 
-    inline VertexBufferAttrVector::iterator begin() { return m_attributes.begin(); }
-    inline VertexBufferAttrVector::iterator end() { return m_attributes.end(); }
-    inline VertexBufferAttrVector::const_iterator begin() const { return m_attributes.begin(); }
-    inline VertexBufferAttrVector::const_iterator end() const { return m_attributes.end(); }
-
 private:
     VertexBufferAttrVector m_attributes;
     GLuint m_stride = 0;
@@ -124,17 +119,17 @@ public:
     void Unbind() const;
     bool IsValid() const;
 
-    void SetData(GLuint* indices, const GLuint& count);
+    void SetData(const GLuint* indices, const GLuint& count);
     inline GLuint GetCount() const { return m_count; }
 
     static IndexBufferPtr Create();
-    static IndexBufferPtr Create(GLuint* indices, const GLuint& count);
+    static IndexBufferPtr Create(GLuint* indices, const uint32_t& count);
 
 private:
     IndexBuffer();
 
     GLuint m_id = 0;
-    GLuint m_count;
+    uint32_t m_count;
 
 };
 

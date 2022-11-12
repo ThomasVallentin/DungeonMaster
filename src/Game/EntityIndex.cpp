@@ -13,8 +13,6 @@ EntityIndex::EntityIndex()
 {
     std::uniform_int_distribution<uint32_t> dist(1, UINT32_MAX);
     m_last_uuid = dist(uuidRandomGenerator);
-
-    LOG_INFO("index seed %u", m_last_uuid);
 }
 
 EntityIndex::~EntityIndex()

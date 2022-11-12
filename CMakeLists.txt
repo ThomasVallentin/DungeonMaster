@@ -25,6 +25,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Core/Application.cpp
                           src/Core/Window.cpp
                           src/Core/Image.cpp
+                          src/Core/Resolver.cpp
                           src/Utils/FileUtils.cpp
                           src/Utils/TypeUtils.cpp
                           src/Renderer/Mesh.cpp
@@ -37,6 +38,8 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Game/Entity.cpp
                           src/Game/Scene.cpp
                           src/Game/EntityIndex.cpp
+                          src/ResourceManagement/ResourceManager.cpp
+                          src/ResourceManagement/Model.cpp
 )
 
 add_executable(${DungeonMaster_EXE} ${DungeonMaster_SOURCES})
@@ -47,4 +50,5 @@ target_link_libraries(${DungeonMaster_EXE} PUBLIC
                       glad
                       glfw
                       glm
-                      stb)
+                      stb
+                      assimp)

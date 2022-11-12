@@ -26,16 +26,13 @@ public:
     inline int GetExitCode() const { return m_exitCode; }
 
     inline Window& GetWindow() const { return *m_window; };
-
-    static std::string GetResourcePath(const std::string& path);
-    static double GetCurrentTime();
+    double GetCurrentTime();
 
 private:
     Application(int argc, char* argv[]);
     ~Application() = default;
 
 private:
-    std::filesystem::path m_appRootPath;
     uint32_t m_exitCode = 0;
 
     std::unique_ptr<Window> m_window;
@@ -46,6 +43,7 @@ private:
 
     ScenePtr m_scene;
 
+private:
     static Application* s_instance;
 };
 

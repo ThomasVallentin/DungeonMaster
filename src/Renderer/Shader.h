@@ -8,11 +8,28 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class Shader;
 
-
 DECLARE_PTR_TYPE(Shader);
+
+
+struct UniformBlockVariable
+{
+    std::string name;
+    GLenum type;
+    uint32_t count;
+    uint32_t offset;
+};
+
+
+struct UniformBlockDescription
+{
+    uint32_t index;
+    uint32_t size;
+    std::vector<UniformBlockVariable> uniforms;
+};
 
 
 class Shader {
@@ -31,6 +48,8 @@ public:
     void SetVec4(const std::string& name, const glm::vec4& value) const;
     void SetMat3(const std::string& name, const glm::mat3& value) const;
     void SetMat4(const std::string& name, const glm::mat4& value) const;
+
+    UniformBlockDescription GetUniformBlockDescription(const std::string& blockName);
 
     static ShaderPtr Create(const char* vertexCode, 
                                           const char* fragmentCode,

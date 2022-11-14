@@ -38,6 +38,8 @@ Texture::Texture()
     // Default filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
@@ -59,6 +61,8 @@ Texture::Texture(const uint32_t& width, const uint32_t& height,
     // Default filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
@@ -134,6 +138,8 @@ TexturePtr Texture::FromImage(const ImagePtr& image, const GLenum& internalForma
 {
     if (image) {
         Texture* texture = new Texture();
+
+        glBindTexture(GL_TEXTURE_2D, texture->m_id);
         texture->SetData(image->GetWidth(), 
                          image->GetHeight(),
                          (void*)image->GetPixels(),
@@ -142,6 +148,8 @@ TexturePtr Texture::FromImage(const ImagePtr& image, const GLenum& internalForma
                          // This should change in the future when the Image implementation will be improved.
                          GL_RGBA,
                          GL_FLOAT);  
+        glBindTexture(GL_TEXTURE_2D, 0);
+
         return TexturePtr(texture);
     }
 

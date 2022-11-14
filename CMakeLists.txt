@@ -22,24 +22,33 @@ if(NOT ${CMAKE_BUILD_TYPE} STREQUAL Release)
 endif()
 
 set(DungeonMaster_SOURCES src/main.cpp
+
                           src/Core/Application.cpp
-                          src/Core/Window.cpp
                           src/Core/Image.cpp
                           src/Core/Resolver.cpp
-                          src/Utils/FileUtils.cpp
-                          src/Utils/TypeUtils.cpp
-                          src/Renderer/Mesh.cpp
+                          src/Core/Window.cpp
+
+
                           src/Renderer/Camera.cpp
+                          src/Renderer/FrameBuffer.cpp
+                          src/Renderer/Material.cpp
+                          src/Renderer/Mesh.cpp
                           src/Renderer/Shader.cpp
                           src/Renderer/Texture.cpp
-                          src/Renderer/FrameBuffer.cpp
-                          src/Renderer/VertexBuffer.cpp
+                          src/Renderer/UniformBuffer.cpp
                           src/Renderer/VertexArray.cpp
+                          src/Renderer/VertexBuffer.cpp
+                          
                           src/Game/Entity.cpp
                           src/Game/Scene.cpp
                           src/Game/EntityIndex.cpp
-                          src/ResourceManagement/ResourceManager.cpp
+                          
                           src/ResourceManagement/Model.cpp
+                          src/ResourceManagement/ResourceManager.cpp
+                          
+                          src/Utils/FileUtils.cpp
+                          src/Utils/TypeUtils.cpp
+                          
 )
 
 add_executable(${DungeonMaster_EXE} ${DungeonMaster_SOURCES})

@@ -50,7 +50,7 @@ struct VertexBufferAttribute
             normalized(normalized) {}
 
     std::string name;
-    GLuint dimension;  
+    GLuint dimension;
     GLuint type;  
     GLuint offset;
     GLboolean normalized;
@@ -95,7 +95,7 @@ public:
 
     VertexBufferLayout GetLayout() const;
     void SetLayout(const VertexBufferLayout& layout);
-    void SetData(void* data, const GLuint& size) const;
+    void SetData(const void* data, const GLuint& size) const;
 
     static VertexBufferPtr Create();
     static VertexBufferPtr Create(void* data, const GLuint& size);

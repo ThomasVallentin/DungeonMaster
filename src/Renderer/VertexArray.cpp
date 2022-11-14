@@ -29,7 +29,7 @@ bool VertexArray::IsValid() const
 
 void VertexArray::AddVertexBuffer(std::shared_ptr<VertexBuffer> &vertexBuffer)
 {
-    Bind();
+    glBindVertexArray(m_id);
     vertexBuffer->Bind();
 
     GLuint i = 0;
@@ -47,16 +47,18 @@ void VertexArray::AddVertexBuffer(std::shared_ptr<VertexBuffer> &vertexBuffer)
     }
 
     m_vertexBuffers.push_back(vertexBuffer);
-    Unbind();
+
+    glBindVertexArray(0);
 }
 
 void VertexArray::SetIndexBuffer(std::shared_ptr<IndexBuffer> &indexBuffer)
 {
-    Bind();
+    glBindVertexArray(m_id);
     indexBuffer->Bind();
 
     m_indexBuffer = indexBuffer;
-    Unbind();
+    
+    glBindVertexArray(0);
 }
 
 VertexArrayPtr VertexArray::Create()

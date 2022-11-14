@@ -15,13 +15,19 @@ Mesh::Mesh(const std::vector<Vertex>& vertices,
 void Mesh::SetVertices(const std::vector<Vertex> &vertices) 
 {
     m_vertices = vertices;
-    m_vertexArray->GetVertexBuffers()[0]->SetData(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
+    const auto& vBuffer = m_vertexArray->GetVertexBuffers()[0];
+    vBuffer->Bind();
+    vBuffer->SetData(m_vertices.data(), m_vertices.size() * sizeof(Vertex));
+    vBuffer->Unbind();
 }
 
 void Mesh::SetIndices(const std::vector<uint32_t>& indices) 
 {
     m_indices = indices;
-    m_vertexArray->GetIndexBuffer()->SetData(indices.data(), indices.size());
+    const auto& iBuffer = m_vertexArray->GetIndexBuffer();
+    iBuffer->Bind();
+    iBuffer->SetData(indices.data(), indices.size());
+    iBuffer->Unbind();
 }
 
 void Mesh::CreateVertexArray() 

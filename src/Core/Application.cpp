@@ -4,6 +4,7 @@
 #include "Renderer/Shader.h"
 #include "Renderer/VertexArray.h"
 #include "Renderer/Texture.h"
+#include "Renderer/Material.h"
 
 #include "Game/Entity.h"
 #include "Game/Components.h"
@@ -18,8 +19,24 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glad/glad.h>
 
 #include <sstream>
+
+
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
 
 
 Application* Application::s_instance = nullptr;
@@ -71,14 +88,30 @@ Application::Application(int argc, char* argv[])
 void Application::Run()
 {
     m_isRunning = true;
+        
+    glEnable              ( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( MessageCallback, 0 );
 
     auto& resolver = Resolver::Get(); 
     ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                     resolver.Resolve("Shaders/default.frag"));
 
+    auto layout = shader->GetUniformBlockDescription("MaterialInputs");
+    for (const auto& attr : layout.uniforms)
+    {
+        LOG_INFO("%s, %u, %u, %u", attr.name.c_str(), attr.offset, attr.type, attr.count);
+    }
+    
     ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
     ResourceHandle<Texture> texture = ResourceManager::LoadTexture("Textures/Checker.jpg");
+
+    MaterialPtr material = Material::Create(shader);
+    material->SetInputValue<glm::vec3>("diffuseColor", {0.5, 0.2, 0.2});
+    material->SetInputTexture("diffuseColor", texture.Get()->GetId());
     
+    MaterialPtr material2 = Material::Create(shader);
+    material2->SetInputValue<glm::vec3>("diffuseColor", {0.2, 0.2, 0.5});
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (m_isRunning)
     {
@@ -95,25 +128,29 @@ void Application::Run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Update game here
-        shader->Bind();
         shader->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix());
-        shader->SetInt("uTexture", 1);
-        texture.Get()->Bind(1);
 
+        int i = 0;
         for (const auto& mesh : model.Get()->GetMeshes())
         {
             mesh.Get()->Bind();
+            if (i%2)
+            {
+                material->Bind();
+                material->ApplyUniforms();
+            }
+            else
+            {
+                material2->Bind();
+                material2->ApplyUniforms();
+            }
 
             glDrawElements(GL_TRIANGLES, 
                         mesh.Get()->GetElementCount(),
                         GL_UNSIGNED_INT,
                         nullptr);
+            i++;
         }
-
-        // glDrawElements(GL_TRIANGLES, 
-        //                vtxArray->GetIndexBuffer()->GetCount(),
-        //                GL_UNSIGNED_INT,
-        //                nullptr);
 
         m_camera->SetViewMatrix(glm::rotate(m_camera->GetViewMatrix(), 0.01f, glm::vec3(0, 1, 0)));
         m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());

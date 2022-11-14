@@ -7,8 +7,31 @@
 #include "Core/Event.h"
 #include "Core/Logging.h"
 
+#include "ResourceManagement/ResourceManager.h"
 
 #include <functional>
+
+
+struct TransformComponent 
+{
+    glm::vec3 translate = {0.0f, 0.0f, 0.0f};
+    glm::vec3 rotate = {0.0f, 0.0f, 0.0f};
+    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+};
+
+struct MeshComponent
+{
+    ResourceHandle<Mesh> mesh;
+};
+
+
+
+struct RenderMeshComponent
+{
+    // ResourceHandle<Material> material;
+    // bool castShadows;
+    // bool receiveShadows;
+};
 
 
 class ScriptedComponent 
@@ -16,12 +39,15 @@ class ScriptedComponent
 public:
     ScriptedComponent(const Entity& entity) : m_entity(entity) {}
 
-    virtual void OnUpdate() = 0;
-    virtual void OnEvent(Event* event) = 0;
+    virtual void OnCreate() {};
+    virtual void OnUpdate() {};
+    virtual void OnEvent(Event* event) {};
+    virtual void OnRemove() {};
 
 protected:
     Entity m_entity;
 };
+
 
 class DebugComponent : public ScriptedComponent 
 {

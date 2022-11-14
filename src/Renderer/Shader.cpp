@@ -67,11 +67,11 @@ Shader::Shader(const char* vertexCode,
     // Cleanup
     glDetachShader(m_id, vShader);
     glDetachShader(m_id, fShader);
-    if (tcShader != -1 && teShader != -1) {
+    if (tcShader != 0 && teShader != 0) {
         glDetachShader(m_id, tcShader);
         glDetachShader(m_id, teShader);
     }
-    if (gShader != -1) {
+    if (gShader != 0) {
         glDetachShader(m_id, gShader);
     }
 }
@@ -172,6 +172,42 @@ void Shader::SetMat4(const std::string& name, const glm::mat4& value) const
 {
     GLint location = glGetUniformLocation(m_id, name.c_str());
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+UniformBlockDescription Shader::GetUniformBlockDescription(const std::string& blockName)
+{
+    uint32_t blockIndex = glGetUniformBlockIndex(m_id, blockName.c_str());
+    if (blockIndex == GL_INVALID_INDEX)
+    {
+        return {0, 0};
+    }
+
+    int blockSize;
+    glGetActiveUniformBlockiv(m_id, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE, &blockSize);
+
+    int uCount;
+    glGetActiveUniformBlockiv(m_id, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &uCount);   
+
+    UniformBlockDescription layout{blockIndex, (uint32_t)blockSize};
+    layout.uniforms.reserve(uCount);
+
+    int uIndices[uCount];
+    glGetActiveUniformBlockiv(m_id, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uIndices);
+
+    uint32_t uOffsets[uCount];
+    glGetActiveUniformsiv(m_id, uCount, (GLuint*)uIndices, GL_UNIFORM_OFFSET, (int*)uOffsets);
+
+    char name[128];
+    int nameLength;
+    int size;
+    GLenum type;
+    for (size_t i=0 ; i < uCount ; i++)
+    {
+        glGetActiveUniform(m_id, (GLuint)uIndices[i], 128, &nameLength, &size, &type, name);
+        layout.uniforms.push_back({std::string(name, nameLength), type, (uint32_t)size, uOffsets[i]});
+    }
+
+    return layout;
 }
 
 

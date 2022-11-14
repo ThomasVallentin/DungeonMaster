@@ -39,11 +39,9 @@ void VertexBuffer::SetLayout(const VertexBufferLayout& layout)
     m_layout = layout;
 }
 
-void VertexBuffer::SetData(void* data, const GLuint& size) const
+void VertexBuffer::SetData(const void* data, const GLuint& size) const
 {
-    Bind();
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-    Unbind();
 }
 
 VertexBufferPtr VertexBuffer::Create()
@@ -55,7 +53,9 @@ VertexBufferPtr VertexBuffer::Create()
 VertexBufferPtr VertexBuffer::Create(void* data, const GLuint& size)
 {
     VertexBuffer* buffer = new VertexBuffer();
+    buffer->Bind();
     buffer->SetData(data, size);
+    buffer->Unbind();
     
     return VertexBufferPtr(buffer);
 }
@@ -90,10 +90,8 @@ bool IndexBuffer::IsValid() const
 }
 
 void IndexBuffer::SetData(const GLuint* indices, const uint32_t& count) {
-    Bind();
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(GLuint), indices, GL_STATIC_DRAW);
     m_count = count;
-    Unbind();
 }
 
 IndexBufferPtr IndexBuffer::Create()
@@ -105,7 +103,9 @@ IndexBufferPtr IndexBuffer::Create()
 IndexBufferPtr IndexBuffer::Create(GLuint* indices, const uint32_t& count)
 {
     IndexBuffer* buffer = new IndexBuffer();
+    buffer->Bind();
     buffer->SetData(indices, count);
+    buffer->Unbind();
     
     return IndexBufferPtr(buffer);
 }

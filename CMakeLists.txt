@@ -40,11 +40,10 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Renderer/VertexBuffer.cpp
                           
                           src/Game/Entity.cpp
-                          src/Game/Scene.cpp
                           src/Game/EntityIndex.cpp
-                          
-                          src/ResourceManagement/Model.cpp
-                          src/ResourceManagement/ResourceManager.cpp
+                          src/Game/Model.cpp
+                          src/Game/ResourceManager.cpp
+                          src/Game/Scene.cpp
                           
                           src/Utils/FileUtils.cpp
                           src/Utils/TypeUtils.cpp

@@ -9,8 +9,8 @@
 #include "Game/Entity.h"
 #include "Game/Components.h"
 
-#include "ResourceManagement/Model.h"
-#include "ResourceManagement/ResourceManager.h"
+#include "Game/Model.h"
+#include "Game/ResourceManager.h"
 
 #include "Resolver.h"
 #include "Window.h"

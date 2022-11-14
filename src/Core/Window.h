@@ -44,6 +44,13 @@ private:
     void OnEvent(Event& event);
 
     static void ErrorHandler(int error, const char* description); 
+    static void GlErrorHandler(uint32_t source,
+                               uint32_t type,
+                               uint32_t id,
+                               uint32_t severity,
+                               int length,
+                               const char* message,
+                               const void* userParam); 
 
     GLFWwindow* m_window;
     WindowInternalData m_internalData;

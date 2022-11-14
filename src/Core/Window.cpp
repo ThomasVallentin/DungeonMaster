@@ -117,6 +117,11 @@ Window::Window(const WindowSettings& settings) :
               glGetString(GL_RENDERER), 
               glGetString(GL_VERSION));
 
+    // Add GL callbacks
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(GlErrorHandler, 0);
+
+
     // Enabling depth
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
@@ -156,3 +161,22 @@ void Window::ErrorHandler(int error, const char* description)
     LOG_ERROR("Glfw error %d: %s", error, description);
 }
 
+void Window::GlErrorHandler(uint32_t source,
+                            uint32_t type,
+                            uint32_t id,
+                            uint32_t severity,
+                            int length,
+                            const char* message,
+                            const void* userParam )
+{
+    if (severity == GL_DEBUG_TYPE_ERROR)
+        LOG_ERROR("GL ERROR : Type = 0x%x, Severity = 0x%x, Message = %s",
+                type, severity, message);
+
+#ifdef ENABLE_DEBUG
+    else
+        LOG_DEBUG("GL : Type = 0x%x, Severity = 0x%x, Message = %s",
+                  type, severity, message);
+#endif // ENABLE_DEBUG
+
+}

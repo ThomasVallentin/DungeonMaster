@@ -5,12 +5,9 @@
 
 UniformBuffer::UniformBuffer(const uint32_t& size)
 {
-    std::cout << (glGetError() != GL_NO_ERROR) << std::endl;
     glGenBuffers(1, &m_id);
     glBindBuffer(GL_UNIFORM_BUFFER, m_id);
-    std::cout << (glGetError() != GL_NO_ERROR) << std::endl;
     glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW);
-    std::cout << (glGetError() != GL_NO_ERROR) << std::endl;
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

@@ -28,7 +28,6 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Core/Resolver.cpp
                           src/Core/Window.cpp
 
-
                           src/Renderer/Camera.cpp
                           src/Renderer/FrameBuffer.cpp
                           src/Renderer/Material.cpp
@@ -41,6 +40,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           
                           src/Game/Entity.cpp
                           src/Game/EntityIndex.cpp
+                          src/Game/Level.cpp
                           src/Game/Model.cpp
                           src/Game/ResourceManager.cpp
                           src/Game/Scene.cpp

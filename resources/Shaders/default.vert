@@ -8,18 +8,17 @@ uniform mat4 uMVPMatrix = mat4(1.0);
 uniform mat4 uModelMatrix = mat4(1.0);
 uniform mat3 uNormalMatrix = mat3(1.0);
 
-out vec3 vLocalPos;
+out vec3 vWorldPos;
 out vec3 vNormal;
 out vec2 vTexCoords;
 out float vDepth;
 
 void main()
 {
-    vLocalPos = (uModelMatrix * vec4(aPosition, 1.0)).xyz;
+    vWorldPos = (uModelMatrix * vec4(aPosition, 1.0)).xyz;
     vNormal = uNormalMatrix * aNormal;
     vTexCoords = aTexCoords;
     
     gl_Position = uMVPMatrix * vec4(aPosition, 1.0);
-    
     vDepth = length(gl_Position.xyz);
 }

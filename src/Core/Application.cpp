@@ -9,6 +9,7 @@
 #include "Game/Entity.h"
 #include "Game/Components.h"
 
+#include "Game/Level.h"
 #include "Game/Model.h"
 #include "Game/ResourceManager.h"
 
@@ -61,9 +62,9 @@ Application::Application(int argc, char* argv[])
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 700.0f, 1200.0f), 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 70.0f, 120.0f), 
                                           glm::vec3(0.0f, 0.0f, 0.0f), 
-                                          glm::vec3(0.0f, 250.0f, 0.0f)), 
+                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();
@@ -74,7 +75,12 @@ void Application::Run()
 {
     m_isRunning = true;
 
+
     auto& resolver = Resolver::Get(); 
+
+    Level level;
+    level.Load(resolver.Resolve("Levels/Labyrinth.ppm"));
+
     ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                     resolver.Resolve("Shaders/default.frag"));
 
@@ -84,11 +90,11 @@ void Application::Run()
         LOG_INFO("%s, %u, %u, %u", attr.name.c_str(), attr.offset, attr.type, attr.count);
     }
     
-    ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
+    // ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
     ResourceHandle<Texture> texture = ResourceManager::LoadTexture("Textures/Checker.jpg");
 
     MaterialPtr material = Material::Create(shader);
-    material->SetInputValue<glm::vec3>("diffuseColor", {0.5, 0.2, 0.2});
+    material->SetInputValue<glm::vec3>("diffuseColor", {1.0, 1.0, 1.0});
     material->SetInputTexture("diffuseColor", texture.Get()->GetId());
     
     MaterialPtr material2 = Material::Create(shader);
@@ -113,26 +119,33 @@ void Application::Run()
         shader->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix());
 
         int i = 0;
-        for (const auto& mesh : model.Get()->GetMeshes())
-        {
-            mesh.Get()->Bind();
-            if (i%2)
-            {
-                material->Bind();
-                material->ApplyUniforms();
-            }
-            else
-            {
-                material2->Bind();
-                material2->ApplyUniforms();
-            }
+        // for (const auto& mesh : model.Get()->GetMeshes())
+        // {
+        //     mesh.Get()->Bind();
+        //     if (i%2)
+        //     {
+        //         material->Bind();
+        //         material->ApplyUniforms();
+        //     }
+        //     else
+        //     {
+        //         material2->Bind();
+        //         material2->ApplyUniforms();
+        //     }
 
-            glDrawElements(GL_TRIANGLES, 
-                        mesh.Get()->GetElementCount(),
-                        GL_UNSIGNED_INT,
-                        nullptr);
-            i++;
-        }
+        //     glDrawElements(GL_TRIANGLES, 
+        //                 mesh.Get()->GetElementCount(),
+        //                 GL_UNSIGNED_INT,
+        //                 nullptr);
+        //     i++;
+        // }
+        material->Bind();
+        material->ApplyUniforms();
+        level.m_mesh->Bind();
+        glDrawElements(GL_TRIANGLES, 
+                       level.m_mesh->GetElementCount(),
+                       GL_UNSIGNED_INT,
+                       nullptr);
 
         m_camera->SetViewMatrix(glm::rotate(m_camera->GetViewMatrix(), 0.01f, glm::vec3(0, 1, 0)));
         m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());

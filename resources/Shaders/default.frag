@@ -1,6 +1,6 @@
 #version 460
 
-in vec3 vLocalPos;
+in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vTexCoords;
 in float vDepth;
@@ -37,7 +37,7 @@ vec3 SampleAmbient()
 {
     return mix(diffuseColor, 
                texture(uTextures[ambientColorTexture], vTexCoords).rgb, 
-               float(diffuseColorUseTexture));
+               float(ambientColorUseTexture));
 }
 
 // vec3 exponentialFog(vec3 baseColor, float distance) 

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.12)
 
+# == RapidJSON ==
+add_library(RapidJSON INTERFACE)
+target_include_directories(RapidJSON INTERFACE RapidJSON/include)
+
 # == GLFW ==
 add_subdirectory(GLFW)
 

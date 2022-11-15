@@ -55,6 +55,7 @@ target_include_directories(${DungeonMaster_EXE} PUBLIC
                            src/)
 
 target_link_libraries(${DungeonMaster_EXE} PUBLIC 
+                      RapidJSON
                       glad
                       glfw
                       glm

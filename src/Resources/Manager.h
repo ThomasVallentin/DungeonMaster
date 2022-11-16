@@ -1,6 +1,10 @@
 #ifndef RESOURCEMANAGER_H
 #define RESOURCEMANAGER_H
 
+#include "Resource.h"
+#include "Prefab.h"
+
+#include "Renderer/Material.h"
 #include "Renderer/Mesh.h"
 #include "Renderer/Texture.h"
 
@@ -14,34 +18,6 @@ class Mesh;
 class Model;
 class Texture;
 class ResourceManager;
-
-template <typename T>
-struct Resource {
-    std::shared_ptr<T> data;
-    bool hasOwner = false;  // Define whether this ressource can be removed on its own or if an other object will take care of it.
-};
-
-
-template <typename T>
-class ResourceHandle {
-public:
-    ResourceHandle() = default;
-    
-    std::shared_ptr<T> Get() const;
-    inline const std::string& GetIdentifier() const { return m_identifier; }
-    void Update();
-
-private:
-    ResourceHandle(const std::string& identifier) :
-            m_identifier(identifier) {}
-    ResourceHandle(const std::string& identifier, const  std::weak_ptr<Resource<T>>& resource) :
-            m_resource(resource), m_identifier(identifier) {}
-
-    std::string m_identifier;
-    std::weak_ptr<Resource<T>> m_resource;
-
-    friend ResourceManager;
-};
 
 
 class ResourceManager {
@@ -101,20 +77,16 @@ public:
 
     static ResourceHandle<Model> LoadModel(const std::string& path);
     static ResourceHandle<Texture> LoadTexture(const std::string& path);
+    static ResourceHandle<Prefab> LoadScene(const std::string& path);
 
 private:
-
 
     template <typename T>
     static std::unordered_map<std::string, std::shared_ptr<Resource<T>>> s_resources;
 };
 
+template<typename T>
+std::unordered_map<std::string, std::shared_ptr<Resource<T>>> ResourceManager::s_resources;
 
-// entity.AddComponent<MeshComponent>(ResourceManager::GetResource<Mesh>("meshes/Pouet.fbx:Root/Pouet/Bidule"));
-// entity.AddComponent<MeshRenderComponent>(ResourceManager::GetResource<Material>("materials/Pouet.fbx:"));
-
-// ResourceManager::GetResource<Mesh>("Models/monmodel.fbx:Table/Plate_1");
-// ResourceManager::FreeResource<Mesh>("Models/monmodel.fbx:Table/Plate_1") // -> Not working since mesh has owner;
-// ResourceManager::FreeResource<Model>("Models/monmodel.fbx")              // -> Working, free all Meshes and Materials from monmodel.fbx;
 
 #endif  // RESOURCEMANAGER_H

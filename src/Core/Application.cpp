@@ -6,12 +6,11 @@
 #include "Renderer/Texture.h"
 #include "Renderer/Material.h"
 
-#include "Game/Entity.h"
-#include "Game/Components.h"
+#include "Scene/Entity.h"
+#include "Scene/Components.h"
 
-#include "Game/Level.h"
-#include "Game/Model.h"
-#include "Game/ResourceManager.h"
+#include "Resources/Model.h"
+#include "Resources/Manager.h"
 
 #include "Resolver.h"
 #include "Window.h"
@@ -78,8 +77,8 @@ void Application::Run()
 
     auto& resolver = Resolver::Get(); 
 
-    Level level;
-    level.Load(resolver.Resolve("Levels/Labyrinth.ppm"));
+    ResourceManager::LoadScene(resolver.Resolve("Levels/Labyrinth.ppm"));
+    ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>("Levels/Labyrinth.ppm:Floor1");
 
     ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                     resolver.Resolve("Shaders/default.frag"));
@@ -141,9 +140,11 @@ void Application::Run()
         // }
         material->Bind();
         material->ApplyUniforms();
-        level.m_mesh->Bind();
+        auto msh = mesh.Get();
+        msh->Bind();
+
         glDrawElements(GL_TRIANGLES, 
-                       level.m_mesh->GetElementCount(),
+                       msh->GetElementCount(),
                        GL_UNSIGNED_INT,
                        nullptr);
 

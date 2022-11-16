@@ -5,7 +5,7 @@
 
 Entity Scene::CreateEntity()
 {
-    CreateEntity("AnonymousEntity");
+    return CreateEntity("AnonymousEntity");
 }
 
 Entity Scene::CreateEntity(const std::string& name)

@@ -7,7 +7,7 @@
 #include "Core/Event.h"
 #include "Core/Logging.h"
 
-#include "Game/ResourceManager.h"
+#include "Resources/Manager.h"
 
 #include <functional>
 

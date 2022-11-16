@@ -6,7 +6,7 @@
 #include "Renderer/FrameBuffer.h"
 #include "Renderer/Camera.h"
 
-#include "Game/Scene.h"
+#include "Scene/Scene.h"
 
 #include <filesystem>
 

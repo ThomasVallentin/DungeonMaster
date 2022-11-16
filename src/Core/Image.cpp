@@ -30,7 +30,7 @@ ColorSpace GuessColorSpace(const std::string& ext)
 
 
 ImagePtr Image::Read(const std::string& path, 
-                              const ColorSpace& inputColorSpace) {
+                     const ColorSpace& inputColorSpace) {
 
     ColorSpace colorSpace = inputColorSpace;
     if (colorSpace == ColorSpace::None)
@@ -50,7 +50,7 @@ ImagePtr Image::Read(const std::string& path,
             stbi_ldr_to_hdr_gamma(2.2f);
             break;
     }
-    stbi_set_flip_vertically_on_load(true); 
+    // stbi_set_flip_vertically_on_load(true); 
 
 
     // Image doesn't exist, opening it

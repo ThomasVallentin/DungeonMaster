@@ -11,9 +11,9 @@ public:
     Level();
     ~Level();
 
-    void Load(const std::string& path);
+private:
+    
 
-    MeshPtr m_mesh;
 };
 
 #endif  // LEVEL_H

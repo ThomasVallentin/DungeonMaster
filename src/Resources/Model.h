@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "ResourceManager.h"
+#include "Manager.h"
 
 #include "Core/Foundations.h"
 #include "Renderer/Mesh.h"

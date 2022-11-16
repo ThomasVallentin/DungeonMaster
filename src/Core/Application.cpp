@@ -67,13 +67,23 @@ Application::Application(int argc, char* argv[])
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();
+    m_scene->CreateEntity("test");
+    m_scene->CreateEntity("test1");
+    m_scene->CreateEntity("test2");
+    m_scene->CreateEntity("test3");
+    m_scene->CreateEntity("test4");
+    m_scene->CreateEntity("test5");
+
+    for (Entity entity : m_scene->Traverse())
+    {
+        LOG_INFO("Entity : %s !", entity.GetName().c_str());
+    }
 }
 
 
 void Application::Run()
 {
     m_isRunning = true;
-
 
     auto& resolver = Resolver::Get(); 
 

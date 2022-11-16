@@ -8,6 +8,9 @@
 #include <stdexcept>
 
 
+typedef std::vector<std::any> EntityData;
+typedef std::unordered_map<uint32_t, EntityData> EntityDataMap;
+
 class EntityIndex
 {
 public:
@@ -106,9 +109,11 @@ public:
         }
     }
 
+    EntityDataMap& GetDataMap() { return m_data; }
+
 private:
     uint32_t m_last_uuid = 0;
-    std::unordered_map<uint32_t, std::vector<std::any>> m_data;
+    EntityDataMap m_data;
 };
 
 

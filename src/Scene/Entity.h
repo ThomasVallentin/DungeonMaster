@@ -42,6 +42,7 @@ private:
     Scene* m_scene;
 
     friend Scene;
+    friend class EntityView;
 };
 
 #endif  // ENTITY_H

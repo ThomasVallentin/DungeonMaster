@@ -2,6 +2,15 @@
 
 #include "Entity.h"
 
+Entity EntityView::iterator::operator->() 
+{
+    return Entity(m_it->first, m_scene);
+}
+
+Entity EntityView::iterator::operator*() const
+{
+    return Entity(m_it->first, m_scene);
+}
 
 Entity Scene::CreateEntity()
 {
@@ -30,6 +39,13 @@ Entity Scene::FindByName(const std::string& name)
     //     }
     // }
     return Entity();
+}
+
+EntityView Scene::Traverse()
+{
+    return EntityView(m_index.GetDataMap().begin(), 
+                      m_index.GetDataMap().end(),
+                      this);
 }
 
 void Scene::Clear()

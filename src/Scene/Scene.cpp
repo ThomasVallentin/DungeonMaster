@@ -33,11 +33,25 @@ struct HierarchyComponent
 // EntityView
 
 EntityView::EntityView(const Entity& entity) : 
-        m_beginId(entity.m_id), 
-        m_scene(entity.m_scene) 
+    m_begin(entity.m_id, entity.m_scene), m_end(0, entity.m_scene)
 {
+    if (!entity.IsRoot())  // If being Entity is root
+    {
+        m_end = iterator(entity.GetComponent<HierarchyComponent>().nextSibling, entity.m_scene);
+    }
+}
 
-} 
+EntityView::EntityView(const uint32_t& beginId, const uint32_t& endId, Scene* scene) :
+    m_begin(beginId, scene), m_end(0, scene)
+{
+    Entity entity(beginId, scene);
+    
+    // If being Entity is not the root, set the end point to its next sibling
+    if (!entity.IsRoot())
+    {
+        m_end = iterator(entity.GetComponent<HierarchyComponent>().nextSibling, scene);
+    }
+}
 
 Entity EntityView::iterator::operator->() 
 {
@@ -75,8 +89,7 @@ EntityView::iterator& EntityView::iterator::operator++()
     }
 
     m_id = 0;
-    m_scene = nullptr;
-    return *this; 
+    return *this;
 }
 
 // Scene
@@ -153,7 +166,7 @@ Entity Scene::FindByName(const std::string& name)
 
 EntityView Scene::Traverse()
 {
-    return EntityView(m_rootId, this);
+    return EntityView(Entity(m_rootId, this));
 }
 
 void Scene::Clear()

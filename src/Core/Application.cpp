@@ -76,7 +76,12 @@ Application::Application(int argc, char* argv[])
 
     for (Entity entity : m_scene->Traverse())
     {
-        LOG_INFO("Entity :  !");
+        LOG_INFO("Entity : %s !", entity.GetName().c_str());
+    }
+
+    for (Entity entity : EntityView(test1))
+    {
+        LOG_INFO("Entity : %s !", entity.GetName().c_str());
     }
 }
 

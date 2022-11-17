@@ -49,17 +49,14 @@ public:
 
     EntityView(const Entity& entity);
 
-    iterator begin() { return iterator(m_beginId, m_scene); }
-    iterator end()   { return iterator(0, nullptr); }
+    iterator begin() { return m_begin; }
+    iterator end()   { return m_end; }
 
 private:
-    EntityView(const uint32_t& entityId, Scene* scene) :
-            m_beginId(entityId), m_scene(scene) {}
+    EntityView(const uint32_t& beginId, const uint32_t& endId, Scene* scene);
 
-    uint32_t m_beginId;
-    Scene* m_scene;
-    
-    friend Scene;
+    iterator m_begin;
+    iterator m_end;
 };
 
 

@@ -13,7 +13,6 @@ class Entity
 public:
     ~Entity() = default;
 
-    bool IsValid() const;
     const std::string& GetName() const;
     Entity GetParent() const;
     void Remove();
@@ -33,6 +32,9 @@ public:
         return m_scene->m_index.FindComponent<ComponentType>(m_id);
     }
 
+    bool IsValid() const;
+    bool IsRoot() const;
+    
     inline Scene* GetScene() const { return m_scene; } 
 
     inline operator bool() { return IsValid(); }

@@ -40,6 +40,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           
                           src/Scene/Entity.cpp
                           src/Scene/EntityIndex.cpp
+                          src/Scene/EntityView.cpp
                           src/Scene/Scene.cpp
 
                           src/Resources/Model.cpp

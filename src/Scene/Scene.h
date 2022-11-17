@@ -49,9 +49,10 @@ public:
     Entity CreateEntity(const std::string& name);
     Entity CreateEntity(const std::string& name, const Entity& parent);
 
-    Entity CopyEntity(const Entity& entity);
+    Entity CopyEntity(const Entity& source, const std::string& name);
+    Entity CopyEntity(const Entity& source, const std::string& name, const Entity& parent);
 
-    const Entity& GetRootEntity() const;
+    Entity GetRootEntity();
     Entity FindByName(const std::string& name);
     
     void RemoveEntity(Entity& entity);
@@ -66,6 +67,9 @@ private:
     Entity CreateEntity(const std::string& name, const uint32_t& parent);
     const std::string& GetEntityName(const uint32_t& id);
     uint32_t GetEntityParent(const uint32_t& id);
+
+    void AddChild(const uint32_t& entity, const uint32_t& child);
+    uint32_t CopyEntity(const Entity& source, const uint32_t& parent, const uint32_t& nextSibling);
 
     EntityIndex m_index;
     uint32_t m_rootId;

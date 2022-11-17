@@ -74,15 +74,39 @@ Application::Application(int argc, char* argv[])
     Entity test4 = m_scene->CreateEntity("test4", test3);
     Entity test5 = m_scene->CreateEntity("test5", test3);
 
+    LOG_INFO("\n\nBase scene !\n");
     for (Entity entity : m_scene->Traverse())
     {
         LOG_INFO("Entity : %s !", entity.GetName().c_str());
     }
 
-    for (Entity entity : EntityView(test1))
+    auto prefab = Scene::Create();
+    Entity prefab0 = prefab->CreateEntity("prefab");
+    Entity prefab1 = prefab->CreateEntity("prefab1", prefab0);
+    Entity prefab2 = prefab->CreateEntity("prefab2", prefab0);
+    Entity prefab3 = prefab->CreateEntity("prefab3", prefab2);
+    Entity prefab4 = prefab->CreateEntity("prefab4", prefab1);
+    Entity prefab5 = prefab->CreateEntity("prefab5", prefab3);
+
+    LOG_INFO("\n\nPrefab scene !\n");
+    for (Entity entity : prefab->Traverse())
     {
         LOG_INFO("Entity : %s !", entity.GetName().c_str());
     }
+
+    Entity copied = m_scene->CopyEntity(prefab0, prefab0.GetName());
+
+    LOG_INFO("\n\nCopied scene !\n");
+    for (Entity entity : m_scene->Traverse())
+    {
+        LOG_INFO("Entity : %s !", entity.GetName().c_str());
+    }
+    LOG_INFO("\n\nCopied entity !\n");
+    for (Entity entity : EntityView(copied))
+    {
+        LOG_INFO("Entity : %s !", entity.GetName().c_str());
+    }
+    
 }
 
 

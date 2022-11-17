@@ -28,8 +28,8 @@ public:
     template<typename ComponentType, typename... Args>
     ComponentType& EmplaceComponent(const uint32_t& entity, Args&&... args)
     {
-        auto it = m_data.find(entity);
-        if (it == m_data.end()) 
+        auto it = m_dataMap.find(entity);
+        if (it == m_dataMap.end()) 
         {
             throw std::runtime_error("Access was made to a non-existing entity !");
         }
@@ -49,8 +49,8 @@ public:
     template<typename ComponentType>
     ComponentType& GetComponent(const uint32_t& entity) 
     {
-        auto it = m_data.find(entity);
-        if (it == m_data.end()) 
+        auto it = m_dataMap.find(entity);
+        if (it == m_dataMap.end()) 
         {
             throw std::runtime_error("Access was made to a non-existing entity !");
         }
@@ -69,8 +69,8 @@ public:
     template<typename ComponentType>
     ComponentType* FindComponent(const uint32_t& entity) const 
     {
-        auto it = m_data.find(entity);
-        if (it == m_data.end()) 
+        auto it = m_dataMap.find(entity);
+        if (it == m_dataMap.end()) 
         {
             return nullptr;
         }
@@ -89,8 +89,8 @@ public:
     template<typename ComponentType>
     void RemoveComponent(const uint32_t& entity) 
     {
-        auto it = m_data.find(entity);
-        if (it == m_data.end()) 
+        auto it = m_dataMap.find(entity);
+        if (it == m_dataMap.end()) 
         {
             return;
         }
@@ -109,11 +109,15 @@ public:
         }
     }
 
-    EntityDataMap& GetDataMap() { return m_data; }
+    bool HasData(const uint32_t& entity) { return m_dataMap.find(entity) != m_dataMap.end(); }
+    EntityData& GetData(const uint32_t& entity) { return m_dataMap.find(entity)->second; }
+    void SetData(const uint32_t& entity, const EntityData& data);
+
+    EntityDataMap& GetDataMap() { return m_dataMap; }
 
 private:
     uint32_t m_last_uuid = 0;
-    EntityDataMap m_data;
+    EntityDataMap m_dataMap;
 };
 
 

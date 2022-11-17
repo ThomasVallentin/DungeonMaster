@@ -11,10 +11,14 @@
 class Entity
 {
 public:
+    Entity() = default;
     ~Entity() = default;
 
     const std::string& GetName() const;
+
     Entity GetParent() const;
+    std::vector<Entity> GetChildren() const;
+    
     void Remove();
 
     template<typename ComponentType, typename... Args>
@@ -42,11 +46,10 @@ public:
     inline bool operator !=(const Entity& other) const { return m_id != other.m_id || m_scene != other.m_scene; }
 
 private:
-    Entity() : m_id(0), m_scene(nullptr) {}
     Entity(const uint32_t& id, Scene* scene) : m_id(id), m_scene(scene) {}
 
-    uint32_t m_id;
-    Scene* m_scene;
+    uint32_t m_id = 0;
+    Scene* m_scene = nullptr;
 
     friend Scene;
     friend class EntityView;

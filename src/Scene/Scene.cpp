@@ -32,17 +32,72 @@ Entity Scene::CreateEntity(const std::string& name, const uint32_t& parent)
     m_index.EmplaceComponent<BaseComponent>(id, name);
     m_index.EmplaceComponent<HierarchyComponent>(id, parent, 0, 0, 0);
 
-    HierarchyComponent& parentHierarchy = m_index.GetComponent<HierarchyComponent>(parent);
-    uint32_t* lastChild = &parentHierarchy.firstChild;
-    while (*lastChild) 
-    {
-        lastChild = &m_index.GetComponent<HierarchyComponent>(*lastChild).nextSibling;
-    }
-    *lastChild = id;
-
-    parentHierarchy.childCount += 1;
+    AddChild(parent, id);
 
     return Entity(id, this);
+}
+
+void Scene::AddChild(const uint32_t& entity, const uint32_t& child)
+{
+    HierarchyComponent& parentHierarchy = m_index.GetComponent<HierarchyComponent>(entity);
+    uint32_t* nextSibling = &parentHierarchy.firstChild;
+    while (*nextSibling) 
+    {
+        nextSibling = &m_index.GetComponent<HierarchyComponent>(*nextSibling).nextSibling;
+    }
+    *nextSibling = child;
+
+    parentHierarchy.childCount += 1;
+}
+
+Entity Scene::CopyEntity(const Entity& entity, const std::string& name) 
+{
+    return CopyEntity(entity, name, GetRootEntity());
+}
+
+Entity Scene::CopyEntity(const Entity& source, const std::string& name, const Entity& parent)
+{
+    if (parent.m_scene != this)
+    {
+        return Entity();
+    }
+    
+    uint32_t newEntity = CopyEntity(source, parent.m_id, 0);
+    m_index.GetComponent<BaseComponent>(newEntity).name = name;
+    
+    AddChild(parent.m_id, newEntity);
+
+    return Entity(newEntity, this);
+}
+
+uint32_t Scene::CopyEntity(const Entity& source, const uint32_t& parent, const uint32_t& nextSibling) 
+{
+    // Create new Entity and copy the source data into it
+    uint32_t newEntity = m_index.Create();
+    m_index.SetData(newEntity, source.m_scene->m_index.GetData(source.m_id));
+
+    // Reinitialize hierarchy (since the ids will be different)
+    auto& hierarchy = m_index.GetComponent<HierarchyComponent>(newEntity);
+    hierarchy = {parent, 0, 0, nextSibling};
+
+    // Appending each children in a reverse order to insert the siblings properly
+    auto sourceChildren = source.GetChildren();
+    std::reverse(sourceChildren.begin(), sourceChildren.end());
+    uint32_t childSibling = 0;
+    for (Entity child : sourceChildren)
+    {
+        childSibling = CopyEntity(child, newEntity, childSibling);
+        hierarchy.firstChild = childSibling;
+    }
+    
+    hierarchy.childCount = sourceChildren.size();
+
+    return newEntity;
+}
+
+Entity Scene::GetRootEntity()
+{
+    return Entity(m_rootId, this); 
 }
 
 void Scene::RemoveEntity(Entity& entity)
@@ -59,18 +114,21 @@ const std::string& Scene::GetEntityName(const uint32_t& id)
 uint32_t Scene::GetEntityParent(const uint32_t& id) 
 {
     if (id == m_rootId)
-        return Entity(0, nullptr);
+        return Entity();
 
     return m_index.GetComponent<HierarchyComponent>(id).parent;
 }
 
 Entity Scene::FindByName(const std::string& name)
 {
-    // for (auto& [id, nameComp] : m_index.Traverse<NameComponent>() ) {
-    //     if (nameComp.name == name) {
-    //         return Entity(id, this);
-    //     }
-    // }
+    for (Entity entity : Traverse() ) 
+    {
+        if (entity.GetName() == name) 
+        {
+            return entity;
+        }
+    }
+
     return Entity();
 }
 

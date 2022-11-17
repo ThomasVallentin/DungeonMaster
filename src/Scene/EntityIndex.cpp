@@ -23,19 +23,27 @@ EntityIndex::~EntityIndex()
 uint32_t EntityIndex::Create()
 {
     m_last_uuid += nextUuidDistrib(uuidRandomGenerator);
-    m_data.insert({m_last_uuid, {}});
+    m_dataMap.insert({m_last_uuid, {}});
 
     return m_last_uuid;
 }
 
 void EntityIndex::Remove(const uint32_t& entity)
 {
-    auto it = m_data.find(entity);
-    if (it != m_data.end()) {
-        m_data.erase(it);
+    auto it = m_dataMap.find(entity);
+    if (it != m_dataMap.end()) {
+        m_dataMap.erase(it);
     }
 }
 
 void EntityIndex::Clear() {
-    m_data.clear();
+    m_dataMap.clear();
+}
+
+void EntityIndex::SetData(const uint32_t& entity, const EntityData& data)
+{
+    auto it = m_dataMap.find(entity);
+    if (it != m_dataMap.end()) {
+        it->second = data;
+    }
 }

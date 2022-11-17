@@ -12,12 +12,7 @@ class Entity;
 DECLARE_PTR_TYPE(Scene);
 
 
-struct BaseComponent {
-    BaseComponent() = default;
-    BaseComponent(const std::string& name) : name(name) {}
 
-    std::string name;
-};
 
 
 // We are keeping a extra class between the Scene and the iterator to differenciate 
@@ -35,34 +30,33 @@ public:
         typedef Entity                    pointer;
         typedef Entity                    reference;
         
-        explicit iterator(const EntityDataMap::iterator& it, Scene* scene) : 
-            m_it(it), m_scene(scene) {}
+        explicit iterator(const uint32_t& entityId, Scene* scene) : 
+            m_id(entityId), m_scene(scene) {}
         
         reference operator->();
         pointer operator*() const;
 
-        iterator& operator++() { m_it++; return *this; }
+        iterator& operator++();
         iterator operator++(int) { iterator _tmp = *this; ++(*this); return _tmp; }
 
-        friend bool operator==(const iterator& it, const iterator& other) {return it.m_it == other.m_it; }
-        friend bool operator!=(const iterator& it, const iterator& other) {return it.m_it != other.m_it; }
+        friend bool operator==(const iterator& it, const iterator& other) {return it.m_id == other.m_id && it.m_scene == other.m_scene; }
+        friend bool operator!=(const iterator& it, const iterator& other) {return it.m_id != other.m_id || it.m_scene != other.m_scene; }
 
     private:
-        EntityDataMap::iterator m_it;
+        uint32_t m_id;
         Scene* m_scene;
     };
 
-    // EntityView(const Entity& entity);
+    EntityView(const Entity& entity);
 
-    iterator begin() { return iterator(m_begin, m_scene); }
-    iterator end()   { return iterator(m_end, nullptr); }
+    iterator begin() { return iterator(m_beginId, m_scene); }
+    iterator end()   { return iterator(0, nullptr); }
 
 private:
-    EntityView(const EntityDataMap::iterator& begin, const EntityDataMap::iterator& end, Scene* scene) :
-            m_begin(begin), m_end(end), m_scene(scene) {}
+    EntityView(const uint32_t& entityId, Scene* scene) :
+            m_beginId(entityId), m_scene(scene) {}
 
-    EntityDataMap::iterator m_begin;
-    EntityDataMap::iterator m_end;
+    uint32_t m_beginId;
     Scene* m_scene;
     
     friend Scene;
@@ -76,9 +70,14 @@ public:
 
     Entity CreateEntity();
     Entity CreateEntity(const std::string& name);
-    void RemoveEntity(Entity& entity);
+    Entity CreateEntity(const std::string& name, const Entity& parent);
 
+    Entity CopyEntity(const Entity& entity);
+
+    const Entity& GetRootEntity() const;
     Entity FindByName(const std::string& name);
+    
+    void RemoveEntity(Entity& entity);
     void Clear();
 
     EntityView Traverse();
@@ -86,11 +85,16 @@ public:
     static ScenePtr Create();
 
 private:
-    Scene() = default;
+    Scene();
+    Entity CreateEntity(const std::string& name, const uint32_t& parent);
+    const std::string& GetEntityName(const uint32_t& id);
+    uint32_t GetEntityParent(const uint32_t& id);
 
     EntityIndex m_index;
+    uint32_t m_rootId;
 
     friend Entity;
+    friend EntityView;
 };
 
 #endif  // SCENE_H

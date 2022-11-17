@@ -67,16 +67,16 @@ Application::Application(int argc, char* argv[])
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();
-    m_scene->CreateEntity("test");
-    m_scene->CreateEntity("test1");
-    m_scene->CreateEntity("test2");
-    m_scene->CreateEntity("test3");
-    m_scene->CreateEntity("test4");
-    m_scene->CreateEntity("test5");
+    Entity test = m_scene->CreateEntity("test");
+    Entity test1 = m_scene->CreateEntity("test1", test);
+    Entity test2 = m_scene->CreateEntity("test2", test1);
+    Entity test3 = m_scene->CreateEntity("test3", test);
+    Entity test4 = m_scene->CreateEntity("test4", test3);
+    Entity test5 = m_scene->CreateEntity("test5", test3);
 
     for (Entity entity : m_scene->Traverse())
     {
-        LOG_INFO("Entity : %s !", entity.GetName().c_str());
+        LOG_INFO("Entity :  !");
     }
 }
 

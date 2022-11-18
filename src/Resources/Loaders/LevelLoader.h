@@ -1,15 +1,15 @@
-#ifndef SCENELOADER_H
-#define SCENELOADER_H
+#ifndef LEVELLOADER_H
+#define LEVELLOADER_H
 
 #include "Resources/Resource.h"
 #include "Resources/Prefab.h"
 
 
-class SceneLoader
+class LevelLoader
 {
 public:
-    SceneLoader() = default;
-    ~SceneLoader() = default;
+    LevelLoader() = default;
+    ~LevelLoader() = default;
 
     ResourceHandle<Prefab> Load(const std::string& path);
 
@@ -17,4 +17,4 @@ private:
     ResourceHandle<Prefab> m_prefab;
 };
 
-#endif  // SCENELOADER_H
+#endif  // LEVELLOADER_H

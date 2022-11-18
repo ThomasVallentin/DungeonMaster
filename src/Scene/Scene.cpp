@@ -102,7 +102,16 @@ Entity Scene::GetRootEntity()
 
 void Scene::RemoveEntity(Entity& entity)
 {
-    m_index.Remove(entity.m_id);
+    EntityView view(entity);
+    std::vector<Entity> descendants;
+    std::copy(view.begin(), view.end(), std::back_inserter(descendants));
+    std::reverse(descendants.begin(), descendants.end());
+
+    for (auto& descendant : descendants)
+    {
+        m_index.Remove(entity.m_id);
+    }
+
     entity.m_id = 0;
 }
 

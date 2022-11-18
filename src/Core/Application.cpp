@@ -19,6 +19,7 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <glad/glad.h>
 
 #include <sstream>
@@ -61,52 +62,12 @@ Application::Application(int argc, char* argv[])
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(0.0f, 70.0f, 120.0f), 
-                                          glm::vec3(0.0f, 0.0f, 0.0f), 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(1200.0f, 800.0f, 1600.0f), 
+                                          glm::vec3(0.0f, 200.0f, 0.0f), 
                                           glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
-    m_scene = Scene::Create();
-    Entity test = m_scene->CreateEntity("test");
-    Entity test1 = m_scene->CreateEntity("test1", test);
-    Entity test2 = m_scene->CreateEntity("test2", test1);
-    Entity test3 = m_scene->CreateEntity("test3", test);
-    Entity test4 = m_scene->CreateEntity("test4", test3);
-    Entity test5 = m_scene->CreateEntity("test5", test3);
-
-    LOG_INFO("\n\nBase scene !\n");
-    for (Entity entity : m_scene->Traverse())
-    {
-        LOG_INFO("Entity : %s !", entity.GetName().c_str());
-    }
-
-    auto prefab = Scene::Create();
-    Entity prefab0 = prefab->CreateEntity("prefab");
-    Entity prefab1 = prefab->CreateEntity("prefab1", prefab0);
-    Entity prefab2 = prefab->CreateEntity("prefab2", prefab0);
-    Entity prefab3 = prefab->CreateEntity("prefab3", prefab2);
-    Entity prefab4 = prefab->CreateEntity("prefab4", prefab1);
-    Entity prefab5 = prefab->CreateEntity("prefab5", prefab3);
-
-    LOG_INFO("\n\nPrefab scene !\n");
-    for (Entity entity : prefab->Traverse())
-    {
-        LOG_INFO("Entity : %s !", entity.GetName().c_str());
-    }
-
-    Entity copied = m_scene->CopyEntity(prefab0, prefab0.GetName());
-
-    LOG_INFO("\n\nCopied scene !\n");
-    for (Entity entity : m_scene->Traverse())
-    {
-        LOG_INFO("Entity : %s !", entity.GetName().c_str());
-    }
-    LOG_INFO("\n\nCopied entity !\n");
-    for (Entity entity : EntityView(copied))
-    {
-        LOG_INFO("Entity : %s !", entity.GetName().c_str());
-    }
-    
+    m_scene = Scene::Create();   
 }
 
 
@@ -116,27 +77,11 @@ void Application::Run()
 
     auto& resolver = Resolver::Get(); 
 
-    ResourceManager::LoadScene(resolver.Resolve("Levels/Labyrinth.ppm"));
-    ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>("Levels/Labyrinth.ppm:Floor1");
+    // ResourceManager::LoadScene(resolver.Resolve("Levels/Labyrinth.ppm"));
+    // ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>("Levels/Labyrinth.ppm:Floor1");
 
-    ShaderPtr shader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                    resolver.Resolve("Shaders/default.frag"));
-
-    auto layout = shader->GetUniformBlockDescription("MaterialInputs");
-    for (const auto& attr : layout.uniforms)
-    {
-        LOG_INFO("%s, %u, %u, %u", attr.name.c_str(), attr.offset, attr.type, attr.count);
-    }
     
-    // ResourceHandle<Model> model = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
-    ResourceHandle<Texture> texture = ResourceManager::LoadTexture("Textures/Checker.jpg");
-
-    MaterialPtr material = Material::Create(shader);
-    material->SetInputValue<glm::vec3>("diffuseColor", {1.0, 1.0, 1.0});
-    material->SetInputTexture("diffuseColor", texture.Get()->GetId());
-    
-    MaterialPtr material2 = Material::Create(shader);
-    material2->SetInputValue<glm::vec3>("diffuseColor", {0.2, 0.2, 0.5});
+    ResourceHandle<Prefab> prefab = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (m_isRunning)
@@ -147,14 +92,46 @@ void Application::Run()
         // {
         //     script.OnUpdate();
         // }
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         m_renderBuffer->Bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Update game here
-        shader->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix());
+        for (Entity entity : EntityView(prefab.Get()->GetRootEntity()))
+        {
+            auto* meshComp = entity.FindComponent<MeshComponent>();
+            auto* meshRenderComp = entity.FindComponent<RenderMeshComponent>();
+            
+            if (meshComp && meshRenderComp)
+            {
+                glm::mat4 modelMatrix = glm::mat4(1.0f);
+                
+                Entity parent = entity;
+                while (parent)
+                {
+                    if (auto* transform = parent.FindComponent<TransformComponent>())
+                    {
+                        modelMatrix = modelMatrix * transform->transform;
+                    }
+                    parent = parent.GetParent();
+                }
+
+                auto material = meshRenderComp->material.Get();
+                auto mesh = meshComp->mesh.Get();
+
+                material->Bind();
+                material->ApplyUniforms();
+                material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
+                mesh->Bind();
+
+                glDrawElements(GL_TRIANGLES, 
+                               mesh->GetElementCount(),
+                               GL_UNSIGNED_INT,
+                               nullptr);
+            }
+
+        }
 
         int i = 0;
         // for (const auto& mesh : model.Get()->GetMeshes())
@@ -177,17 +154,17 @@ void Application::Run()
         //                 nullptr);
         //     i++;
         // }
-        material->Bind();
-        material->ApplyUniforms();
-        auto msh = mesh.Get();
-        msh->Bind();
+        // material->Bind();
+        // material->ApplyUniforms();
+        // auto msh = mesh.Get();
+        // msh->Bind();
 
-        glDrawElements(GL_TRIANGLES, 
-                       msh->GetElementCount(),
-                       GL_UNSIGNED_INT,
-                       nullptr);
+        // glDrawElements(GL_TRIANGLES, 
+        //                msh->GetElementCount(),
+        //                GL_UNSIGNED_INT,
+        //                nullptr);
 
-        m_camera->SetViewMatrix(glm::rotate(m_camera->GetViewMatrix(), 0.01f, glm::vec3(0, 1, 0)));
+        m_camera->SetViewMatrix(m_camera->GetViewMatrix());
         m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
         m_renderBuffer->Unbind();
 

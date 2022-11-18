@@ -6,6 +6,7 @@
 #include "Core/Foundations.h"
 
 class Prefab;
+class Entity;
 
 DECLARE_PTR_TYPE(Prefab);
 
@@ -17,6 +18,7 @@ public:
 
     const std::string& GetName() const { return m_name; }
     SceneWeakPtr GetInternalScene() const { return m_scene; }
+    Entity GetRootEntity() const;
 
     static PrefabPtr Create();
     static PrefabPtr Create(const std::string& name);

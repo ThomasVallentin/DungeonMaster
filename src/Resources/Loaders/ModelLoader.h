@@ -2,7 +2,13 @@
 #define MODELLOADER_H
 
 #include "Resources/Resource.h"
-#include "Resources/Model.h"
+#include "Resources/Prefab.h"
+
+class Material;
+
+class aiScene;
+class aiNode;
+class aiMesh;
 
 
 class ModelLoader 
@@ -11,19 +17,21 @@ public:
     ModelLoader() = default;
     ~ModelLoader() = default;
 
-    ResourceHandle<Model> Load(const std::string& path);
+    ResourceHandle<Prefab> Load(const std::string& path);
 
 private:
-    void ProcessAssimpMesh(aiMesh* aiMesh, 
-                           const glm::mat4& transform, 
-                           const std::string& identifier);
-    void ProcessAssimpNode(const aiNode* node, 
+    void ProcessNode(const aiNode* node, 
                            const aiScene* scene, 
-                           const glm::mat4& parentTransform,
-                           const std::string& parentIdentifier);
+                           const Entity& entity,
+                           const std::string& identifier);
+    void ProcessMesh(const aiMesh* aiMesh, 
+                           const Entity& entity,
+                           const std::string& identifier);
+    void ProcessMaterials(const aiScene* scene);
 
     std::string m_loadedIdentifier;
-    ResourceHandle<Model> m_model;
+    ResourceHandle<Prefab> m_prefab;
+    std::vector<ResourceHandle<Material>> m_materials;
     // std::vector<MaterialPtr> m_materials;
 };
 

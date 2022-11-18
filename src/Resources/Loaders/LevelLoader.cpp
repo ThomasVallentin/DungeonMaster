@@ -1,4 +1,4 @@
-#include "SceneLoader.h"
+#include "LevelLoader.h"
 
 #include "Core/Image.h"
 #include "Core/Logging.h"
@@ -58,7 +58,7 @@ void pushVertex(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, c
     }
 }
 
-ResourceHandle<Prefab> SceneLoader::Load(const std::string& path)
+ResourceHandle<Prefab> LevelLoader::Load(const std::string& path)
 {
     Resolver& resolver = Resolver::Get();
 

@@ -18,7 +18,8 @@ public:
 
     Entity GetParent() const;
     std::vector<Entity> GetChildren() const;
-    
+    Entity AddChild(const std::string& name) const;
+
     void Remove();
 
     template<typename ComponentType, typename... Args>

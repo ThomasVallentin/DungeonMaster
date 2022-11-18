@@ -67,7 +67,7 @@ public:
     }
 
     template<typename ComponentType>
-    ComponentType* FindComponent(const uint32_t& entity) const 
+    ComponentType* FindComponent(const uint32_t& entity) 
     {
         auto it = m_dataMap.find(entity);
         if (it == m_dataMap.end()) 
@@ -75,11 +75,11 @@ public:
             return nullptr;
         }
 
-        for (const auto& cmp : it->second) 
+        for (auto& cmp : it->second) 
         {
             if (cmp.type() == typeid(ComponentType)) 
             {
-                return &std::any_cast<ComponentType>(cmp);
+                return &std::any_cast<ComponentType&>(cmp);
             }
         }
 

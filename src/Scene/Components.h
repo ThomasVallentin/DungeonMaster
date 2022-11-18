@@ -14,13 +14,17 @@
 
 struct TransformComponent 
 {
-    glm::vec3 translate = {0.0f, 0.0f, 0.0f};
-    glm::vec3 rotate = {0.0f, 0.0f, 0.0f};
-    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+    TransformComponent() = default;
+    TransformComponent(const glm::mat4& transform) : transform(transform) {}
+
+    glm::mat4 transform{1.0f};
 };
 
 struct MeshComponent
 {
+    MeshComponent() = default;
+    MeshComponent(const ResourceHandle<Mesh>& mesh) : mesh(mesh) {}
+
     ResourceHandle<Mesh> mesh;
 };
 
@@ -28,7 +32,10 @@ struct MeshComponent
 
 struct RenderMeshComponent
 {
-    // ResourceHandle<Material> material;
+    RenderMeshComponent() = default;
+    RenderMeshComponent(const ResourceHandle<Material>& material) : material(material) {}
+
+    ResourceHandle<Material> material;
     // bool castShadows;
     // bool receiveShadows;
 };
@@ -37,6 +44,7 @@ struct RenderMeshComponent
 class ScriptedComponent 
 {
 public:
+    ScriptedComponent() = default;
     ScriptedComponent(const Entity& entity) : m_entity(entity) {}
 
     virtual void OnCreate() {};

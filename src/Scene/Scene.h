@@ -54,7 +54,7 @@ public:
 
     Entity GetRootEntity();
     Entity FindByName(const std::string& name);
-    
+
     void RemoveEntity(Entity& entity);
     void Clear();
 

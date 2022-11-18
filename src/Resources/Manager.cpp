@@ -1,7 +1,7 @@
 #include "Manager.h"
 
 #include "Loaders/ModelLoader.h"
-#include "Loaders/SceneLoader.h"
+#include "Loaders/LevelLoader.h"
 
 #include "Core/Application.h"
 #include "Core/Resolver.h"
@@ -12,12 +12,12 @@
 #include <filesystem>
 
 
-ResourceHandle<Model> ResourceManager::LoadModel(const std::string& path) 
+ResourceHandle<Prefab> ResourceManager::LoadModel(const std::string& path) 
 {
     auto& resolver = Resolver::Get();
 
     std::string identifier = resolver.AsIdentifier(path);
-    if (auto handle = GetResource<Model>(identifier)) 
+    if (auto handle = GetResource<Prefab>(identifier)) 
     {
         return handle;
     }
@@ -56,6 +56,6 @@ ResourceHandle<Prefab> ResourceManager::LoadScene(const std::string& path)
         return handle;
     }
 
-    SceneLoader loader;
+    LevelLoader loader;
     return loader.Load(identifier);
 }

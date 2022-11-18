@@ -32,6 +32,11 @@ std::vector<Entity> Entity::GetChildren() const
     return children;
 }
 
+Entity Entity::AddChild(const std::string& name) const
+{
+    return m_scene->CreateEntity(name, *this);
+}
+
 void Entity::Remove()
 {
     m_scene->RemoveEntity(*this);

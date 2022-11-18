@@ -75,7 +75,7 @@ public:
             handle.m_resource = it->second;
     }
 
-    static ResourceHandle<Model> LoadModel(const std::string& path);
+    static ResourceHandle<Prefab> LoadModel(const std::string& path);
     static ResourceHandle<Texture> LoadTexture(const std::string& path);
     static ResourceHandle<Prefab> LoadScene(const std::string& path);
 

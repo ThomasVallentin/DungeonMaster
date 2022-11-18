@@ -12,7 +12,7 @@ public:
         fprintf(stdout, (std::string("DEBUG :   ") + format + "\n").c_str(), args...);
     }
     inline void static debug(const char* message) {
-        fprintf(stderr, (std::string("DEBUG :   ") + message + "\n").c_str());
+        fprintf(stdout, (std::string("DEBUG :   ") + message + "\n").c_str());
     }
 
     template<typename... Args>
@@ -20,12 +20,12 @@ public:
         fprintf(stdout, (std::string("INFO :    ") + format + "\n").c_str(), args...);
     }
     inline void static info(const char* message) {
-        fprintf(stderr, (std::string("INFO :    ") + message + "\n").c_str());
+        fprintf(stdout, (std::string("INFO :    ") + message + "\n").c_str());
     }
 
     template<typename... Args>
     inline void static warning(const char* format, const Args &... args) {
-        fprintf(stdout, (std::string("WARNING : ") + format + "\n").c_str(), args...);
+        fprintf(stderr, (std::string("WARNING : ") + format + "\n").c_str(), args...);
     }
     inline void static warning(const char* message) {
         fprintf(stderr, (std::string("WARNING : ") + message + "\n").c_str());
@@ -33,7 +33,7 @@ public:
 
     template<typename... Args>
     inline void static error(const char* format, const Args &... args) {
-        fprintf(stdout, (std::string("ERROR :  ") + format + "\n").c_str(), args...);
+        fprintf(stderr, (std::string("ERROR :  ") + format + "\n").c_str(), args...);
     }
     inline void static error(const char* message) {
         fprintf(stderr, (std::string("ERROR :  ") + message + "\n").c_str());

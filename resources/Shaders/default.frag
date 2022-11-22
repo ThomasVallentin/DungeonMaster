@@ -50,8 +50,9 @@ vec3 SampleAmbient()
 
 void main() 
 {
-    fFragColor = vec4(SampleDiffuse(), 1.0);
+    // fFragColor = vec4(SampleDiffuse(), 1.0);
+    fFragColor = vec4(SampleDiffuse() * dot(-normalize(uLightDirection), normalize(vNormal)) + SampleAmbient(), 1.0);
+    fFragColor = pow(fFragColor, vec4(1/2.2, 1/2.2, 1/2.2, 1.0));
     
-
     // fFragColor = vec4(exponentialFog(color, vDepth), 1.0);
 }

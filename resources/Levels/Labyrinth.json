@@ -1,0 +1,61 @@
+{
+    "name": "Labyrinth",
+    "floors": [
+        {
+            "name": "First floor",
+            "map": "Labyrinth.ppm",
+            "rewards": [
+                {
+                    "id": 1,
+                    "name": "Long Sword",
+                    "origin": [30, 50],
+                    "model": "Models/Sting-Sword.fbx",
+
+                    "type": "weapon",
+                    "damage": 10
+                },
+                {
+                    "id": 2,
+                    "name": "Strange Mixture",
+                    "origin": [220, 10],
+                    "model": "Models/Potion.obj",
+
+                    "type": "heal",
+                    "healing": 20
+                }
+            ],
+            "monsters": [
+                {
+                    "id": 1,
+                    "name": "Khrryh",
+                    "origin": [10, 5],
+                    "model": "Models/Gobelin.obj",
+
+                    "health": 25,
+                    "strength": 2,
+                    "speed": 4
+                },
+                {
+                    "id": 1,
+                    "name": "Akharr",
+                    "origin": [10, 5],
+                    "model": "Models/Gobelin.obj",
+
+                    "health": 20,
+                    "speed": 4,
+                    "strength": 3
+                },
+                {
+                    "id": 2,
+                    "name": "Sbrrrgl the hot",
+                    "origin": [7, 8],
+                    "model": "Models/Fire_Elemental.obj",
+
+                    "health": 45,
+                    "strength": 8,
+                    "speed": 2
+                }
+            ]
+        }
+    ]
+}

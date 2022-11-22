@@ -1,0 +1,8 @@
+{
+    "vertexShader":   "default.vert",
+    "fragmentShader": "default.frag",
+    "textureMappings": {
+        "diffuseColor": 0,
+        "ambientColor": 1
+    }
+}

@@ -6,7 +6,7 @@
 
 // Very (very) basic UUID system based on a random seed and a random increment each time an entity is created.
 static std::random_device uuidRandomGenerator;
-static std::uniform_int_distribution<uint32_t> nextUuidDistrib(0, 1024);
+static std::uniform_int_distribution<uint32_t> nextUuidDistrib(1, 1024);
 
 
 EntityIndex::EntityIndex()

@@ -46,12 +46,12 @@ ResourceHandle<Texture> ResourceManager::LoadTexture(const std::string& path)
 }
 
 
-ResourceHandle<Prefab> ResourceManager::LoadScene(const std::string& path) 
+ResourceHandle<Scene> ResourceManager::LoadLevel(const std::string& path) 
 {
     auto& resolver = Resolver::Get();
 
     std::string identifier = resolver.AsIdentifier(path);
-    if (auto handle = GetResource<Prefab>(identifier)) 
+    if (auto handle = GetResource<Scene>(identifier)) 
     {
         return handle;
     }

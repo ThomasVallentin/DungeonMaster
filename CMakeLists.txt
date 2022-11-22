@@ -47,7 +47,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Resources/Manager.cpp
                           src/Resources/Prefab.cpp
                           src/Resources/Loaders/ModelLoader.cpp
-                          src/Resources/Loaders/SceneLoader.cpp
+                          src/Resources/Loaders/LevelLoader.cpp
                           
                           src/Utils/FileUtils.cpp
                           src/Utils/TypeUtils.cpp

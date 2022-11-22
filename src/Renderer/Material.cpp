@@ -35,7 +35,7 @@ void Material::Unbind() const
     m_shader->Unbind();
 }
 
-void Material::SetInputTexture(const std::string& name, const uint32_t& textureId)
+void Material::SetInputTexture(const std::string& name, const TexturePtr& texture)
 {
     std::string useTextureName = name + "UseTexture";
     for (auto uniform=m_uniformBlock.uniforms.begin() ; uniform != m_uniformBlock.uniforms.end() ; uniform++)
@@ -52,7 +52,7 @@ void Material::SetInputTexture(const std::string& name, const uint32_t& textureI
     const auto binding = MATERIAL_TEXTURE_MAPPING.find(name);
     if (binding != MATERIAL_TEXTURE_MAPPING.end())
     {
-        m_textureBindings[binding->second] = textureId;
+        m_textureBindings[binding->second] = texture->GetId();
     }
 }
 

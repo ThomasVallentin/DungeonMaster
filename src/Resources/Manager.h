@@ -77,7 +77,7 @@ public:
 
     static ResourceHandle<Prefab> LoadModel(const std::string& path);
     static ResourceHandle<Texture> LoadTexture(const std::string& path);
-    static ResourceHandle<Prefab> LoadScene(const std::string& path);
+    static ResourceHandle<Scene> LoadLevel(const std::string& path);
 
 private:
 

@@ -62,9 +62,9 @@ Application::Application(int argc, char* argv[])
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(1200.0f, 800.0f, 1600.0f), 
-                                          glm::vec3(0.0f, 200.0f, 0.0f), 
-                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(20.0f, 10.0f, -40.0f), 
+                                          glm::vec3(20.0f, 0.0f, -40.0f), 
+                                          glm::vec3(0.0f, 0.0f, -1.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();   
@@ -77,11 +77,15 @@ void Application::Run()
 
     auto& resolver = Resolver::Get(); 
 
-    // ResourceManager::LoadScene(resolver.Resolve("Levels/Labyrinth.ppm"));
+    auto scene = ResourceManager::LoadLevel("Levels/Labyrinth.json");
+    for (Entity entity : scene.Get()->Traverse())
+    {
+        LOG_INFO("Entity : %s", entity.GetName().c_str());
+    }
     // ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>("Levels/Labyrinth.ppm:Floor1");
 
     
-    ResourceHandle<Prefab> prefab = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
+    // ResourceHandle<Prefab> prefab = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (m_isRunning)
@@ -98,7 +102,7 @@ void Application::Run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Update game here
-        for (Entity entity : EntityView(prefab.Get()->GetRootEntity()))
+        for (Entity entity : scene.Get()->Traverse())
         {
             auto* meshComp = entity.FindComponent<MeshComponent>();
             auto* meshRenderComp = entity.FindComponent<RenderMeshComponent>();
@@ -112,7 +116,7 @@ void Application::Run()
                 {
                     if (auto* transform = parent.FindComponent<TransformComponent>())
                     {
-                        modelMatrix = modelMatrix * transform->transform;
+                        modelMatrix = transform->transform * modelMatrix;
                     }
                     parent = parent.GetParent();
                 }
@@ -133,7 +137,6 @@ void Application::Run()
 
         }
 
-        int i = 0;
         // for (const auto& mesh : model.Get()->GetMeshes())
         // {
         //     mesh.Get()->Bind();
@@ -174,6 +177,28 @@ void Application::Run()
         titleStream << std::fixed << std::setprecision(2);
         titleStream << "Dungeon Master | " << (GetCurrentTime() - time) * 1000 << "ms/frame";
         m_window->SetTitle(titleStream.str());
+
+
+        // Update camera
+        float cameraSpeed = 0.5f;
+        auto viewMatrix = m_camera->GetViewMatrix();
+        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            viewMatrix = glm::translate(viewMatrix, {0.0f, 0.0f, cameraSpeed});
+        }
+        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            viewMatrix = glm::translate(viewMatrix, {0.0f, 0.0f, -cameraSpeed});
+        }
+        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
+        {
+            viewMatrix = glm::translate(viewMatrix, {cameraSpeed, 0.0f, 0.0f});
+        }
+        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
+        {
+            viewMatrix = glm::translate(viewMatrix, {-cameraSpeed, 0.0f, 0.0f});
+        }
+        m_camera->SetViewMatrix(viewMatrix);
     }
 }
 
@@ -196,7 +221,17 @@ void Application::OnEvent(Event* event)
             m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
             break;
         }
+
+        case EventType::MouseScrolled:
+        {
+            MouseScrolledEvent* scrollEvent = dynamic_cast<MouseScrolledEvent*>(event);
+            auto viewMatrix = glm::translate(m_camera->GetViewMatrix(), glm::vec3(0, scrollEvent->GetOffsetY(), 0));
+            m_camera->SetViewMatrix(viewMatrix);
+            break;
+        }
+
     }
+
 
     // for (auto& [entity, script] : m_scene.Traverse<ScriptedComponent>())
     // {

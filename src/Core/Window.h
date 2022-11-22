@@ -40,6 +40,8 @@ public:
 
     void SetTitle(const std::string& title);
 
+    inline GLFWwindow* GetInternalWindow() const { return m_window; }
+
 private:
     void OnEvent(Event& event);
 

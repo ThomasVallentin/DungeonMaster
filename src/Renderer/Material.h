@@ -29,7 +29,7 @@ public:
     inline ShaderPtr GetShader() const { return m_shader; }
     inline UniformBufferPtr GetUniformBuffer() const { return m_uniformBuffer; }
 
-    void SetInputTexture(const std::string& name, const uint32_t& textureId);
+    void SetInputTexture(const std::string& name, const TexturePtr& texture);
     void RemoveInputTexture(const std::string& name);
     
     template <typename T>

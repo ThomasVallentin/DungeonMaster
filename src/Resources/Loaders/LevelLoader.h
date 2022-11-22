@@ -11,10 +11,10 @@ public:
     LevelLoader() = default;
     ~LevelLoader() = default;
 
-    ResourceHandle<Prefab> Load(const std::string& path);
+    ResourceHandle<Scene> Load(const std::string& path);
 
 private:
-    ResourceHandle<Prefab> m_prefab;
+    ResourceHandle<Scene> m_scene;
 };
 
 #endif  // LEVELLOADER_H

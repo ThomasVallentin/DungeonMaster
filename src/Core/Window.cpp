@@ -76,7 +76,7 @@ Window::Window(const WindowSettings& settings) :
     {
         switch (action) {
             case GLFW_PRESS: {
-                MouseButtonReleasedEvent event(button, mods);
+                MouseButtonPressedEvent event(button, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
@@ -93,12 +93,12 @@ Window::Window(const WindowSettings& settings) :
         switch (action) {
             case GLFW_PRESS:
             case GLFW_REPEAT: {
-                MouseButtonReleasedEvent event(key, mods);
+                KeyPressedEvent event(key, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
             case GLFW_RELEASE: {
-                MouseButtonReleasedEvent event(key, mods);
+                KeyReleasedEvent event(key, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }

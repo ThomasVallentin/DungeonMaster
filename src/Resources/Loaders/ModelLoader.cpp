@@ -89,8 +89,8 @@ void ModelLoader::ProcessMesh(const aiMesh *aiMesh,
     MeshPtr mesh = meshHandle.Get();
     mesh->SetVertices(vertices);
     mesh->SetIndices(indices);
-    entity.EmplaceComponent<MeshComponent>(meshHandle);
-    entity.EmplaceComponent<RenderMeshComponent>(m_materials[aiMesh->mMaterialIndex]);
+    entity.EmplaceComponent<Components::Mesh>(meshHandle);
+    entity.EmplaceComponent<Components::RenderMesh>(m_materials[aiMesh->mMaterialIndex]);
 }
 
 void ModelLoader::ProcessNode(const aiNode *node,
@@ -99,7 +99,7 @@ void ModelLoader::ProcessNode(const aiNode *node,
                               const std::string &identifier)
 {
     std::string currentIdentifier = identifier + "/" + node->mName.C_Str();
-    entity.EmplaceComponent<TransformComponent>(glm::transpose(glm::make_mat4(&node->mTransformation.a1)));
+    entity.EmplaceComponent<Components::Transform>(glm::transpose(glm::make_mat4(&node->mTransformation.a1)));
 
     // One mesh, adding its info to the current Entity
     if (node->mNumMeshes == 1)

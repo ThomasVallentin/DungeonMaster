@@ -3,37 +3,43 @@
 
 
 #include "Scene/Entity.h"
+#include "Scene/ScriptEngine.h"
 
 #include "Core/Event.h"
 #include "Core/Logging.h"
 
 #include "Resources/Manager.h"
 
+#include "Renderer/Camera.h"
+
 #include <functional>
+#include <any>
 
 
-struct TransformComponent 
+namespace Components {
+
+
+struct Transform 
 {
-    TransformComponent() = default;
-    TransformComponent(const glm::mat4& transform) : transform(transform) {}
+    Transform() = default;
+    Transform(const glm::mat4& transform) : transform(transform) {}
 
     glm::mat4 transform{1.0f};
 };
 
-struct MeshComponent
-{
-    MeshComponent() = default;
-    MeshComponent(const ResourceHandle<Mesh>& mesh) : mesh(mesh) {}
 
-    ResourceHandle<Mesh> mesh;
+struct Mesh
+{
+    Mesh() = default;
+    Mesh(const ResourceHandle<::Mesh>& mesh) : mesh(mesh) {}
+
+    ResourceHandle<::Mesh> mesh;
 };
 
-
-
-struct RenderMeshComponent
+struct RenderMesh
 {
-    RenderMeshComponent() = default;
-    RenderMeshComponent(const ResourceHandle<Material>& material) : material(material) {}
+    RenderMesh() = default;
+    RenderMesh(const ResourceHandle<Material>& material) : material(material) {}
 
     ResourceHandle<Material> material;
     // bool castShadows;
@@ -41,35 +47,90 @@ struct RenderMeshComponent
 };
 
 
-class ScriptedComponent 
+typedef std::function<void(const Entity&, std::any&)>         OnCreateFn;
+typedef std::function<void(const Entity&, std::any&)>         OnUpdateFn;
+typedef std::function<void(Event*, const Entity&, std::any&)> OnEventFn;
+
+
+class Script 
 {
 public:
-    ScriptedComponent() = default;
-    ScriptedComponent(const Entity& entity) : m_entity(entity) {}
+    Script() = default;
+    Script(const std::string& name,
+           const Entity& entity,
+           const OnCreateFn& onCreate,
+           const OnUpdateFn& onUpdate,
+           const OnEventFn& onEvent) : 
+            m_name(name), 
+            m_entity(entity), 
+            m_onCreateFn(onCreate), 
+            m_onUpdateFn(onUpdate),
+            m_onEventFn(onEvent) 
+    {
+        ScriptEngine::Get().Register(this);
+        OnCreate();
+    }
 
-    virtual void OnCreate() {};
-    virtual void OnUpdate() {};
-    virtual void OnEvent(Event* event) {};
-    virtual void OnRemove() {};
+    Script(const Script& other) :
+           m_name(other.m_name), 
+           m_dataBlock(other.m_dataBlock),
+           m_entity(other.m_entity), 
+           m_onCreateFn(other.m_onCreateFn), 
+           m_onUpdateFn(other.m_onUpdateFn),
+           m_onEventFn(other.m_onEventFn)
+    {
+        ScriptEngine::Get().Register(this);
+    }
 
-protected:
+    ~Script()
+    {
+        ScriptEngine::Get().Deregister(this);
+    }
+
+    inline const std::string& GetName() const 
+    {
+        return m_name;
+    }
+
+    inline void OnCreate() 
+    {
+        if (m_onCreateFn)
+            m_onCreateFn(m_entity, m_dataBlock);
+    }
+
+    inline void OnUpdate()
+    {
+        if (m_onUpdateFn)
+            m_onUpdateFn(m_entity, m_dataBlock);
+    }
+
+    inline void OnEvent(Event* event)
+    {
+        if (m_onEventFn)
+            m_onEventFn(event, m_entity, m_dataBlock);
+    }
+
+private:
+    std::string m_name; 
+    std::any m_dataBlock;
     Entity m_entity;
+
+    OnCreateFn m_onCreateFn;
+    OnUpdateFn m_onUpdateFn;
+    OnEventFn m_onEventFn;
 };
 
 
-class DebugComponent : public ScriptedComponent 
+struct CameraComponent
 {
-public:
-    DebugComponent(const Entity& entity) : ScriptedComponent(entity) {}
+    CameraComponent() = default;
+    CameraComponent(const ProjectionSpecs& specs) : specs(specs) {}
 
-    void OnUpdate() override {
-        LOG_INFO("Updating entity %s", m_entity.GetName().c_str());
-    }
-
-    void OnEvent(Event* event) override {
-        LOG_INFO("Entity %s received event %s", m_entity.GetName().c_str(), event->GetName());
-    }
+    ProjectionSpecs specs;
 };
 
 
-#endif // BASICCOMPONENTS_H
+} // Namespace Components::
+
+
+#endif  // BASICCOMPONENTS_H

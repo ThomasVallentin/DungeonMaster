@@ -8,6 +8,7 @@
 
 #include "Scene/Entity.h"
 #include "Scene/Components/Basics.h"
+#include "Scene/Components/Game.h"
 
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
@@ -60,10 +61,11 @@ Application::Application(int argc, char* argv[])
     std::string appPath = argv[0];
     Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
-    m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
+    ScriptEngine::Init();
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(20.0f, 0.5f, 4.0f), 
-                                          glm::vec3(20.0f, 0.5f, 0.0f), 
+    m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(10.0f, 0.5f, 4.0f), 
+                                          glm::vec3(10.0f, 0.5f, 0.0f), 
                                           glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
@@ -77,8 +79,14 @@ void Application::Run()
 
     auto& resolver = Resolver::Get(); 
 
-    auto scene = ResourceManager::LoadLevel("Levels/Labyrinth.json");
-    // for (Entity entity : scene.Get()->Traverse())
+    m_scene = ResourceManager::LoadLevel("Levels/Labyrinth.json").Get();
+
+    // Character controller
+    Entity player = m_scene->CreateEntity("Player");
+    player.EmplaceComponent<Components::Transform>();
+    auto& controller = player.EmplaceComponent<Components::Script>(Components::CreateCharacterController(player));
+    
+    // for (Entity entity : m_scene.Get()->Traverse())
     // {
     //     LOG_INFO("Entity : %s", entity.GetName().c_str());
     // }
@@ -88,83 +96,73 @@ void Application::Run()
     {
         double time = GetCurrentTime();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        m_renderBuffer->Bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        // Update game here
-        for (Entity entity : scene.Get()->Traverse())
-        {
-            auto* meshComp = entity.FindComponent<MeshComponent>();
-            auto* meshRenderComp = entity.FindComponent<RenderMeshComponent>();
-            
-            if (meshComp && meshRenderComp)
-            {
-                glm::mat4 modelMatrix = glm::mat4(1.0f);
-                    
-                Entity parent = entity;
-                while (parent)
-                {
-                    if (auto* transform = parent.FindComponent<TransformComponent>())
-                    {
-                        modelMatrix = transform->transform * modelMatrix;
-                    }
-                    parent = parent.GetParent();
-                }
-
-                auto material = meshRenderComp->material.Get();
-                auto mesh = meshComp->mesh.Get();
-
-                material->Bind();
-                material->ApplyUniforms();
-                material->GetShader()->SetMat4("uModelViewMatrix", m_camera->GetViewMatrix() * modelMatrix);
-                material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(m_camera->GetViewMatrix()) * glm::mat3(modelMatrix))));
-                material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
-                material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3));  // Flicking torch effect
-                mesh->Bind();
-
-                glDrawElements(GL_TRIANGLES, 
-                               mesh->GetElementCount(),
-                               GL_UNSIGNED_INT,
-                               nullptr);
-            }
-
-        }
-
-        m_camera->SetViewMatrix(m_camera->GetViewMatrix());
-        m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
-        m_renderBuffer->Unbind();
-
+        OnUpdate();
         m_window->OnUpdate();
         
         std::ostringstream titleStream;
         titleStream << std::fixed << std::setprecision(2);
         titleStream << "Dungeon Master | " << (GetCurrentTime() - time) * 1000 << "ms/frame";
         m_window->SetTitle(titleStream.str());
-
-
-        // Update camera
-        float cameraSpeed = 0.5f;
-        auto viewMatrix = m_camera->GetViewMatrix();
-        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_UP) == GLFW_PRESS)
-        {
-            viewMatrix = glm::translate(viewMatrix, {0.0f, 0.0f, cameraSpeed});
-        }
-        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_DOWN) == GLFW_PRESS)
-        {
-            viewMatrix = glm::translate(viewMatrix, {0.0f, 0.0f, -cameraSpeed});
-        }
-        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_LEFT) == GLFW_PRESS)
-        {
-            viewMatrix = glm::translate(viewMatrix, {cameraSpeed, 0.0f, 0.0f});
-        }
-        if (glfwGetKey(m_window->GetInternalWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS)
-        {
-            viewMatrix = glm::translate(viewMatrix, {-cameraSpeed, 0.0f, 0.0f});
-        }
-        m_camera->SetViewMatrix(viewMatrix);
     }
+}
+
+void Application::OnUpdate() 
+{
+    double time = GetCurrentTime();
+
+    // Updating Scripts
+    ScriptEngine::Get().OnUpdate();
+
+    // Rendering part, should be handled by a separated Renderer class
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    m_renderBuffer->Bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    // Update game here
+    for (Entity entity : m_scene->Traverse())
+    {
+        auto* meshComp = entity.FindComponent<Components::Mesh>();
+        auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
+        
+        if (meshComp && meshRenderComp)
+        {
+            glm::mat4 modelMatrix = glm::mat4(1.0f);
+                
+            Entity parent = entity;
+            while (parent)
+            {
+                if (auto* transform = parent.FindComponent<Components::Transform>())
+                {
+                    modelMatrix = transform->transform * modelMatrix;
+                }
+                parent = parent.GetParent();
+            }
+
+            auto material = meshRenderComp->material.Get();
+            auto mesh = meshComp->mesh.Get();
+
+            // TODO: Insert culling here
+
+            material->Bind();
+            material->ApplyUniforms();
+            material->GetShader()->SetMat4("uModelViewMatrix", m_camera->GetViewMatrix() * modelMatrix);
+            material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(m_camera->GetViewMatrix()) * glm::mat3(modelMatrix))));
+            material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
+            material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3));  // Flicking torch effect
+            mesh->Bind();
+
+            glDrawElements(GL_TRIANGLES, 
+                            mesh->GetElementCount(),
+                            GL_UNSIGNED_INT,
+                            nullptr);
+        }
+
+    }
+
+    m_camera->SetViewMatrix(m_camera->GetViewMatrix());
+    m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
+    m_renderBuffer->Unbind();
 }
 
 void Application::OnEvent(Event* event)
@@ -186,22 +184,10 @@ void Application::OnEvent(Event* event)
             m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
             break;
         }
-
-        case EventType::MouseScrolled:
-        {
-            MouseScrolledEvent* scrollEvent = dynamic_cast<MouseScrolledEvent*>(event);
-            auto viewMatrix = glm::translate(m_camera->GetViewMatrix(), glm::vec3(0, scrollEvent->GetOffsetY(), 0));
-            m_camera->SetViewMatrix(viewMatrix);
-            break;
-        }
-
     }
 
-
-    // for (auto& [entity, script] : m_scene.Traverse<ScriptedComponent>())
-    // {
-    //     script.OnEvent(event);
-    // }
+    // Sending events to the scripted components
+    ScriptEngine::Get().OnEvent(event);
 }
 
 double Application::GetCurrentTime()

@@ -83,13 +83,13 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
 
             // Floor entity
             Entity cell = prefabScene->CreateEntity(std::string("Cell") + std::to_string(x) + std::to_string(y));
-            cell.EmplaceComponent<TransformComponent>(glm::translate(glm::mat4(1.0f), glm::vec3(x, 0, -y)));
-            cell.EmplaceComponent<MeshComponent>(mesh);
-            cell.EmplaceComponent<RenderMeshComponent>(floorMat);
+            cell.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(x, 0, -y)));
+            cell.EmplaceComponent<Components::Mesh>(mesh);
+            cell.EmplaceComponent<Components::RenderMesh>(floorMat);
 
             // Ceiling entity
             // Entity ceiling = prefabScene->CreateEntity(std::string("Cell") + std::to_string(x) + std::to_string(y));
-            // ceiling.EmplaceComponent<TransformComponent>(
+            // ceiling.EmplaceComponent<Components::Transform>(
             //     glm::rotate(
             //         glm::translate(
             //             glm::mat4(1.0f), 
@@ -97,14 +97,14 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
             //         (float)M_PI, 
             //         glm::vec3(1.0f, 0.0f, 0.0f)
             // ));            
-            // ceiling.EmplaceComponent<MeshComponent>(mesh);
-            // ceiling.EmplaceComponent<RenderMeshComponent>(floorMat);
+            // ceiling.EmplaceComponent<Components::Mesh>(mesh);
+            // ceiling.EmplaceComponent<Components::RenderMesh>(floorMat);
 
             // Wall entity(ies)
             if (!IsFull(GetPixel(pixels, x-1, y, width, height)))
             {
                 Entity wall = prefabScene->CreateEntity("leftWall", cell);
-                wall.EmplaceComponent<TransformComponent>(
+                wall.EmplaceComponent<Components::Transform>(
                     glm::rotate(
                         glm::translate(
                             glm::rotate(
@@ -115,14 +115,14 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
                         (float)M_PI_2, 
                         glm::vec3(1, 0, 0)
                 ));
-                wall.EmplaceComponent<MeshComponent>(mesh);
-                wall.EmplaceComponent<RenderMeshComponent>(wallMat);
+                wall.EmplaceComponent<Components::Mesh>(mesh);
+                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
             }
             
             if (!IsFull(GetPixel(pixels, x+1, y, width, height)))
             {
                 Entity wall = prefabScene->CreateEntity("rightWall", cell);
-                wall.EmplaceComponent<TransformComponent>(
+                wall.EmplaceComponent<Components::Transform>(
                     glm::rotate(
                         glm::translate(
                             glm::rotate(
@@ -133,14 +133,14 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
                         (float)M_PI_2, 
                         glm::vec3(1, 0, 0)
                 ));
-                wall.EmplaceComponent<MeshComponent>(mesh);
-                wall.EmplaceComponent<RenderMeshComponent>(wallMat);
+                wall.EmplaceComponent<Components::Mesh>(mesh);
+                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
             }
 
             if (!IsFull(GetPixel(pixels, x, y+1, width, height)))
             {
                 Entity wall = prefabScene->CreateEntity("topWall", cell);
-                wall.EmplaceComponent<TransformComponent>(
+                wall.EmplaceComponent<Components::Transform>(
                     glm::rotate(
                         glm::translate(
                             glm::mat4(1.0f), 
@@ -148,14 +148,14 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
                         (float)M_PI_2, 
                         glm::vec3(1, 0, 0)
                 ));
-                wall.EmplaceComponent<MeshComponent>(mesh);
-                wall.EmplaceComponent<RenderMeshComponent>(wallMat);
+                wall.EmplaceComponent<Components::Mesh>(mesh);
+                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
             }
 
             if (!IsFull(GetPixel(pixels, x, y-1, width, height)))
             {
                 Entity wall = prefabScene->CreateEntity("bottomWall", cell);
-                wall.EmplaceComponent<TransformComponent>(
+                wall.EmplaceComponent<Components::Transform>(
 
                                     glm::rotate(
                         glm::translate(
@@ -167,8 +167,8 @@ ResourceHandle<Prefab> BuildLevelMap(const std::string& path)
                         (float)M_PI_2, 
                         glm::vec3(1, 0, 0)
                 ));
-                wall.EmplaceComponent<MeshComponent>(mesh);
-                wall.EmplaceComponent<RenderMeshComponent>(wallMat);
+                wall.EmplaceComponent<Components::Mesh>(mesh);
+                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
             }
 
         }
@@ -182,7 +182,7 @@ Entity PushGameEntity(const std::string& name, const std::string& modelPath, con
 {
     auto modelHandle = ResourceManager::LoadModel(modelPath);
     Entity root = scene->CopyEntity(modelHandle.Get()->GetRootEntity(), name);
-    root.GetComponent<TransformComponent>().transform =
+    root.GetComponent<Components::Transform>().transform =
         glm::translate( glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) , origin);
 
     return root;

@@ -38,7 +38,6 @@ private:
     std::unique_ptr<Window> m_window;
     bool m_isRunning;
 
-    CameraPtr m_camera;
     FrameBufferPtr m_renderBuffer;
 
     ScenePtr m_scene;

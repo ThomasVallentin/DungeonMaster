@@ -64,14 +64,9 @@ Application::Application(int argc, char* argv[])
     ScriptEngine::Init();
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(10.0f, 0.5f, 4.0f), 
-                                          glm::vec3(10.0f, 0.5f, 0.0f), 
-                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
-                              {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();   
 }
-
 
 void Application::Run()
 {
@@ -83,7 +78,11 @@ void Application::Run()
 
     // Character controller
     Entity player = m_scene->CreateEntity("Player");
-    player.EmplaceComponent<Components::Transform>();
+    player.EmplaceComponent<Components::Camera>();
+    player.EmplaceComponent<Components::Transform>(glm::lookAt(glm::vec3(10.0f, 0.5f, 4.0f), 
+                                                               glm::vec3(10.0f, 0.5f, 0.0f), 
+                                                               glm::vec3(0.0f, 1.0f, 0.0f)));
+    m_scene->SetMainCamera(player);
     auto& controller = player.EmplaceComponent<Components::Script>(Components::CreateCharacterController(player));
     
     // for (Entity entity : m_scene.Get()->Traverse())
@@ -120,6 +119,18 @@ void Application::OnUpdate()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // Update game here
+    Entity cameraEntity = m_scene->GetMainCamera();
+    auto* camera = cameraEntity.FindComponent<Components::Camera>();
+    if (!camera)
+    {
+        m_renderBuffer->Unbind();
+        return;
+    }
+
+    glm::mat4 viewMatrix = Components::Transform::ComputeWorldMatrix(cameraEntity);
+    glm::mat4 projMatrix = camera->camera.GetProjMatrix();
+    glm::mat4 viewProjMatrix = projMatrix * viewMatrix;
+
     for (Entity entity : m_scene->Traverse())
     {
         auto* meshComp = entity.FindComponent<Components::Mesh>();
@@ -127,17 +138,7 @@ void Application::OnUpdate()
         
         if (meshComp && meshRenderComp)
         {
-            glm::mat4 modelMatrix = glm::mat4(1.0f);
-                
-            Entity parent = entity;
-            while (parent)
-            {
-                if (auto* transform = parent.FindComponent<Components::Transform>())
-                {
-                    modelMatrix = transform->transform * modelMatrix;
-                }
-                parent = parent.GetParent();
-            }
+            glm::mat4 modelMatrix = Components::Transform::ComputeWorldMatrix(entity);
 
             auto material = meshRenderComp->material.Get();
             auto mesh = meshComp->mesh.Get();
@@ -146,9 +147,9 @@ void Application::OnUpdate()
 
             material->Bind();
             material->ApplyUniforms();
-            material->GetShader()->SetMat4("uModelViewMatrix", m_camera->GetViewMatrix() * modelMatrix);
-            material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(m_camera->GetViewMatrix()) * glm::mat3(modelMatrix))));
-            material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
+            material->GetShader()->SetMat4("uModelViewMatrix", viewMatrix * modelMatrix);
+            material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(viewMatrix) * glm::mat3(modelMatrix))));
+            material->GetShader()->SetMat4("uMVPMatrix", viewProjMatrix * modelMatrix);
             material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3));  // Flicking torch effect
             mesh->Bind();
 
@@ -160,7 +161,6 @@ void Application::OnUpdate()
 
     }
 
-    m_camera->SetViewMatrix(m_camera->GetViewMatrix());
     m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
     m_renderBuffer->Unbind();
 }
@@ -178,9 +178,13 @@ void Application::OnEvent(Event* event)
         case EventType::WindowResized:
         {
             WindowResizedEvent* resizeEvent = dynamic_cast<WindowResizedEvent*>(event);
-            ProjectionSpecs projSpecs = m_camera->GetProjectionSpecs();
 
-            m_camera->SetAspectRatio((float)resizeEvent->GetWidth() / (float)resizeEvent->GetHeight());
+            auto* mainCamera = m_scene->GetMainCamera().FindComponent<Components::Camera>();
+            if (mainCamera)
+            {
+                mainCamera->camera.SetAspectRatio((float)resizeEvent->GetWidth() / (float)resizeEvent->GetHeight());
+            }
+            
             m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
             break;
         }

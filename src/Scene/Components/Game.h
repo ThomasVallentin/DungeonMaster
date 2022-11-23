@@ -59,14 +59,14 @@ struct Animation
                     case InterpolationType::Linear:
                     {
                         float weight = (scaledTime - prevTime) / (keyTime - prevTime);
-                        return prevValue * weight + keyValue * (1.0f - weight);
+                        return prevValue * (1.0f - weight) + keyValue * weight;
                     }
 
                     case InterpolationType::Smooth:
                     {
                         float weight = (scaledTime - prevTime) / (keyTime - prevTime);
                         weight = weight * weight * (3 - 2 * weight);
-                        return prevValue * weight + keyValue * (1.0f - weight);
+                        return prevValue * (1.0f - weight) + keyValue * weight;
                     }
                 }
             }
@@ -112,8 +112,11 @@ static Script CreateCharacterController(const Entity& entity)
                 auto* transform = entity.FindComponent<Transform>();
                 if (transform)
                 {
-                    transform->transform[3] = glm::vec4(data.animation.Evaluate(Application::Get().GetCurrentTime()), 1.0f);
-                    LOG_INFO("Anim time : %f", Application::Get().GetCurrentTime() - data.animation.startTime);
+                    glm::vec3 anim = data.animation.Evaluate(Application::Get().GetCurrentTime());
+                    transform->transform[3] = glm::vec4((anim), 1.0f);
+                    LOG_INFO("Anim : %f : %f, %f, %f", 
+                             Application::Get().GetCurrentTime() - data.animation.startTime,
+                             anim.x, anim.y, anim.z);
                 }
             }
         },

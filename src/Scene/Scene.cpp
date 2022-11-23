@@ -146,6 +146,17 @@ EntityView Scene::Traverse()
     return EntityView(Entity(m_rootId, this));
 }
 
+void Scene::SetMainCamera(const Entity& entity)
+{
+    if (entity.m_scene == this)
+        m_mainCamera = entity.m_id;
+}
+
+Entity Scene::GetMainCamera()
+{
+    return Entity(m_mainCamera, this);
+}
+
 void Scene::Clear()
 {
     m_index.Clear();

@@ -24,9 +24,34 @@ struct Transform
     Transform() = default;
     Transform(const glm::mat4& transform) : transform(transform) {}
 
+    static glm::mat4 ComputeWorldMatrix(const Entity& entity)
+    {
+        glm::mat4 result = glm::mat4(1.0f);
+                
+        Entity parent = entity;
+        while (parent)
+        {
+            if (auto* transform = parent.FindComponent<Components::Transform>())
+            {
+                result = transform->transform * result;
+            }
+            parent = parent.GetParent();
+        }
+
+        return result;
+    }
+
     glm::mat4 transform{1.0f};
 };
 
+
+struct Camera
+{
+    Camera() = default;
+    Camera(const ::Camera& camera) : camera(camera) {}
+
+    ::Camera camera;
+};
 
 struct Mesh
 {
@@ -118,15 +143,6 @@ private:
     OnCreateFn m_onCreateFn;
     OnUpdateFn m_onUpdateFn;
     OnEventFn m_onEventFn;
-};
-
-
-struct CameraComponent
-{
-    CameraComponent() = default;
-    CameraComponent(const ProjectionSpecs& specs) : specs(specs) {}
-
-    ProjectionSpecs specs;
 };
 
 

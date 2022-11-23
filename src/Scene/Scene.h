@@ -60,6 +60,9 @@ public:
 
     EntityView Traverse();
 
+    void SetMainCamera(const Entity& entity);
+    Entity GetMainCamera();
+
     static ScenePtr Create();
 
 private:
@@ -72,7 +75,9 @@ private:
     uint32_t CopyEntity(const Entity& source, const uint32_t& parent, const uint32_t& nextSibling);
 
     EntityIndex m_index;
+    
     uint32_t m_rootId;
+    uint32_t m_mainCamera;
 
     friend Entity;
     friend EntityView;

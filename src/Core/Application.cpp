@@ -7,7 +7,7 @@
 #include "Renderer/Material.h"
 
 #include "Scene/Entity.h"
-#include "Scene/Components.h"
+#include "Scene/Components/Basics.h"
 
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
@@ -119,8 +119,9 @@ void Application::Run()
                 material->Bind();
                 material->ApplyUniforms();
                 material->GetShader()->SetMat4("uModelViewMatrix", m_camera->GetViewMatrix() * modelMatrix);
-                material->GetShader()->SetMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(modelMatrix))));
+                material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(m_camera->GetViewMatrix()) * glm::mat3(modelMatrix))));
                 material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
+                material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3));  // Flicking torch effect
                 mesh->Bind();
 
                 glDrawElements(GL_TRIANGLES, 

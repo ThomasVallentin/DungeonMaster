@@ -14,7 +14,7 @@ DECLARE_PTR_TYPE(Camera);
 struct ProjectionSpecs {
     float fov = 35.0f;
     float aspectRatio = 1.778f;
-    float nearClip = 1.0f, farClip = 10000.0f;
+    float nearClip = 0.1f, farClip = 1000.0f;
 };
 
 

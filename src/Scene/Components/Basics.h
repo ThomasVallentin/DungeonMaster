@@ -1,8 +1,8 @@
-#ifndef SCRIPTEDCOMPONENT_H
-#define SCRIPTEDCOMPONENT_H
+#ifndef BASICCOMPONENTS_H
+#define BASICCOMPONENTS_H
 
 
-#include "Entity.h"
+#include "Scene/Entity.h"
 
 #include "Core/Event.h"
 #include "Core/Logging.h"
@@ -72,4 +72,4 @@ public:
 };
 
 
-#endif // SCRIPTEDCOMPONENT_H
+#endif // BASICCOMPONENTS_H

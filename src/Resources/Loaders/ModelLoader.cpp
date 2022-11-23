@@ -2,7 +2,7 @@
 
 #include "Core/Resolver.h"
 
-#include "Scene/Components.h"
+#include "Scene/Components/Basics.h"
 
 #include "Resources/Model.h"
 #include "Renderer/Mesh.h"

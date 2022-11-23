@@ -62,9 +62,9 @@ Application::Application(int argc, char* argv[])
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
-    m_camera = Camera::Create(glm::lookAt(glm::vec3(20.0f, 10.0f, -40.0f), 
-                                          glm::vec3(20.0f, 0.0f, -40.0f), 
-                                          glm::vec3(0.0f, 0.0f, -1.0f)), 
+    m_camera = Camera::Create(glm::lookAt(glm::vec3(20.0f, 0.5f, 4.0f), 
+                                          glm::vec3(20.0f, 0.5f, 0.0f), 
+                                          glm::vec3(0.0f, 1.0f, 0.0f)), 
                               {});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
     m_scene = Scene::Create();   
@@ -78,24 +78,16 @@ void Application::Run()
     auto& resolver = Resolver::Get(); 
 
     auto scene = ResourceManager::LoadLevel("Levels/Labyrinth.json");
-    for (Entity entity : scene.Get()->Traverse())
-    {
-        LOG_INFO("Entity : %s", entity.GetName().c_str());
-    }
-    // ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>("Levels/Labyrinth.ppm:Floor1");
+    // for (Entity entity : scene.Get()->Traverse())
+    // {
+    //     LOG_INFO("Entity : %s", entity.GetName().c_str());
+    // }
 
-    
-    // ResourceHandle<Prefab> prefab = ResourceManager::LoadModel("Models/Japanese_Garden.fbx");
-
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     while (m_isRunning)
     {
         double time = GetCurrentTime();
 
-        // for (auto& [entity, script] : m_scene.Traverse<ScriptedComponent>())
-        // {
-        //     script.OnUpdate();
-        // }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         m_renderBuffer->Bind();
@@ -110,7 +102,7 @@ void Application::Run()
             if (meshComp && meshRenderComp)
             {
                 glm::mat4 modelMatrix = glm::mat4(1.0f);
-                
+                    
                 Entity parent = entity;
                 while (parent)
                 {
@@ -126,6 +118,8 @@ void Application::Run()
 
                 material->Bind();
                 material->ApplyUniforms();
+                material->GetShader()->SetMat4("uModelViewMatrix", m_camera->GetViewMatrix() * modelMatrix);
+                material->GetShader()->SetMat3("uNormalMatrix", glm::mat3(glm::transpose(glm::inverse(modelMatrix))));
                 material->GetShader()->SetMat4("uMVPMatrix", m_camera->GetViewProjMatrix() * modelMatrix);
                 mesh->Bind();
 
@@ -136,36 +130,6 @@ void Application::Run()
             }
 
         }
-
-        // for (const auto& mesh : model.Get()->GetMeshes())
-        // {
-        //     mesh.Get()->Bind();
-        //     if (i%2)
-        //     {
-        //         material->Bind();
-        //         material->ApplyUniforms();
-        //     }
-        //     else
-        //     {
-        //         material2->Bind();
-        //         material2->ApplyUniforms();
-        //     }
-
-        //     glDrawElements(GL_TRIANGLES, 
-        //                 mesh.Get()->GetElementCount(),
-        //                 GL_UNSIGNED_INT,
-        //                 nullptr);
-        //     i++;
-        // }
-        // material->Bind();
-        // material->ApplyUniforms();
-        // auto msh = mesh.Get();
-        // msh->Bind();
-
-        // glDrawElements(GL_TRIANGLES, 
-        //                msh->GetElementCount(),
-        //                GL_UNSIGNED_INT,
-        //                nullptr);
 
         m_camera->SetViewMatrix(m_camera->GetViewMatrix());
         m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());

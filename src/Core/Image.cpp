@@ -8,21 +8,21 @@
 
 ColorSpace GuessColorSpace(const std::string& ext) 
 {
-    if (ext == "png")
+    if (ext == ".png")
         return ColorSpace::sRGB;
-    if (ext == "jpg")
+    if (ext == ".jpg")
         return ColorSpace::sRGB;
-    if (ext == "jpeg")
+    if (ext == ".jpeg")
         return ColorSpace::sRGB;
-    if (ext == "bmp")
+    if (ext == ".bmp")
         return ColorSpace::sRGB;
-    if (ext == "tga")
+    if (ext == ".tga")
         return ColorSpace::Raw;
-    if (ext == "hdr")
+    if (ext == ".hdr")
         return ColorSpace::Raw;
-    if (ext == "pgm")
+    if (ext == ".pgm")
         return ColorSpace::Raw;
-    if (ext == "ppm")
+    if (ext == ".ppm")
         return ColorSpace::Raw;
 
     return ColorSpace::Raw;
@@ -51,7 +51,6 @@ ImagePtr Image::Read(const std::string& path,
             break;
     }
     stbi_set_flip_vertically_on_load(true); 
-
 
     // Image doesn't exist, opening it
     int width, height, channels;

@@ -32,6 +32,30 @@ std::vector<Entity> Entity::GetChildren() const
     return children;
 }
 
+Entity Entity::FindChild(const std::string& name) const
+{
+    const auto& hierarchy = GetComponent<HierarchyComponent>();
+    if (hierarchy.firstChild)
+    {
+        Entity child = Entity(hierarchy.firstChild, m_scene);
+        if (child.GetName() == name)
+        {
+            return child;
+        }
+
+        for (size_t i=0 ; i < hierarchy.childCount - 1 ; i++)
+        {
+            child = Entity(child.GetComponent<HierarchyComponent>().nextSibling, m_scene);
+            if (child.GetName() == name)
+            {
+                return child;
+            }
+        }
+    }
+    
+    return {};
+}
+
 Entity Entity::AddChild(const std::string& name) const
 {
     return m_scene->CreateEntity(name, *this);

@@ -2,7 +2,7 @@
 
 // == INPUTS ==
 
-in vec3 vViewPos;
+in vec3 vWorldPos;
 in vec3 vNormal;
 in vec2 vTexCoords;
 in float vDepth;
@@ -46,7 +46,6 @@ const int diffuseColorTexture = 0;
 const int ambientColorTexture = 1;
 
 
-
 // == HELPER FUNCTIONS ==
 
 vec3 ODT_Gamma(vec3 color, float gamma)
@@ -79,7 +78,7 @@ vec3 SamplePointLight(PointLight light, vec3 pos , vec3 normal)
     vec3 lightDir = light.position - pos;
     float distance = length(lightDir);
 
-    return light.color / pow(distance, light.decay) * clamp(dot(normalize(lightDir), vNormal), 0, 1);
+    return light.color / pow(distance, light.decay) * clamp(dot(lightDir / distance, normal), 0, 1);
 }
 
 vec3 SampleDiffuse()
@@ -101,9 +100,12 @@ vec3 SampleAmbient()
 
 void main() 
 {
-    // fFragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    // Return normals (utils)
+    // fFragColor = vec4(normalize(vNormal), 1.0);
+    // return;
+
     vec3 color = SampleDiffuse();
-    vec3 lighting = SamplePointLight(uPointLight, vViewPos, vNormal);
+    vec3 lighting = SamplePointLight(uPointLight, vWorldPos, normalize(vNormal));
 
     color *= lighting;
     // color = AddExponentialFog(color, vDepth, 0.03);

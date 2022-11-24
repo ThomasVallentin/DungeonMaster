@@ -133,13 +133,13 @@ Window::~Window()
     m_window = nullptr;
 }
 
-inline int Window::GetWidth() const
+int Window::GetWidth() const
 {
     WindowInternalData& internalData = *(WindowInternalData*)glfwGetWindowUserPointer(m_window);
     return internalData.width;
 }
 
-inline int Window::GetHeight() const
+int Window::GetHeight() const
 {
     WindowInternalData& internalData = *(WindowInternalData*)glfwGetWindowUserPointer(m_window);
     return internalData.height;

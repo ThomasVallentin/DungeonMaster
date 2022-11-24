@@ -18,6 +18,7 @@ public:
 
     Entity GetParent() const;
     std::vector<Entity> GetChildren() const;
+    Entity FindChild(const std::string& name) const;
     Entity AddChild(const std::string& name) const;
 
     void Remove();
@@ -51,6 +52,8 @@ private:
 
     uint32_t m_id = 0;
     Scene* m_scene = nullptr;
+    // TODO: Entities could be speed up by holding a pointer to their data 
+    //       instead of querying the map each time they require a Component
 
     friend Scene;
     friend class EntityView;

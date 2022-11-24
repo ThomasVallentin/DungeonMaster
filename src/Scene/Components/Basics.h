@@ -27,7 +27,7 @@ struct Transform
     static glm::mat4 ComputeWorldMatrix(const Entity& entity)
     {
         glm::mat4 result = glm::mat4(1.0f);
-                
+
         Entity parent = entity;
         while (parent)
         {

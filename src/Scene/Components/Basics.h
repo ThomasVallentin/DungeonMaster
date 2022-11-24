@@ -24,22 +24,7 @@ struct Transform
     Transform() = default;
     Transform(const glm::mat4& transform) : transform(transform) {}
 
-    static glm::mat4 ComputeWorldMatrix(const Entity& entity)
-    {
-        glm::mat4 result = glm::mat4(1.0f);
-
-        Entity parent = entity;
-        while (parent)
-        {
-            if (auto* transform = parent.FindComponent<Components::Transform>())
-            {
-                result = transform->transform * result;
-            }
-            parent = parent.GetParent();
-        }
-
-        return result;
-    }
+    static glm::mat4 ComputeWorldMatrix(const Entity& entity);
 
     glm::mat4 transform{1.0f};
 };
@@ -81,59 +66,20 @@ class Script
 {
 public:
     Script() = default;
+    Script(const Script& other);
     Script(const std::string& name,
            const Entity& entity,
            const OnCreateFn& onCreate,
            const OnUpdateFn& onUpdate,
-           const OnEventFn& onEvent) : 
-            m_name(name), 
-            m_entity(entity), 
-            m_onCreateFn(onCreate), 
-            m_onUpdateFn(onUpdate),
-            m_onEventFn(onEvent) 
-    {
-        ScriptEngine::Get().Register(this);
-        OnCreate();
-    }
+           const OnEventFn& onEvent);
+    
+    ~Script();
 
-    Script(const Script& other) :
-           m_name(other.m_name), 
-           m_dataBlock(other.m_dataBlock),
-           m_entity(other.m_entity), 
-           m_onCreateFn(other.m_onCreateFn), 
-           m_onUpdateFn(other.m_onUpdateFn),
-           m_onEventFn(other.m_onEventFn)
-    {
-        ScriptEngine::Get().Register(this);
-    }
+    const std::string& GetName() const;
 
-    ~Script()
-    {
-        ScriptEngine::Get().Deregister(this);
-    }
-
-    inline const std::string& GetName() const 
-    {
-        return m_name;
-    }
-
-    inline void OnCreate() 
-    {
-        if (m_onCreateFn)
-            m_onCreateFn(m_entity, m_dataBlock);
-    }
-
-    inline void OnUpdate()
-    {
-        if (m_onUpdateFn)
-            m_onUpdateFn(m_entity, m_dataBlock);
-    }
-
-    inline void OnEvent(Event* event)
-    {
-        if (m_onEventFn)
-            m_onEventFn(event, m_entity, m_dataBlock);
-    }
+    void OnCreate();
+    void OnUpdate();
+    void OnEvent(Event* event);
 
 private:
     std::string m_name; 

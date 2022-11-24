@@ -38,7 +38,7 @@ private:
     
     glm::mat4 m_projMatrix;
 
-    float m_fov = 35.0f;
+    float m_fov = 45.0f;
     float m_aspectRatio = 1.778f;
     float m_nearClip = 0.1f, m_farClip = 1000.0f;
 };

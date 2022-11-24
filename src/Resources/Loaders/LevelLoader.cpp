@@ -80,6 +80,27 @@ Entity LevelLoader::BuildPlayer()
 }
 
 
+void LevelLoader::BuildMaterials()
+{
+    Resolver& resolver = Resolver::Get();
+
+    auto defaultShader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
+                                      resolver.Resolve("Shaders/default.frag"));
+    
+    // Floor
+    m_floorMat = ResourceManager::CreateResource<Material>("floorMaterial", Material::Create(defaultShader), false);
+    m_floorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
+
+    // Wall
+    m_wallMat = ResourceManager::CreateResource<Material>("wallMaterial", Material::Create(defaultShader), false);
+    m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
+
+    // Water
+    m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial", Material::Create(defaultShader), false);
+    m_waterMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Stone_Wall/Albedo.jpg").Get());
+}
+
+
 ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
 {
     Resolver& resolver = Resolver::Get();
@@ -87,7 +108,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
     std::string identifier = resolver.AsIdentifier(path);
     auto prefab = ResourceManager::CreateResource<Prefab>(identifier);
     auto prefabScene = prefab.Get()->GetInternalScene().lock();
-
+    
     // A single mesh is used since all the level is only composed of quads
     // Keeping each one separated to allow us to use separated materials and culling 
     std::vector<Vertex> vertices = {{{ 0.5f, 0.0f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
@@ -99,16 +120,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                                                       Mesh::Create(vertices, indices),
                                                       true);
 
-    // Multiple material declaration
-    // Floor
-    auto defaultShader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                      resolver.Resolve("Shaders/default.frag"));
-    auto floorMat = ResourceManager::CreateResource<Material>("floorMaterial", Material::Create(defaultShader), false);
-    floorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
-
-    // Wall
-    auto wallMat = ResourceManager::CreateResource<Material>("wallMaterial", Material::Create(defaultShader), false);
-    wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
+    
 
     ImagePtr image = Image::Read(resolver.Resolve(path));
     const glm::vec4* pixels = image->GetPixels();
@@ -136,20 +148,23 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
             Entity cell = prefabScene->CreateEntity(std::string("Cell") + std::to_string(x) + std::to_string(y));
             cell.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(x, 0, -y)));
             cell.EmplaceComponent<Components::Mesh>(mesh);
-            cell.EmplaceComponent<Components::RenderMesh>(floorMat);
+            if (pixel == LevelCells::Water)
+                cell.EmplaceComponent<Components::RenderMesh>(m_waterMat);
+            else
+                cell.EmplaceComponent<Components::RenderMesh>(m_floorMat);
 
             // Ceiling entity
-            // Entity ceiling = prefabScene->CreateEntity(std::string("Cell") + std::to_string(x) + std::to_string(y));
-            // ceiling.EmplaceComponent<Components::Transform>(
-            //     glm::rotate(
-            //         glm::translate(
-            //             glm::mat4(1.0f), 
-            //             glm::vec3(0.0f, -1.0f, 0.0f)),
-            //         (float)M_PI, 
-            //         glm::vec3(1.0f, 0.0f, 0.0f)
-            // ));            
-            // ceiling.EmplaceComponent<Components::Mesh>(mesh);
-            // ceiling.EmplaceComponent<Components::RenderMesh>(floorMat);
+            Entity ceiling = prefabScene->CreateEntity(std::string("Ceiling") + std::to_string(x) + std::to_string(y), cell);
+            ceiling.EmplaceComponent<Components::Transform>(
+                glm::rotate(
+                    glm::translate(
+                        glm::mat4(1.0f), 
+                        glm::vec3(0.0f, 1.0f, 0.0f)),
+                    (float)M_PI, 
+                    glm::vec3(1.0f, 0.0f, 0.0f)
+            ));            
+            ceiling.EmplaceComponent<Components::Mesh>(mesh);
+            ceiling.EmplaceComponent<Components::RenderMesh>(m_floorMat);
 
             // Wall entity(ies)
             if (GetPixel(pixels, x-1, y, width, height) == LevelCells::Wall)
@@ -167,7 +182,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                         glm::vec3(1, 0, 0)
                 ));
                 wall.EmplaceComponent<Components::Mesh>(mesh);
-                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
+                wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
             
             if (GetPixel(pixels, x+1, y, width, height) == LevelCells::Wall)
@@ -185,7 +200,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                         glm::vec3(1, 0, 0)
                 ));
                 wall.EmplaceComponent<Components::Mesh>(mesh);
-                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
+                wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
 
             if (GetPixel(pixels, x, y+1, width, height) == LevelCells::Wall)
@@ -200,7 +215,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                         glm::vec3(1, 0, 0)
                 ));
                 wall.EmplaceComponent<Components::Mesh>(mesh);
-                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
+                wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
 
             if (GetPixel(pixels, x, y-1, width, height) == LevelCells::Wall)
@@ -219,7 +234,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                         glm::vec3(1, 0, 0)
                 ));
                 wall.EmplaceComponent<Components::Mesh>(mesh);
-                wall.EmplaceComponent<Components::RenderMesh>(wallMat);
+                wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
         }
     }
@@ -260,6 +275,8 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
 
     m_scene = ResourceManager::CreateResource<Scene>(firstFloor["name"].GetString(), false);
     auto scene = m_scene.Get();
+
+    BuildMaterials();
 
     // Build level map
     std::string mapPath = std::filesystem::path(resolvedPath).replace_filename(firstFloor["map"].GetString());

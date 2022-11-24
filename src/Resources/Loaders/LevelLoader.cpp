@@ -235,7 +235,7 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
 
     assert(document.HasMember("name"));
     assert(document["name"].IsString());
-    LOG_INFO("Level name : %s", document["name"].GetString());
+    LOG_DEBUG("LevelLoader : Loading level %s (%s)", document["name"].GetString(), path);
     
     assert(document.HasMember("floors"));
     assert(document["floors"].IsArray());
@@ -246,9 +246,6 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
     assert(firstFloor["name"].IsString());
     assert(firstFloor.HasMember("map"));
     assert(firstFloor["map"].IsString());
-    LOG_INFO("  Floor : %s (%s)", 
-             firstFloor["name"].GetString(), 
-             firstFloor["map"].GetString());
 
     assert(firstFloor.HasMember("rewards"));
     assert(firstFloor["rewards"].IsArray());
@@ -258,7 +255,6 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
 
     // Build level map
     std::string mapPath = std::filesystem::path(resolvedPath).replace_filename(firstFloor["map"].GetString());
-    LOG_INFO("Map path : %s", mapPath.c_str());
     auto floorPrefab = BuildLevelMap(mapPath);
     scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
@@ -279,13 +275,6 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
         
         assert(reward.HasMember("type"));
         assert(reward["type"].IsString());
-
-        LOG_INFO("    Reward : %s %s (%s) [%d, %d]",
-                 reward["type"].GetString(),
-                 reward["name"].GetString(),
-                 reward["model"].GetString(),
-                 reward["origin"][0].GetInt(),
-                 reward["origin"][1].GetInt());
 
         Entity rewardEntity = PushGameEntity(reward["name"].GetString(), 
                                              reward["model"].GetString(), 

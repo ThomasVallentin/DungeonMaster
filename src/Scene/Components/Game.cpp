@@ -28,7 +28,6 @@ Script CreateCharacterController(const Entity& entity)
 [](const Entity& entity, std::any& dataBlock)
 {
     dataBlock = std::make_any<CharacterControllerData>();
-    LOG_INFO("CREATE !!!");
 },
 
 // CharacterController::OnUpdate
@@ -50,7 +49,6 @@ Script CreateCharacterController(const Entity& entity)
         if (childTransform)
         {
             childTransform->transform = data.attackAnimation.Evaluate(Application::Get().GetCurrentTime());
-            LOG_INFO("Attack ! %f", Application::Get().GetCurrentTime());
         }
     }
 },
@@ -80,7 +78,7 @@ Script CreateCharacterController(const Entity& entity)
             {
                 case GLFW_KEY_UP:
                 {
-                    LOG_INFO("KEY UP !!!");
+                    LOG_DEBUG("CharacterController : KEY UP !!!");
                     data.moveAnimation = {{{0.0f, transform->transform},
                                            {1.0f, glm::translate(transform->transform, glm::vec3(0, 0, -1))}},
                                           InterpolationType::Smooth,
@@ -90,7 +88,7 @@ Script CreateCharacterController(const Entity& entity)
                 }
                 case GLFW_KEY_DOWN:
                 {
-                    LOG_INFO("KEY DOWN !!!");
+                    LOG_DEBUG("CharacterController : KEY DOWN !!!");
                     data.moveAnimation = {{{0.0f, transform->transform},
                                            {1.0f, glm::translate(transform->transform, glm::vec3(0, 0, 1))}},
                                           InterpolationType::Smooth,
@@ -100,7 +98,7 @@ Script CreateCharacterController(const Entity& entity)
                 }
                 case GLFW_KEY_LEFT:
                 {
-                    LOG_INFO("KEY LEFT !!!");
+                    LOG_DEBUG("CharacterController : KEY LEFT !!!");
                     data.moveAnimation = {{{0.0f, transform->transform},
                                            {1.0f, glm::rotate(transform->transform, (float)M_PI_2, glm::vec3(0, 1, 0))}},
                                           InterpolationType::Smooth,
@@ -110,7 +108,7 @@ Script CreateCharacterController(const Entity& entity)
                 }
                 case GLFW_KEY_RIGHT:
                 {
-                    LOG_INFO("KEY RIGHT !!!");
+                    LOG_DEBUG("CharacterController : KEY RIGHT !!!");
                     data.moveAnimation = {{{0.0f, transform->transform},
                                            {1.0f, glm::rotate(transform->transform, -(float)M_PI_2, glm::vec3(0, 1, 0))}},
                                           InterpolationType::Smooth,
@@ -118,8 +116,6 @@ Script CreateCharacterController(const Entity& entity)
                     data.moveAnimation.Start();
                     break;
                 }
-                
-                
             }
 
             break;
@@ -143,7 +139,7 @@ Script CreateCharacterController(const Entity& entity)
             {
                 case GLFW_MOUSE_BUTTON_LEFT:
                 {
-                    LOG_INFO("BIM !!!");
+                    LOG_INFO("SCHLACK !!!");
                     auto* childTransform = entity.FindChild("Weapon").FindComponent<Transform>();
                     if (childTransform)
                     {

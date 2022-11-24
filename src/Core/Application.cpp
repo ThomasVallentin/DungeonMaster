@@ -29,21 +29,6 @@
 
 Application* Application::s_instance = nullptr;
 
-
-struct Xform 
-{
-    Xform(const glm::mat4& mat) : xform(mat) {
-        LOG_INFO("Bim ! Alive !!!");
-    }
-
-    ~Xform() {
-        LOG_INFO("AAAAAAAAaaarggggg !!!");
-    }
-    
-    glm::mat4 xform;
-};
-
-
 Application& Application::Init(int argc, char* argv[])
 {
     if (Application::s_instance) {
@@ -121,21 +106,6 @@ void Application::OnUpdate()
 
     for (Entity entity : m_scene->Traverse())
     {
-        // if (entity.GetName() == "Player")
-        //     LOG_INFO("player : %s", glm::to_string(Components::Transform::ComputeWorldMatrix(entity)).c_str());
-        
-        // if (entity.GetName() == "Weapon")
-        // {
-        //     auto* weapontransform = entity.FindComponent<Components::Transform>();
-        //     weapontransform->transform = glm::translate(weapontransform->transform, glm::vec3(0, 0, sin(time*10)*0.1));
-        // }
-
-        // if (entity.GetName() == "Parent")
-        // {
-        //     auto* transform = entity.FindComponent<Components::Transform>();
-        //     transform->transform = glm::rotate(transform->transform, 0.01f, glm::vec3(0, 1, 0));
-        // }
-
         auto* meshComp = entity.FindComponent<Components::Mesh>();
         auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
         

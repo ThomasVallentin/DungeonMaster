@@ -76,29 +76,7 @@ void Application::Run()
     auto& resolver = Resolver::Get(); 
 
     m_scene = ResourceManager::LoadLevel("Levels/Labyrinth.json").Get();
-
-    // Character controller
-    Entity player = m_scene->CreateEntity("Player");
-    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f)));
-    auto& controller = player.EmplaceComponent<Components::Script>(Components::CreateCharacterController(player));
-    
-    Entity camera = player.AddChild("Camera");
-    auto& cam = camera.EmplaceComponent<Components::Camera>();
-    cam.camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
-    m_scene->SetMainCamera(camera);
-    
-    // Weapon
-    auto sword = ResourceManager::LoadModel("Models/Sting-Sword.fbx");
-    Entity weapon = m_scene->CopyEntity(sword.Get()->GetRootEntity(), "Weapon", player);
-    Components::Transform& weaponTransform = weapon.GetComponent<Components::Transform>();
-    weaponTransform.transform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.15f, 0.0f, -0.5f)) *
-        glm::eulerAngleXYZ((float)M_PI_4, 0.0f, (float)M_PI_4) * 
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)) 
-    ;
-
-    LOG_INFO("player : %s", glm::to_string(Components::Transform::ComputeWorldMatrix(player)).c_str());
-    LOG_INFO("weapon : %s", glm::to_string(Components::Transform::ComputeWorldMatrix(camera)).c_str());
+    m_scene->GetMainCamera().GetComponent<Components::Camera>().camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     while (m_isRunning)

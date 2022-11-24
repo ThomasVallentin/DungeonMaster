@@ -14,6 +14,9 @@ public:
     ResourceHandle<Scene> Load(const std::string& path);
 
 private:
+    Entity BuildPlayer();
+    ResourceHandle<Prefab> BuildLevelMap(const std::string& path);
+
     ResourceHandle<Scene> m_scene;
 };
 

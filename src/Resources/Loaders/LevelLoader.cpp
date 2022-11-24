@@ -122,9 +122,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
         {
             glm::vec4 pixel = GetPixel(pixels, x, y, width, height);
             if (pixel == LevelCells::Wall)
-            {
                 continue;
-            }
 
             if (pixel == LevelCells::Entrance)
             {

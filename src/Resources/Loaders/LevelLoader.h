@@ -4,6 +4,7 @@
 #include "Resources/Resource.h"
 #include "Resources/Prefab.h"
 
+#include <glm/glm.hpp>
 
 class LevelLoader
 {
@@ -18,6 +19,7 @@ private:
     ResourceHandle<Prefab> BuildLevelMap(const std::string& path);
 
     ResourceHandle<Scene> m_scene;
+    glm::vec2 m_playerPos{-1.0f};
 };
 
 #endif  // LEVELLOADER_H

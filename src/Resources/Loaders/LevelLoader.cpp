@@ -29,7 +29,6 @@ namespace LevelCells
     static const glm::vec4 Exit     {0.0f, 1.0f, 0.0f, 1.0f};
 }
 
-
 glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& width, const int& height) {
     if (x < 0 || x >= width || y < 0 || y >= height)
         return glm::vec4(0, 0, 0, 1);
@@ -37,16 +36,33 @@ glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& 
     return map[y * width + x];
 }
 
+Entity PushGameEntity(const std::string& name, const std::string& modelPath, const glm::vec3& origin, const ScenePtr& scene)
+{
+    auto modelHandle = ResourceManager::LoadModel(modelPath);
+    Entity root = scene->CopyEntity(modelHandle.Get()->GetRootEntity(), name);
+    root.GetComponent<Components::Transform>().transform =
+        glm::translate( glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) , origin);
+
+    return root;
+}
+
 
 Entity LevelLoader::BuildPlayer()
 {
-    // Character controller
+    if (m_playerPos == glm::vec2(-1.0f))
+    {
+        LOG_WARNING("Player position was not found, moving it to (0, 0) !");
+        m_playerPos = glm::vec2(0.0f);
+    }
+
     ScenePtr scene = m_scene.Get();
 
+    // Character controller
     Entity player = scene->CreateEntity("Player");
-    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f, 0.0f)));
+    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_playerPos.x, 0.5f, m_playerPos.y)));
     auto& controller = player.EmplaceComponent<Components::Script>(Components::CreateCharacterController(player));
     
+    // Camera
     Entity camera = player.AddChild("Camera");
     auto& cam = camera.EmplaceComponent<Components::Camera>();
     scene->SetMainCamera(camera);
@@ -54,8 +70,7 @@ Entity LevelLoader::BuildPlayer()
     // Weapon
     auto sword = ResourceManager::LoadModel("Models/Sting-Sword.fbx");
     Entity weapon = scene->CopyEntity(sword.Get()->GetRootEntity(), "Weapon", player);
-    Components::Transform& weaponTransform = weapon.GetComponent<Components::Transform>();
-    weaponTransform.transform =
+    weapon.GetComponent<Components::Transform>().transform =
         glm::translate(glm::mat4(1.0f), glm::vec3(0.15f, 0.0f, -0.5f)) *
         glm::eulerAngleXYZ((float)M_PI_4, 0.0f, (float)M_PI_4) * 
         glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)) 
@@ -109,6 +124,14 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
             if (pixel == LevelCells::Wall)
             {
                 continue;
+            }
+
+            if (pixel == LevelCells::Entrance)
+            {
+                if (m_playerPos != glm::vec2(-1.0f))
+                    LOG_WARNING("Multiple entrances have been specified, using the first one.");
+                else
+                    m_playerPos = glm::vec2(x, -y);
             }
 
             // Floor entity
@@ -200,24 +223,11 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                 wall.EmplaceComponent<Components::Mesh>(mesh);
                 wall.EmplaceComponent<Components::RenderMesh>(wallMat);
             }
-
         }
     }
     
     return prefab;
 }
-
-
-Entity PushGameEntity(const std::string& name, const std::string& modelPath, const glm::vec3& origin, const ScenePtr& scene)
-{
-    auto modelHandle = ResourceManager::LoadModel(modelPath);
-    Entity root = scene->CopyEntity(modelHandle.Get()->GetRootEntity(), name);
-    root.GetComponent<Components::Transform>().transform =
-        glm::translate( glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) , origin);
-
-    return root;
-}
-
 
 ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
 {

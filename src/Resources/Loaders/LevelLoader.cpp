@@ -96,8 +96,11 @@ void LevelLoader::BuildMaterials()
     m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
 
     // Water
-    m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial", Material::Create(defaultShader), false);
-    m_waterMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Stone_Wall/Albedo.jpg").Get());
+    m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial",
+                                                           Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
+                                                                                         resolver.Resolve("Shaders/water.frag"))), false);
+    m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.1, 0.2));
+    m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.25, 0.5));
 }
 
 
@@ -119,8 +122,6 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
     auto mesh = ResourceManager::CreateResource<Mesh>(identifier + "QuadMesh", 
                                                       Mesh::Create(vertices, indices),
                                                       true);
-
-    
 
     ImagePtr image = Image::Read(resolver.Resolve(path));
     const glm::vec4* pixels = image->GetPixels();

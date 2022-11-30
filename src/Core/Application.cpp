@@ -125,7 +125,8 @@ void Application::OnUpdate()
             material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
             material->GetShader()->SetMat4("uMVPMatrix", viewProjMatrix * modelMatrix);
             material->GetShader()->SetVec3("uPointLight.position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));  // Flicking torch effect
-            material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3));  // Flicking torch effect
+            material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3) * 3.0f);  // Flicking torch effect
+            material->GetShader()->SetFloat("uTime", time); 
             mesh->Bind();
 
             glDrawElements(GL_TRIANGLES, 

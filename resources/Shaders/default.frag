@@ -78,7 +78,7 @@ vec3 SamplePointLight(PointLight light, vec3 pos , vec3 normal)
     vec3 lightDir = light.position - pos;
     float distance = length(lightDir);
 
-    return light.color / pow(distance, light.decay) * clamp(dot(lightDir / distance, normal), 0, 1);
+    return light.color / pow(distance + 1.0, light.decay) * clamp(dot(lightDir / distance, normal), 0, 1);
 }
 
 vec3 SampleDiffuse()

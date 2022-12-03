@@ -2,6 +2,7 @@
 
 #include "Core/Event.h"
 #include "Core/Application.h"
+#include "Core/Animation.h"
 
 #include <GLFW/glfw3.h>
 

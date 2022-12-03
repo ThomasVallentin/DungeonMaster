@@ -40,6 +40,9 @@ public:
     inline const glm::vec4* GetPixels() const { return m_pixels.data(); }
     inline glm::vec4* GetPixels() { return m_pixels.data(); }
 
+    inline const glm::vec4& GetPixel(const uint32_t& x, const uint32_t& y) const { return m_pixels[y * m_width + x]; }
+    inline glm::vec4 GetPixel(const uint32_t& x, const uint32_t& y) { return m_pixels[y * m_width + x]; }
+
     static ImagePtr Read(const std::string& path, 
                          const ColorSpace& inputColorSpace=ColorSpace::None);
 

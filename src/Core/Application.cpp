@@ -10,6 +10,9 @@
 #include "Scene/Components/Basics.h"
 #include "Scene/Components/Game.h"
 
+#include "Navigation/NavigationEngine.h"
+#include "Navigation/Agent.h"
+
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
 
@@ -48,6 +51,7 @@ Application::Application(int argc, char* argv[])
     Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
     ScriptEngine::Init();
+    NavigationEngine::Init();
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
@@ -62,6 +66,20 @@ void Application::Run()
 
     m_scene = ResourceManager::LoadLevel("Levels/Labyrinth.json").Get();
     m_scene->GetMainCamera().GetComponent<Components::Camera>().camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
+
+    NavigationEngine& navEngine = NavigationEngine::Get();
+    auto agent = navEngine.CreateAgent();
+    navEngine.SetNavMap(Image::Read(resolver.Resolve("Levels/Labyrinth.ppm")));
+    agent->SetPosition({1, 0, 1});
+    agent->SetDestination({30, 0, 30});
+    auto path = navEngine.FindPath({1, 1}, {30, 30});
+
+    uint16_t i = 0;
+    for (const auto& cell : path)
+    {
+        LOG_INFO("Cell %d : %f, %f", i, cell.x, cell.y);
+        i++;
+    }
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     while (m_isRunning)

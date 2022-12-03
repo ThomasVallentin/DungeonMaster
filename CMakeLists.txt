@@ -46,6 +46,9 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Scene/Components/Basics.cpp
                           src/Scene/Components/Game.cpp
 
+                          src/Navigation/Agent.cpp
+                          src/Navigation/NavigationEngine.cpp
+
                           src/Resources/Model.cpp
                           src/Resources/Manager.cpp
                           src/Resources/Prefab.cpp

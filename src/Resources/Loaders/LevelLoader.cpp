@@ -19,15 +19,6 @@
 
 #include <rapidjson/document.h>
 
-namespace LevelCells
-{
-    static const glm::vec4 Wall     {0.0f, 0.0f, 0.0f, 1.0f};
-    static const glm::vec4 Floor    {1.0f, 1.0f, 1.0f, 1.0f};
-    static const glm::vec4 Door     {0.667f, 0.467f, 0.133f, 1.0f};
-    static const glm::vec4 Water    {0.0f, 0.0f, 1.0f, 1.0f};
-    static const glm::vec4 Entrance {1.0f, 0.0f, 0.0f, 1.0f};
-    static const glm::vec4 Exit     {0.0f, 1.0f, 0.0f, 1.0f};
-}
 
 glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& width, const int& height) {
     if (x < 0 || x >= width || y < 0 || y >= height)

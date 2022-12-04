@@ -41,6 +41,7 @@ public:
     void SetTitle(const std::string& title);
 
     inline GLFWwindow* GetInternalWindow() const { return m_window; }
+    double GetInternalTime() const;
 
 private:
     void OnEvent(Event& event);

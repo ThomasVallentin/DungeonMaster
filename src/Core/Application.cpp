@@ -19,6 +19,7 @@
 #include "Resolver.h"
 #include "Window.h"
 #include "Event.h"
+#include "Time.h"
 #include "Logging.h"
 
 #include <GLFW/glfw3.h>
@@ -31,6 +32,9 @@
 
 
 Application* Application::s_instance = nullptr;
+
+double Time::s_time = 0.0f;
+double Time::s_deltaTime = 0.0f;
 
 Application& Application::Init(int argc, char* argv[])
 {
@@ -69,10 +73,11 @@ void Application::Run()
 
     NavigationEngine& navEngine = NavigationEngine::Get();
     auto agent = navEngine.CreateAgent();
+    LOG_INFO("%u, %u, %u, %u", (uint32_t)NavCellFilters::None, (uint32_t)NavCellFilters::Walls, (uint32_t)NavCellFilters::Floor, (uint32_t)NavCellFilters::Doors);
     navEngine.SetNavMap(Image::Read(resolver.Resolve("Levels/Labyrinth.ppm")));
     agent->SetPosition({1, 0, 1});
     agent->SetDestination({30, 0, 30});
-    auto path = navEngine.FindPath({1, 1}, {30, 30});
+    auto path = navEngine.FindPath({1, 1}, {3, 1});
 
     uint16_t i = 0;
     for (const auto& cell : path)
@@ -84,14 +89,14 @@ void Application::Run()
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     while (m_isRunning)
     {
-        double time = GetCurrentTime();
+        Time::SetTime(m_window->GetInternalTime());
 
         OnUpdate();
         m_window->OnUpdate();
         
         std::ostringstream titleStream;
         titleStream << std::fixed << std::setprecision(2);
-        titleStream << "Dungeon Master | " << (GetCurrentTime() - time) * 1000 << "ms/frame";
+        titleStream << "Dungeon Master | " << (Time::GetDeltaTime()) * 1000 << "ms/frame";
         m_window->SetTitle(titleStream.str());
     }
 }

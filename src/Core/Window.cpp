@@ -2,6 +2,7 @@
 
 #include "Logging.h"
 #include "Event.h"
+#include "Time.h"
 #include "Application.h"
 
 #include <glad/glad.h>
@@ -76,12 +77,12 @@ Window::Window(const WindowSettings& settings) :
     {
         switch (action) {
             case GLFW_PRESS: {
-                MouseButtonPressedEvent event(button, mods);
+                MouseButtonPressedEvent event((MouseButton)button, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
             case GLFW_RELEASE: {
-                MouseButtonReleasedEvent event(button, mods);
+                MouseButtonReleasedEvent event((MouseButton)button, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
@@ -93,12 +94,12 @@ Window::Window(const WindowSettings& settings) :
         switch (action) {
             case GLFW_PRESS:
             case GLFW_REPEAT: {
-                KeyPressedEvent event(key, mods);
+                KeyPressedEvent event((KeyCode)key, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
             case GLFW_RELEASE: {
-                KeyReleasedEvent event(key, mods);
+                KeyReleasedEvent event((KeyCode)key, mods);
                 Application::Get().OnEvent(&event);
                 break;
             }
@@ -154,6 +155,11 @@ void Window::OnUpdate()
 void Window::SetTitle(const std::string& title)
 {
     glfwSetWindowTitle(m_window, title.c_str());
+}
+
+double Window::GetInternalTime() const 
+{
+    return glfwGetTime();
 }
 
 void Window::ErrorHandler(int error, const char* description)

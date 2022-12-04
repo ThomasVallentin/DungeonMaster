@@ -1,6 +1,8 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include "Inputs.h"
+
 #define DEFINE_EVENT_TYPE(_type) inline EventType GetType() const override { return EventType::_type; }  \
                                  inline const char* GetName() const override { return #_type; }   
 
@@ -52,39 +54,33 @@ public:
 
 class KeyEvent : public Event {
 public:
-    explicit KeyEvent(const int& key, const int& modifiers) : 
+    explicit KeyEvent(const KeyCode& key, const int& modifiers) : 
             m_key(key), m_modifiers(modifiers) {}
 
-    inline int GetKey() const { return m_key; }
+    inline KeyCode GetKey() const { return m_key; }
     inline int GetModifiers() const { return m_modifiers; }
 
 private:
-    int m_key;
+    KeyCode m_key;
     int m_modifiers;
 };
 
 
 class KeyPressedEvent : public KeyEvent {
 public:
-    explicit KeyPressedEvent(const int& key, const int& modifiers) : 
+    explicit KeyPressedEvent(const KeyCode& key, const int& modifiers) : 
             KeyEvent(key, modifiers) {}
 
     DEFINE_EVENT_TYPE(KeyPressed)
-
-private:
-    int m_key;
 };
 
 
 class KeyReleasedEvent : public KeyEvent {
 public:
-    explicit KeyReleasedEvent(const int& key, const int& modifiers) : 
+    explicit KeyReleasedEvent(const KeyCode& key, const int& modifiers) : 
             KeyEvent(key, modifiers) {}
 
     DEFINE_EVENT_TYPE(KeyReleased)
-
-private:
-    int m_key;
 };
 
 
@@ -93,39 +89,33 @@ private:
 
 class MouseButtonEvent : public Event {
 public:
-    explicit MouseButtonEvent(const int& button, const int& modifiers) : 
+    explicit MouseButtonEvent(const MouseButton& button, const int& modifiers) : 
             m_button(button), m_modifiers(modifiers) {}
 
-    inline int GetButton() const { return m_button; }
+    inline MouseButton GetButton() const { return m_button; }
     inline int GetModifiers() const { return m_modifiers; }
 
 private:
-    int m_button;
+    MouseButton m_button;
     int m_modifiers;
 };
 
 
 class MouseButtonPressedEvent : public MouseButtonEvent {
 public:
-    explicit MouseButtonPressedEvent(const int& button, const int& modifiers) : 
+    explicit MouseButtonPressedEvent(const MouseButton& button, const int& modifiers) : 
             MouseButtonEvent(button, modifiers) {}
 
     DEFINE_EVENT_TYPE(MouseButtonPressed)
-
-private:
-    int m_button;
 };
 
 
 class MouseButtonReleasedEvent : public MouseButtonEvent {
 public:
-    explicit MouseButtonReleasedEvent(const int& button, const int& modifiers) : 
+    explicit MouseButtonReleasedEvent(const MouseButton& button, const int& modifiers) : 
             MouseButtonEvent(button, modifiers) {}
 
     DEFINE_EVENT_TYPE(MouseButtonReleased)
-
-private:
-    int m_button;
 };
 
 

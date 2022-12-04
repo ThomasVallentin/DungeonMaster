@@ -115,7 +115,7 @@ void Scene::RemoveEntity(Entity& entity)
     entity.m_id = 0;
 }
 
-const std::string& Scene::GetEntityName(const uint32_t& id)
+std::string Scene::GetEntityName(const uint32_t& id)
 {
     return m_index.GetComponent<BaseComponent>(id).name;
 }

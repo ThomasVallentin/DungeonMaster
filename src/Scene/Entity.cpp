@@ -1,7 +1,7 @@
 #include "Entity.h"
 
 
-const std::string& Entity::GetName() const
+std::string Entity::GetName() const
 {
     return m_scene->GetEntityName(m_id);
 }

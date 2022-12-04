@@ -14,7 +14,7 @@ public:
     Entity() = default;
     ~Entity() = default;
 
-    const std::string& GetName() const;
+    std::string GetName() const;
 
     Entity GetParent() const;
     std::vector<Entity> GetChildren() const;

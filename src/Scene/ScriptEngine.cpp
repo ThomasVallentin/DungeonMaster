@@ -12,7 +12,7 @@ ScriptEngine& ScriptEngine::Init()
     return s_instance;
 }
 
-void ScriptEngine::Register(Components::Script* script)
+void ScriptEngine::Register(Components::Scripted* script)
 {
     if (std::find(m_scripts.begin(), m_scripts.end(), script) == m_scripts.end())
     {
@@ -20,7 +20,7 @@ void ScriptEngine::Register(Components::Script* script)
     }
 }
 
-void ScriptEngine::Deregister(Components::Script* script)
+void ScriptEngine::Deregister(Components::Scripted* script)
 {
     auto it = std::find(m_scripts.begin(), m_scripts.end(), script);
     if (it != m_scripts.end())

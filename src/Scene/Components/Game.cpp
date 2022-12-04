@@ -19,9 +19,9 @@ struct CharacterControllerData
 };
 
 
-Script CreateCharacterController(const Entity& entity)
+Scriptable CreateCharacterController(const Entity& entity)
 {
-    return Script(
+    return Scriptable(
         "CharacterController",
         entity,
 
@@ -160,7 +160,52 @@ Script CreateCharacterController(const Entity& entity)
             }
         }
     }
-});
+},
+nullptr);
+
 } 
+
+// Script CreateNavAgent(const Entity& entity)
+// {
+//     return Script(
+//         "NavAgent",
+//         entity,
+
+// // NavAgent::OnCreate
+// [](const Entity& entity, std::any& dataBlock)
+// {
+//     dataBlock = std::make_any<CharacterControllerData>();
+// },
+
+// // NavAgent::OnUpdate
+// [](const Entity& entity, std::any& dataBlock)
+// {
+//     CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
+//     if (!data.moveAnimation.ended)
+//     {
+//         auto* transform = entity.FindComponent<Transform>();
+//         if (transform)
+//         {
+//             transform->transform = data.moveAnimation.Evaluate(Application::Get().GetCurrentTime());
+//         }
+//     }
+
+//     if (!data.attackAnimation.ended)
+//     {
+//         auto* childTransform = entity.FindChild("Weapon").FindComponent<Transform>();
+//         if (childTransform)
+//         {
+//             childTransform->transform = data.attackAnimation.Evaluate(Application::Get().GetCurrentTime());
+//         }
+//     }
+// },
+
+// // NavAgent::OnEvent
+// [](Event* event, const Entity& entity, std::any& dataBlock)
+// {
+
+// });
+// }
+
 
 } // Namespace Components

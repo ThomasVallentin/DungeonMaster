@@ -8,7 +8,7 @@
 
 namespace Components
 {
-    class Script;
+    class Scripted;
 }
 
 
@@ -19,8 +19,8 @@ public:
     inline static ScriptEngine& Get() { return s_instance; }
 
     // TODO: Prevent Scripts that do not belong to the active scene from beeing added to the Engine
-    void Register(Components::Script* script);
-    void Deregister(Components::Script* script);
+    void Register(Components::Scripted* script);
+    void Deregister(Components::Scripted* script);
 
     void OnUpdate();
     void OnEvent(Event* event);
@@ -31,7 +31,7 @@ private:
     ScriptEngine() = default;
     ~ScriptEngine() = default;
 
-    std::vector<Components::Script*> m_scripts;
+    std::vector<Components::Scripted*> m_scripts;
 
     static ScriptEngine s_instance;
 };

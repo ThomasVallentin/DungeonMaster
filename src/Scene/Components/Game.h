@@ -13,7 +13,13 @@
 
 namespace Components {
 
-    Script CreateCharacterController(const Entity& entity);
+Scriptable CreateCharacterController(const Entity& entity);
+
+class NavAgent : public Scripted
+{
+public:
+    NavAgent(const std::string& name) : Scripted(name) {}
+};
 
 } // Namespace Components
 

@@ -25,6 +25,7 @@ set(DungeonMaster_SOURCES src/main.cpp
 
                           src/Core/Application.cpp
                           src/Core/Image.cpp
+                          src/Core/Inputs.cpp
                           src/Core/Resolver.cpp
                           src/Core/Window.cpp
 

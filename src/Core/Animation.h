@@ -22,30 +22,30 @@ struct Animation
     std::map<float, const T> keyframes;
     InterpolationType interpolation = Linear;
     float speed = 1.0f;
-    float startTime = 0.0f;
+    float currentTime = 0.0f;
     bool ended = true;
 
     void Start()
     {
-        startTime = Application::Get().GetCurrentTime();
+        currentTime = 0.0f;
         ended = false;
     }
 
-    T Evaluate(const float& time)
+    T Evaluate(const float& deltaTime)
     {
-        float scaledTime = (time - startTime) * speed;
+        currentTime += deltaTime * speed;
         float prevTime = 0;
         T prevValue;
 
         // Could be optimized by storing an iterator instead of looping over the keys at each evaluation
         for (const auto [keyTime, keyValue] : keyframes)
         {
-            if (keyTime == scaledTime)
+            if (keyTime == currentTime)
             {
                 return keyValue;
             }
             
-            if (keyTime > scaledTime)
+            if (keyTime > currentTime)
             {
                 switch (interpolation)
                 {
@@ -56,13 +56,13 @@ struct Animation
 
                     case InterpolationType::Linear:
                     {
-                        float weight = (scaledTime - prevTime) / (keyTime - prevTime);
+                        float weight = (currentTime - prevTime) / (keyTime - prevTime);
                         return prevValue * (1.0f - weight) + keyValue * weight;
                     }
 
                     case InterpolationType::Smooth:
                     {
-                        float weight = (scaledTime - prevTime) / (keyTime - prevTime);
+                        float weight = (currentTime - prevTime) / (keyTime - prevTime);
                         weight = weight * weight * (3 - 2 * weight);  // cubic hermite interpolation
                         return prevValue * (1.0f - weight) + keyValue * weight;
                     }

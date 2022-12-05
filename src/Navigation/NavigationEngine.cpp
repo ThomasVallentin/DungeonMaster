@@ -22,13 +22,54 @@ NavigationEngine& NavigationEngine::Init()
 
 void NavigationEngine::SetNavMap(const ImagePtr& navMap)
 {
-    m_navMap = navMap;
+    m_navWidth = navMap->GetWidth();
+    m_navHeight = navMap->GetHeight();
+
+    uint32_t pixelCount = m_navWidth * m_navHeight;
+    if (pixelCount >= m_navMap.size())
+        m_navMap.reserve(pixelCount);
+    else 
+        m_navMap.resize(pixelCount);
+    
+    auto pixels = navMap->GetPixels();
+    for (size_t i=0 ; i < pixelCount ; ++i)
+    {
+        const auto& pixel = pixels[i];
+        if (pixel == LevelCell::Wall)
+            m_navMap[i] = NavCellFilters::Walls;
+
+        else if (pixel == LevelCell::Floor || 
+                 pixel == LevelCell::Entrance || 
+                 pixel == LevelCell::Exit)
+            m_navMap[i] = NavCellFilters::Floor;
+
+        else if (pixel == LevelCell::Water)
+            m_navMap[i] = NavCellFilters::Water;
+
+        else if (pixel == LevelCell::Door)
+            m_navMap[i] = NavCellFilters::Doors;
+
+        else 
+        {
+            std::cout << pixel.r <<" " << pixel.g << " " << pixel.b << std::endl;
+            m_navMap[i] = NavCellFilters::None;
+        }
+    }
+
+    for (size_t y=0 ; y < m_navHeight ; ++y)
+    {
+        std::cout << y << " : ";
+        for (size_t x=0 ; x < m_navWidth ; ++x)
+            std::cout << m_navMap[y * m_navWidth + x];
+        std::cout << std::endl;
+    }
+
     m_navMapHasChanged = true;
 }
 
 void NavigationEngine::OnUpdate()
 {
-    if (!m_navMap)
+    if (m_navMap.empty())
     {
         return;
     }
@@ -37,30 +78,55 @@ void NavigationEngine::OnUpdate()
     for (const auto& agent : m_agents)
     {
         if (agent->IsMoving())
-            continue;
-
-        const auto& dest = agent->GetDestination();
-        const auto& destPix = m_navMap->GetPixel(dest.x, dest.z);
-        if (destPix == LevelCells::Floor)
         {
-            agent->m_animation = {{{0.0f, agent->GetPosition()},
-                                   {1.0f, dest}},
-                                  InterpolationType::Smooth,
-                                  2.5f};
-            agent->m_animation.Start();
+            if (agent->HasAdvanced())
+            {
+                agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+            }
         }
-            
+        else if (agent->NeedsNewPath())
+        {
+            ComputeAgentPath(agent);
+            agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+        }
     }
     
     m_navMapHasChanged = false;
 }
 
-AgentPtr NavigationEngine::CreateAgent()
+void NavigationEngine::ComputeAgentPath(const NavAgentPtr& agent)
 {
-    AgentPtr agent(new Agent);
+    glm::vec3 pos = agent->GetPosition();
+    glm::vec3 dest = agent->GetDestination();
+    auto path = FindPath(glm::vec2(pos.x, pos.z), glm::vec2(dest.x, dest.z));
+}
+
+NavAgentPtr NavigationEngine::CreateAgent()
+{
+    NavAgentPtr agent(new NavAgent);
     m_agents.push_back(agent);
 
     return agent;
+}
+
+void NavigationEngine::RemoveAgent(const NavAgentPtr& agent)
+{
+    const auto it = std::find(m_agents.begin(), m_agents.end(), agent);
+    if (it != m_agents.end())
+    {
+        m_agents.erase(it);
+    }
+}
+
+uint32_t NavigationEngine::GetCell(const uint32_t& x, const uint32_t& y) const
+{
+    return m_navMap[y * m_navWidth + x];
+}
+
+bool NavigationEngine::IsWalkableCell(const glm::vec2& cell, const NavCellFilters& filter) const
+{
+    uint32_t a = GetCell(cell.x, cell.y);
+    return a & filter;
 }
 
 std::vector<glm::vec2> NavigationEngine::ReconstructPath(const NavCell& end) const
@@ -80,9 +146,10 @@ uint32_t CostHeuristic(const glm::vec2& start, const glm::vec2& end)
     return abs(end.x - start.x) + abs(end.y - start.y); 
 }
 
-std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos) const
+std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
+                                                  const NavCellFilters& filter) const
 {
-    if (m_navMap->GetPixel(startPos.x, startPos.y) == LevelCells::Wall)
+    if (!IsWalkableCell(startPos, filter))
     {
         return {};
     }
@@ -92,6 +159,7 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
 
     std::unordered_map<glm::vec2, NavCell*> closedCells;
 
+    std::vector<glm::vec2> result;
     while (!openedCells.empty())
     {
         auto currentIt = std::min_element(openedCells.begin(), openedCells.end(),
@@ -101,7 +169,8 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
         {
             // Yeah !
             LOG_INFO("FOUND !");
-            return ReconstructPath(*currentIt->second);
+            result = ReconstructPath(*currentIt->second); 
+            break; 
         }
 
         NavCell* currentCell = currentIt->second;
@@ -115,7 +184,7 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
         {
             glm::vec2 pos = currentCell->pos + neighbour;
             // Skipping walls
-            if (m_navMap->GetPixel(pos.x, pos.y) == LevelCells::Wall)
+            if (!IsWalkableCell(pos, filter))
             {
                 continue;
             }
@@ -140,6 +209,14 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
         closedCells[currentCell->pos] = currentCell;
     }
 
-    return {};
+    // Cleanup temporary data
+    for (const auto &it : closedCells)
+    {
+        delete it.second;
+    }
+
+    return result;
 }
+
+
 

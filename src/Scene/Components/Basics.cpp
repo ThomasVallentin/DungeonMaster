@@ -26,12 +26,16 @@ glm::mat4 Transform::ComputeWorldMatrix(const Entity& entity)
 
 // == Scripted == 
 
-Scripted::Scripted(const std::string& name) : m_name(name)
+Scripted::Scripted(const std::string& name, const Entity& entity) : 
+        m_name(name), 
+        m_entity(entity)
 {
     ScriptEngine::Get().Register(this);
 }
 
-Scripted::Scripted(const Scripted& other)
+Scripted::Scripted(const Scripted& other) :
+        m_name(other.m_name), 
+        m_entity(other.m_entity)
 {
     ScriptEngine::Get().Register(this);
 }
@@ -49,24 +53,22 @@ Scriptable::Scriptable(const std::string& name,
                        const OnUpdateFn& onUpdate,
                        const OnEventFn& onEvent,
                        const OnDestroyFn& onDestroy) : 
-        m_entity(entity), 
+        Scripted(name, entity),
         m_onCreateFn(onCreate), 
         m_onUpdateFn(onUpdate),
         m_onEventFn(onEvent),
-        m_onDestroyFn(onDestroy), 
-        Scripted(name)
+        m_onDestroyFn(onDestroy)
 {
     OnCreate();
 }
 
 Scriptable::Scriptable(const Scriptable& other) :
+        Scripted(other),
         m_dataBlock(other.m_dataBlock),
-        m_entity(other.m_entity), 
         m_onCreateFn(other.m_onCreateFn), 
         m_onUpdateFn(other.m_onUpdateFn),
         m_onEventFn(other.m_onEventFn),
-        m_onDestroyFn(other.m_onDestroyFn),
-        Scripted(other)
+        m_onDestroyFn(other.m_onDestroyFn)
 {
     OnCreate();
 }
@@ -79,25 +81,25 @@ Scriptable::~Scriptable()
 void Scriptable::OnCreate() 
 {
     if (m_onCreateFn)
-        m_onCreateFn(m_entity, m_dataBlock);
+        m_onCreateFn(GetEntity(), m_dataBlock);
 }
 
 void Scriptable::OnUpdate()
 {
     if (m_onUpdateFn)
-        m_onUpdateFn(m_entity, m_dataBlock);
+        m_onUpdateFn(GetEntity(), m_dataBlock);
 }
 
 void Scriptable::OnEvent(Event* event)
 {
     if (m_onEventFn)
-        m_onEventFn(event, m_entity, m_dataBlock);
+        m_onEventFn(event, GetEntity(), m_dataBlock);
 }
 
 void Scriptable::OnDestroy()
 {
     if (m_onDestroyFn)
-        m_onDestroyFn(m_entity, m_dataBlock);
+        m_onDestroyFn(GetEntity(), m_dataBlock);
 }
 
 

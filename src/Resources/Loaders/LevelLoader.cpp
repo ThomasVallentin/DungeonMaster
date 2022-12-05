@@ -51,7 +51,8 @@ Entity LevelLoader::BuildPlayer()
     // Character controller
     Entity player = scene->CreateEntity("Player");
     player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_playerPos.x, 0.5f, m_playerPos.y)));
-    auto& controller = player.EmplaceComponent<Components::Script>(Components::CreateCharacterController(player));
+    auto& controller = player.EmplaceComponent<Components::Scriptable>(Components::CreateCharacterController(player));
+    // auto& agent = player.EmplaceComponent<Components::NavAgent>(player);
     
     // Camera
     Entity camera = player.AddChild("Camera");
@@ -125,10 +126,10 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
         for (size_t x=0 ; x < width ; x++)
         {
             glm::vec4 pixel = GetPixel(pixels, x, y, width, height);
-            if (pixel == LevelCells::Wall)
+            if (pixel == LevelCell::Wall)
                 continue;
 
-            if (pixel == LevelCells::Entrance)
+            if (pixel == LevelCell::Entrance)
             {
                 if (m_playerPos != glm::vec2(-1.0f))
                     LOG_WARNING("Multiple entrances have been specified, using the first one.");
@@ -140,7 +141,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
             Entity cell = prefabScene->CreateEntity(std::string("Cell") + std::to_string(x) + std::to_string(y));
             cell.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(x, 0, -y)));
             cell.EmplaceComponent<Components::Mesh>(mesh);
-            if (pixel == LevelCells::Water)
+            if (pixel == LevelCell::Water)
                 cell.EmplaceComponent<Components::RenderMesh>(m_waterMat);
             else
                 cell.EmplaceComponent<Components::RenderMesh>(m_floorMat);
@@ -159,7 +160,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
             ceiling.EmplaceComponent<Components::RenderMesh>(m_floorMat);
 
             // Wall entity(ies)
-            if (GetPixel(pixels, x-1, y, width, height) == LevelCells::Wall)
+            if (GetPixel(pixels, x-1, y, width, height) == LevelCell::Wall)
             {
                 Entity wall = prefabScene->CreateEntity("leftWall", cell);
                 wall.EmplaceComponent<Components::Transform>(
@@ -177,7 +178,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                 wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
             
-            if (GetPixel(pixels, x+1, y, width, height) == LevelCells::Wall)
+            if (GetPixel(pixels, x+1, y, width, height) == LevelCell::Wall)
             {
                 Entity wall = prefabScene->CreateEntity("rightWall", cell);
                 wall.EmplaceComponent<Components::Transform>(
@@ -195,7 +196,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                 wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
 
-            if (GetPixel(pixels, x, y+1, width, height) == LevelCells::Wall)
+            if (GetPixel(pixels, x, y+1, width, height) == LevelCell::Wall)
             {
                 Entity wall = prefabScene->CreateEntity("topWall", cell);
                 wall.EmplaceComponent<Components::Transform>(
@@ -210,7 +211,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
                 wall.EmplaceComponent<Components::RenderMesh>(m_wallMat);
             }
 
-            if (GetPixel(pixels, x, y-1, width, height) == LevelCells::Wall)
+            if (GetPixel(pixels, x, y-1, width, height) == LevelCell::Wall)
             {
                 Entity wall = prefabScene->CreateEntity("bottomWall", cell);
                 wall.EmplaceComponent<Components::Transform>(

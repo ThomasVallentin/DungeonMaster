@@ -66,7 +66,7 @@ typedef std::function<void(const Entity&, std::any&)>         OnDestroyFn;
 class Scripted
 {
 public:
-    Scripted(const std::string& name);
+    Scripted(const std::string& name, const Entity& entity);
     Scripted(const Scripted& other);
     ~Scripted();
 
@@ -75,8 +75,12 @@ public:
     virtual void OnUpdate() {};
     virtual void OnEvent(Event* event) {};
 
+    inline Entity GetEntity() const { return m_entity; };
+    inline void SetEntity(const Entity& entity) { m_entity = entity; };
+
 private:
     std::string m_name;
+    Entity m_entity;
 };
 
 
@@ -100,7 +104,6 @@ public:
 
 private:
     std::any m_dataBlock;
-    Entity m_entity;
 
     OnCreateFn m_onCreateFn;
     OnUpdateFn m_onUpdateFn;

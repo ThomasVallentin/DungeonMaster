@@ -16,7 +16,7 @@ class Prefab
 public:
     ~Prefab() = default;
 
-    const std::string& GetName() const { return m_name; }
+    std::string GetName() const { return m_name; }
     SceneWeakPtr GetInternalScene() const { return m_scene; }
     Entity GetRootEntity() const;
 

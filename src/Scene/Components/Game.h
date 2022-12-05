@@ -3,8 +3,7 @@
 
 #include "Basics.h"
 
-#include "Core/Event.h"
-#include "Core/Application.h"
+#include "Navigation/Agent.h"
 
 #include <GLFW/glfw3.h>
 
@@ -18,7 +17,14 @@ Scriptable CreateCharacterController(const Entity& entity);
 class NavAgent : public Scripted
 {
 public:
-    NavAgent(const std::string& name) : Scripted(name) {}
+    NavAgent(const Entity& entity);
+    NavAgent(const NavAgent& other);
+    ~NavAgent();
+
+    void OnUpdate() override;
+
+private:
+    NavAgentPtr m_agent;
 };
 
 } // Namespace Components

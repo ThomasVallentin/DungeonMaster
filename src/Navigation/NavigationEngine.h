@@ -10,6 +10,20 @@
 #include <vector>
 
 
+enum NavCellFilters
+{
+    None = 0,
+    Floor = 1 << 0,
+    Doors = 1 << 1,
+    Water = 1 << 2,
+    Walls = 1 << 3,
+
+    Default = Floor | Doors,
+    Flying = Default | Water,
+    All = Floor | Doors | Water | Walls
+};
+
+
 struct NavCell
 {
     glm::vec2 pos;
@@ -30,27 +44,32 @@ public:
     static NavigationEngine& Init();
     inline static NavigationEngine& Get() { return s_instance; }
 
-    ImagePtr GetNavMap() const { return m_navMap; }
     void SetNavMap(const ImagePtr& navMap);
 
     void OnUpdate();
 
-    std::vector<glm::vec2> FindPath(const glm::vec2& startPos, const glm::vec2& endPos) const;
+    std::vector<glm::vec2> FindPath(const glm::vec2& startPos, const glm::vec2& endPos, 
+                                    const NavCellFilters& filter=NavCellFilters::Default) const;
+    bool IsWalkableCell(const glm::vec2& cell, const NavCellFilters& filter=NavCellFilters::Default) const;
 
-    AgentPtr CreateAgent();
-    void RemoveAgent(const AgentPtr& agent);
+    NavAgentPtr CreateAgent();
+    void RemoveAgent(const NavAgentPtr& agent);
 
 private:
     NavigationEngine() = default;
     ~NavigationEngine() = default;
     
-    void UpdateAgent();
+    void ComputeAgentPath(const NavAgentPtr& agent);
+    uint32_t GetCell(const uint32_t& x, const uint32_t& y) const;
 
     std::vector<glm::vec2> ReconstructPath(const NavCell& end) const;
 
-    ImagePtr m_navMap;
+    std::vector<uint32_t> m_navMap;
+    uint32_t m_navWidth;
+    uint32_t m_navHeight;
     bool m_navMapHasChanged = false;
-    std::vector<AgentPtr> m_agents;
+
+    std::vector<NavAgentPtr> m_agents;
 
     static NavigationEngine s_instance;
 };

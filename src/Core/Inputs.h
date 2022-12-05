@@ -9,7 +9,7 @@
 // Copying them allow us to avoid including GLFW every time we need an input
 // and enhance readability.
 
-enum KeyCode
+enum class KeyCode
 {   
     Digit_0          = 48,
     Digit_1          = 49,
@@ -136,8 +136,8 @@ enum class MouseButton
 class Inputs
 {
 public:
-    static bool IsKeyPressed(const int &key);
-    static bool IsMouseButtonPressed(const int &button);
+    static bool IsKeyPressed(const KeyCode &key);
+    static bool IsMouseButtonPressed(const MouseButton &button);
     static glm::vec2 GetMousePosition();
 };
 

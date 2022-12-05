@@ -6,15 +6,15 @@
 #include <GLFW/glfw3.h>
 
 
-bool Inputs::IsKeyPressed(const int &key)
+bool Inputs::IsKeyPressed(const KeyCode &key)
 {
-    int state = glfwGetKey(Application::Get().GetWindow().GetInternalWindow(), key);
+    int state = glfwGetKey(Application::Get().GetWindow().GetInternalWindow(), (int)key);
     return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
 
-bool Inputs::IsMouseButtonPressed(const int &button)
+bool Inputs::IsMouseButtonPressed(const MouseButton &button)
 {
-    int state = glfwGetMouseButton(Application::Get().GetWindow().GetInternalWindow(), button);
+    int state = glfwGetMouseButton(Application::Get().GetWindow().GetInternalWindow(), (int)button);
     return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
 

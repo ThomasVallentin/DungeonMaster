@@ -1,22 +1,21 @@
 #ifndef SCRIPTENGINE_H
 #define SCRIPTENGINE_H
 
+#include "Components.h"
+
 #include "Core/Event.h"
 
 #include <vector>
 
 
-namespace Components
-{
-    class Scripted;
-}
+namespace Scripting {
 
 
-class ScriptEngine
+class Engine
 {
 public:
-    static ScriptEngine& Init();
-    inline static ScriptEngine& Get() { return s_instance; }
+    static Engine& Init();
+    inline static Engine& Get() { return s_instance; }
 
     // TODO: Prevent Scripts that do not belong to the active scene from beeing added to the Engine
     void Register(Components::Scripted* script);
@@ -28,12 +27,14 @@ public:
     void Clear();
 
 private:
-    ScriptEngine() = default;
-    ~ScriptEngine() = default;
+    Engine() = default;
+    ~Engine() = default;
 
     std::vector<Components::Scripted*> m_scripts;
 
-    static ScriptEngine s_instance;
+    static Engine s_instance;
 };
+
+} // Namespace Scripting
 
 #endif  // SCRIPTENGINE_H

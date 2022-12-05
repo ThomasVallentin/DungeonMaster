@@ -54,7 +54,7 @@ Application::Application(int argc, char* argv[])
     std::string appPath = argv[0];
     Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
-    ScriptEngine::Init();
+    Scripting::Engine::Init();
     Navigation::Engine::Init();
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
@@ -94,7 +94,7 @@ void Application::OnUpdate()
     double time = GetCurrentTime();
 
     // Updating Scripts
-    ScriptEngine::Get().OnUpdate();
+    Scripting::Engine::Get().OnUpdate();
 
     // Rendering part, should be handled by a separated Renderer class
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -178,7 +178,7 @@ void Application::OnEvent(Event* event)
     }
 
     // Sending events to the scripted components
-    ScriptEngine::Get().OnEvent(event);
+    Scripting::Engine::Get().OnEvent(event);
 }
 
 double Application::GetCurrentTime()

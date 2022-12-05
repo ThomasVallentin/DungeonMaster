@@ -1,18 +1,22 @@
-#include "ScriptEngine.h"
+#include "Engine.h"
 
-#include "Components/Basics.h"
+#include "Scene/Components/Basics.h"
 
 #include <algorithm>
 
-ScriptEngine ScriptEngine::s_instance;
 
-ScriptEngine& ScriptEngine::Init()
+namespace Scripting {
+    
+
+Engine Engine::s_instance;
+
+Engine& Engine::Init()
 {
-    s_instance = ScriptEngine();
+    s_instance = Engine();
     return s_instance;
 }
 
-void ScriptEngine::Register(Components::Scripted* script)
+void Engine::Register(Components::Scripted* script)
 {
     if (std::find(m_scripts.begin(), m_scripts.end(), script) == m_scripts.end())
     {
@@ -20,7 +24,7 @@ void ScriptEngine::Register(Components::Scripted* script)
     }
 }
 
-void ScriptEngine::Deregister(Components::Scripted* script)
+void Engine::Deregister(Components::Scripted* script)
 {
     auto it = std::find(m_scripts.begin(), m_scripts.end(), script);
     if (it != m_scripts.end())
@@ -29,7 +33,7 @@ void ScriptEngine::Deregister(Components::Scripted* script)
     }
 }
 
-void ScriptEngine::OnUpdate()
+void Engine::OnUpdate()
 {
     for (auto* script : m_scripts)
     {
@@ -37,7 +41,7 @@ void ScriptEngine::OnUpdate()
     }
 }
 
-void ScriptEngine::OnEvent(Event* event)
+void Engine::OnEvent(Event* event)
 {
     for (auto* script : m_scripts)
     {
@@ -45,7 +49,9 @@ void ScriptEngine::OnEvent(Event* event)
     }
 }
 
-void ScriptEngine::Clear()
+void Engine::Clear()
 {
     m_scripts.clear();
 }
+
+} // Namespace Scripting

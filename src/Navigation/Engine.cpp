@@ -54,17 +54,8 @@ void Engine::SetNavMap(const ImagePtr& navMap)
 
         else 
         {
-            std::cout << pixel.r <<" " << pixel.g << " " << pixel.b << std::endl;
             m_navMap[i] = CellFilters::None;
         }
-    }
-
-    for (size_t y=0 ; y < m_navHeight ; ++y)
-    {
-        std::cout << y << " : ";
-        for (size_t x=0 ; x < m_navWidth ; ++x)
-            std::cout << m_navMap[y * m_navWidth + x];
-        std::cout << std::endl;
     }
 
     m_navMapHasChanged = true;

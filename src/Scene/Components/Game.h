@@ -5,10 +5,6 @@
 
 #include "Navigation/Agent.h"
 
-#include <GLFW/glfw3.h>
-
-#include <map>
-
 
 namespace Components {
 

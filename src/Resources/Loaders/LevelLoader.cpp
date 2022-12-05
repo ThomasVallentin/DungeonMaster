@@ -7,7 +7,7 @@
 #include "Renderer/Mesh.h"
 
 #include "Scene/Entity.h"
-#include "Scene/Components/Game.h"
+#include "Game/Components.h"
 
 #include "Resources/Manager.h"
 

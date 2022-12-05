@@ -1,7 +1,7 @@
 #ifndef GAMECOMPONENTS_H
 #define GAMECOMPONENTS_H
 
-#include "Basics.h"
+#include "Scene/Components/Basics.h"
 
 #include "Navigation/Agent.h"
 

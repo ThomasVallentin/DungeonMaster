@@ -8,7 +8,6 @@
 
 #include "Scene/Entity.h"
 #include "Scene/Components/Basics.h"
-#include "Scene/Components/Game.h"
 
 #include "Navigation/Engine.h"
 #include "Navigation/Agent.h"

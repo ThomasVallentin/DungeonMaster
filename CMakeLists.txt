@@ -44,8 +44,9 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Scene/EntityView.cpp
                           src/Scene/Scene.cpp
                           src/Scene/Components/Basics.cpp
-                          src/Scene/Components/Game.cpp
 
+                          src/Game/Components.cpp
+                          
                           src/Scripting/Components.cpp
                           src/Scripting/Engine.cpp
 

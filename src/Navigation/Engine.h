@@ -4,7 +4,6 @@
 #include "Agent.h"
 
 #include "Core/Image.h"
-#include "Core/Logging.h"
 
 #include "Utils/TypeUtils.h"
 

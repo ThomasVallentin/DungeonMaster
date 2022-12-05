@@ -69,7 +69,6 @@ void Engine::OnUpdate()
     }
 
     // Update disabled agents
-    LOG_INFO("%d", m_agents.size());
     for (const auto& agent : m_agents)
     {
         if (agent->IsMoving())

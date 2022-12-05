@@ -5,7 +5,7 @@
 #include "Core/Time.h"
 #include "Core/Animation.h"
 
-#include "Navigation/NavigationEngine.h"
+#include "Navigation/Engine.h"
 
 
 namespace Components {
@@ -16,7 +16,7 @@ struct CharacterControllerData
     Animation<glm::mat4> moveAnimation;
     Animation<glm::mat4> attackAnimation;
     float speed = 2.0f;
-    NavCellFilters navFilter = NavCellFilters::Default;
+    Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
 };
 
 
@@ -42,7 +42,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     }
 
     CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
-    NavigationEngine& navEngine = NavigationEngine::Get();
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
 
     bool shouldSampleInput = true;
 
@@ -74,7 +74,6 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, -1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, -nextTransform[3].z);
-        LOG_INFO("%f, %f, %d", nextCell.x, nextCell.y, navEngine.IsWalkableCell(nextCell, data.navFilter));
         if (navEngine.IsWalkableCell(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
@@ -88,7 +87,6 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, 1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, -nextTransform[3].z);
-        LOG_INFO("%f, %f, %f, %d", nextCell.x, nextCell.y, navEngine.IsWalkableCell(nextCell, data.navFilter));
         if (navEngine.IsWalkableCell(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
@@ -146,21 +144,21 @@ nullptr);
 
 NavAgent::NavAgent(const Entity& entity) :
         Scripted("NavAgent", entity),
-        m_agent(NavigationEngine::Get().CreateAgent())
+        m_agent(Navigation::Engine::Get().CreateAgent())
 {
     
 }
 
 NavAgent::NavAgent(const NavAgent& other) :
         Scripted(other),
-        m_agent(NavigationEngine::Get().CreateAgent())
+        m_agent(Navigation::Engine::Get().CreateAgent())
 {
 
 }
 
 NavAgent::~NavAgent()
 {
-    NavigationEngine::Get().RemoveAgent(m_agent);
+    Navigation::Engine::Get().RemoveAgent(m_agent);
 }
 
 void NavAgent::OnUpdate()

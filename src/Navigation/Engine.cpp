@@ -1,4 +1,4 @@
-#include "NavigationEngine.h"
+#include "Engine.h"
 
 #include "Resources/Loaders/LevelLoader.h"
 
@@ -11,16 +11,19 @@
 #include <unordered_map>
 
 
-NavigationEngine NavigationEngine::s_instance;
+namespace Navigation {
 
 
-NavigationEngine& NavigationEngine::Init()
+Engine Engine::s_instance;
+
+
+Engine& Engine::Init()
 {
-    s_instance = NavigationEngine();
+    s_instance = Engine();
     return s_instance;
 }
 
-void NavigationEngine::SetNavMap(const ImagePtr& navMap)
+void Engine::SetNavMap(const ImagePtr& navMap)
 {
     m_navWidth = navMap->GetWidth();
     m_navHeight = navMap->GetHeight();
@@ -36,23 +39,23 @@ void NavigationEngine::SetNavMap(const ImagePtr& navMap)
     {
         const auto& pixel = pixels[i];
         if (pixel == LevelCell::Wall)
-            m_navMap[i] = NavCellFilters::Walls;
+            m_navMap[i] = CellFilters::Walls;
 
         else if (pixel == LevelCell::Floor || 
                  pixel == LevelCell::Entrance || 
                  pixel == LevelCell::Exit)
-            m_navMap[i] = NavCellFilters::Floor;
+            m_navMap[i] = CellFilters::Floor;
 
         else if (pixel == LevelCell::Water)
-            m_navMap[i] = NavCellFilters::Water;
+            m_navMap[i] = CellFilters::Water;
 
         else if (pixel == LevelCell::Door)
-            m_navMap[i] = NavCellFilters::Doors;
+            m_navMap[i] = CellFilters::Doors;
 
         else 
         {
             std::cout << pixel.r <<" " << pixel.g << " " << pixel.b << std::endl;
-            m_navMap[i] = NavCellFilters::None;
+            m_navMap[i] = CellFilters::None;
         }
     }
 
@@ -67,7 +70,7 @@ void NavigationEngine::SetNavMap(const ImagePtr& navMap)
     m_navMapHasChanged = true;
 }
 
-void NavigationEngine::OnUpdate()
+void Engine::OnUpdate()
 {
     if (m_navMap.empty())
     {
@@ -94,22 +97,22 @@ void NavigationEngine::OnUpdate()
     m_navMapHasChanged = false;
 }
 
-void NavigationEngine::ComputeAgentPath(const NavAgentPtr& agent)
+void Engine::ComputeAgentPath(const AgentPtr& agent)
 {
     glm::vec3 pos = agent->GetPosition();
     glm::vec3 dest = agent->GetDestination();
     auto path = FindPath(glm::vec2(pos.x, pos.z), glm::vec2(dest.x, dest.z));
 }
 
-NavAgentPtr NavigationEngine::CreateAgent()
+AgentPtr Engine::CreateAgent()
 {
-    NavAgentPtr agent(new NavAgent);
+    AgentPtr agent(new Agent);
     m_agents.push_back(agent);
 
     return agent;
 }
 
-void NavigationEngine::RemoveAgent(const NavAgentPtr& agent)
+void Engine::RemoveAgent(const AgentPtr& agent)
 {
     const auto it = std::find(m_agents.begin(), m_agents.end(), agent);
     if (it != m_agents.end())
@@ -118,21 +121,21 @@ void NavigationEngine::RemoveAgent(const NavAgentPtr& agent)
     }
 }
 
-uint32_t NavigationEngine::GetCell(const uint32_t& x, const uint32_t& y) const
+uint32_t Engine::GetCell(const uint32_t& x, const uint32_t& y) const
 {
     return m_navMap[y * m_navWidth + x];
 }
 
-bool NavigationEngine::IsWalkableCell(const glm::vec2& cell, const NavCellFilters& filter) const
+bool Engine::IsWalkableCell(const glm::vec2& cell, const CellFilters& filter) const
 {
     uint32_t a = GetCell(cell.x, cell.y);
     return a & filter;
 }
 
-std::vector<glm::vec2> NavigationEngine::ReconstructPath(const NavCell& end) const
+std::vector<glm::vec2> Engine::ReconstructPath(const Cell& end) const
 {
     std::vector<glm::vec2> result {end.pos};
-    const NavCell* cell = end.previous;
+    const Cell* cell = end.previous;
     while (cell)
     {
         result.insert(result.begin(), cell->pos);
@@ -146,18 +149,18 @@ uint32_t CostHeuristic(const glm::vec2& start, const glm::vec2& end)
     return abs(end.x - start.x) + abs(end.y - start.y); 
 }
 
-std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
-                                                  const NavCellFilters& filter) const
+std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
+                                                  const CellFilters& filter) const
 {
     if (!IsWalkableCell(startPos, filter))
     {
         return {};
     }
 
-    std::unordered_map<glm::vec2, NavCell*> openedCells;
-    openedCells.insert({startPos, new NavCell{startPos, 0, CostHeuristic(startPos, endPos)}});
+    std::unordered_map<glm::vec2, Cell*> openedCells;
+    openedCells.insert({startPos, new Cell{startPos, 0, CostHeuristic(startPos, endPos)}});
 
-    std::unordered_map<glm::vec2, NavCell*> closedCells;
+    std::unordered_map<glm::vec2, Cell*> closedCells;
 
     std::vector<glm::vec2> result;
     while (!openedCells.empty())
@@ -173,7 +176,7 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
             break; 
         }
 
-        NavCell* currentCell = currentIt->second;
+        Cell* currentCell = currentIt->second;
         openedCells.erase(currentIt);
         
         std::array<glm::vec2, 4> neighbours {glm::vec2(-1, 0), 
@@ -203,7 +206,7 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
                 continue;
 
             // This is the best path to this cell so far, adding it to the queue
-            openedCells[pos] = new NavCell{pos, gCost, fCost, currentCell};
+            openedCells[pos] = new Cell{pos, gCost, fCost, currentCell};
         }
 
         closedCells[currentCell->pos] = currentCell;
@@ -219,4 +222,5 @@ std::vector<glm::vec2> NavigationEngine::FindPath(const glm::vec2& startPos, con
 }
 
 
+} // Namespace Navigation
 

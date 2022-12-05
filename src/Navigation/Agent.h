@@ -7,16 +7,19 @@
 #include <glm/glm.hpp>
 
 
-class NavigationEngine;
-class NavAgent;
-
-DECLARE_PTR_TYPE(NavAgent);
+namespace Navigation {
 
 
-class NavAgent
+class Engine;
+class Agent;
+
+DECLARE_PTR_TYPE(Agent);
+
+
+class Agent
 {
 public:
-    ~NavAgent();
+    ~Agent();
 
     inline const glm::vec3& GetPosition() const { return m_position; }
     void SetPosition(const glm::vec3& position);
@@ -34,7 +37,7 @@ public:
     bool IsMoving() const;
 
 private:
-    NavAgent();
+    Agent();
 
     void SetPath(const std::vector<glm::vec2>);
     inline bool NeedsNewPath() const { return m_requestsNewPath; }
@@ -52,7 +55,11 @@ private:
     bool m_hasAdvanced = false;
     bool m_requestsNewPath = false;
 
-    friend NavigationEngine;
+    friend Engine;
 };
+
+
+} // Namespace Navigation
+
 
 #endif  // AGENT_H

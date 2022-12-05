@@ -1,35 +1,38 @@
 #include "Agent.h"
 
-#include "NavigationEngine.h"
+#include "Engine.h"
 
 
-NavAgent::NavAgent()
+namespace Navigation {
+
+
+Agent::Agent()
 {
 
 }
 
-NavAgent::~NavAgent()
+Agent::~Agent()
 {
 
 }
 
-void NavAgent::SetPosition(const glm::vec3& position)
+void Agent::SetPosition(const glm::vec3& position)
 {
     m_position = position;
 }
 
-void NavAgent::SetDestination(const glm::vec3& destination)
+void Agent::SetDestination(const glm::vec3& destination)
 {
     m_destination = destination;
     m_requestsNewPath = true;
 }
 
-bool NavAgent::IsMoving() const
+bool Agent::IsMoving() const
 {
     return (!m_interpolator.ended && m_path.empty());
 }
 
-void NavAgent::MakeProgress(const float& deltaTime) 
+void Agent::MakeProgress(const float& deltaTime) 
 {
     if (!m_interpolator.ended)
     {
@@ -50,3 +53,7 @@ void NavAgent::MakeProgress(const float& deltaTime)
     m_nextPosition = m_position;
     m_path.clear();
 }
+
+
+} // Namespace Navigation 
+

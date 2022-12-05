@@ -20,7 +20,7 @@ public:
     void OnUpdate() override;
 
 private:
-    NavAgentPtr m_agent;
+    Navigation::AgentPtr m_agent;
 };
 
 } // Namespace Components

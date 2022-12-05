@@ -4,6 +4,7 @@
 #include "Agent.h"
 
 #include "Core/Image.h"
+#include "Core/Logging.h"
 
 #include "Utils/TypeUtils.h"
 
@@ -45,7 +46,7 @@ class Engine
 {
 public:
     static Engine& Init();
-    inline static Engine& Get() { return s_instance; }
+    inline static Engine& Get() { return *s_instance; }
 
     void SetNavMap(const ImagePtr& navMap);
 
@@ -60,6 +61,7 @@ public:
 
 private:
     Engine() = default;
+    Engine(const Engine&) = delete;
     ~Engine() = default;
     
     void ComputeAgentPath(const AgentPtr& agent);
@@ -74,7 +76,7 @@ private:
 
     std::vector<AgentPtr> m_agents;
 
-    static Engine s_instance;
+    static Engine* s_instance;
 };
 
 

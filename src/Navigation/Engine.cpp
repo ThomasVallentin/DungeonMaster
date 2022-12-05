@@ -14,13 +14,13 @@
 namespace Navigation {
 
 
-Engine Engine::s_instance;
+Engine* Engine::s_instance = nullptr;
 
 
 Engine& Engine::Init()
 {
-    s_instance = Engine();
-    return s_instance;
+    s_instance = new Engine();
+    return *s_instance;
 }
 
 void Engine::SetNavMap(const ImagePtr& navMap)
@@ -69,6 +69,7 @@ void Engine::OnUpdate()
     }
 
     // Update disabled agents
+    LOG_INFO("%d", m_agents.size());
     for (const auto& agent : m_agents)
     {
         if (agent->IsMoving())

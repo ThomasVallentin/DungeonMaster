@@ -15,7 +15,7 @@ class Engine
 {
 public:
     static Engine& Init();
-    inline static Engine& Get() { return s_instance; }
+    inline static Engine& Get() { return *s_instance; }
 
     // TODO: Prevent Scripts that do not belong to the active scene from beeing added to the Engine
     void Register(Components::Scripted* script);
@@ -32,7 +32,7 @@ private:
 
     std::vector<Components::Scripted*> m_scripts;
 
-    static Engine s_instance;
+    static Engine* s_instance;
 };
 
 } // Namespace Scripting

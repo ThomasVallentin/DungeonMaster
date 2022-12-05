@@ -8,12 +8,12 @@
 namespace Scripting {
     
 
-Engine Engine::s_instance;
+Engine* Engine::s_instance = nullptr;
 
 Engine& Engine::Init()
 {
-    s_instance = Engine();
-    return s_instance;
+    s_instance = new Engine();
+    return *s_instance;
 }
 
 void Engine::Register(Components::Scripted* script)

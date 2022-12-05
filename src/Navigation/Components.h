@@ -18,6 +18,8 @@ public:
 
     void OnUpdate() override;
 
+    Navigation::AgentPtr GetAgent();
+
 private:
     Navigation::AgentPtr m_agent;
 };

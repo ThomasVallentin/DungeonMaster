@@ -7,6 +7,8 @@
 #include "Renderer/Mesh.h"
 
 #include "Scene/Entity.h"
+
+#include "Navigation/Components.h"
 #include "Game/Components.h"
 
 #include "Resources/Manager.h"
@@ -69,6 +71,40 @@ Entity LevelLoader::BuildPlayer()
     ;
 
     return player;
+}
+
+Entity LevelLoader::BuildMonster(const std::string& name,
+                                 const glm::vec2& origin,
+                                 const std::string& modelIdentifier,
+                                 const uint32_t& health,
+                                 const float& strength,
+                                 const float& speed)
+{
+    ScenePtr scene = m_scene.Get();
+
+    // Character controller
+    Entity monster = scene->CreateEntity(name);
+    monster.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
+                                                    glm::vec3(origin.x, 0.0f, -origin.y)));
+    monster.EmplaceComponent<Components::NavAgent>(monster);
+    monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
+
+    ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
+    if (model)
+    {
+        Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", monster);
+        modelEntity.GetComponent<Components::Transform>().transform =
+            // glm::translate(glm::mat4(1.0f), glm::vec3(0.15f, 0.0f, -0.5f)) *
+            // glm::eulerAngleXYZ((float)M_PI_4, 0.0f, (float)M_PI_4) * 
+            glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)) // TODO: Fix model instead of scaling here
+    ;
+    }
+    else 
+    {
+        LOG_WARNING("Could not find model \"%s\"", modelIdentifier.c_str());
+    }
+
+    return monster;
 }
 
 
@@ -263,9 +299,6 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
     assert(firstFloor.HasMember("map"));
     assert(firstFloor["map"].IsString());
 
-    assert(firstFloor.HasMember("rewards"));
-    assert(firstFloor["rewards"].IsArray());
-
     m_scene = ResourceManager::CreateResource<Scene>(firstFloor["name"].GetString(), false);
     auto scene = m_scene.Get();
 
@@ -278,6 +311,43 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
 
     // Building the player, camera, weapon
     BuildPlayer();
+
+    assert(firstFloor.HasMember("monsters"));
+    assert(firstFloor["monsters"].IsArray());
+
+    for (const auto& monster : firstFloor["monsters"].GetArray())
+    {
+        assert(monster.HasMember("name"));
+        assert(monster["name"].IsString());
+        
+        assert(monster.HasMember("origin"));
+        assert(monster["origin"].IsArray());
+        assert(monster["origin"].Capacity() == 2);
+        
+        assert(monster.HasMember("model"));
+        assert(monster["model"].IsString());
+        
+        assert(monster.HasMember("health"));
+        assert(monster["health"].IsInt());
+
+        assert(monster.HasMember("strength"));
+        assert(monster["strength"].IsFloat());
+
+        assert(monster.HasMember("speed"));
+        assert(monster["speed"].IsFloat());
+
+        auto origin = monster["origin"].GetArray();
+        BuildMonster(monster["name"].GetString(),
+                     glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
+                     monster["model"].GetString(),
+                     monster["health"].GetInt(),
+                     monster["strength"].GetFloat(),
+                     monster["speed"].GetFloat());
+    }
+
+
+    assert(firstFloor.HasMember("rewards"));
+    assert(firstFloor["rewards"].IsArray());
 
     for (const auto& reward : firstFloor["rewards"].GetArray())
     {

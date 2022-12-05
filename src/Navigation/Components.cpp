@@ -54,4 +54,9 @@ void NavAgent::OnUpdate()
     }
 }
 
+Navigation::AgentPtr NavAgent::GetAgent() {
+    return m_agent;
+}
+
+
 } // Namespace Components

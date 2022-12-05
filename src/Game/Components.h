@@ -10,6 +10,8 @@ namespace Components {
 
 Scriptable CreateCharacterController(const Entity& entity);
 
+Scriptable CreateMonsterLogic(const Entity& entity);
+
 } // Namespace Components
 
 

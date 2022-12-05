@@ -1,15 +1,17 @@
 #include "Components.h"
 
+#include "Navigation/Components.h"
+#include "Navigation/Engine.h"
+
 #include "Core/Event.h"
 #include "Core/Inputs.h"
 #include "Core/Time.h"
 #include "Core/Animation.h"
 
-#include "Navigation/Engine.h"
-
-
 namespace Components {
 
+
+// == Character Controller ==
 
 struct CharacterControllerData
 {
@@ -131,6 +133,77 @@ Scriptable CreateCharacterController(const Entity& entity)
             data.attackAnimation.Start();
         }
     }
+},
+
+// CharacterController::OnEvent
+[](Event* event, const Entity& entity, std::any& dataBlock) {},
+nullptr);
+
+} 
+
+// == Moster Logic ==
+
+struct MonsterLogicData
+{
+    float speed = 2.0f;
+    float angleOfView = 45.0f;
+    Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
+    Entity target;
+};
+
+
+Scriptable CreateMonsterLogic(const Entity& entity)
+{
+    return Scriptable(
+        "MonsterLogic",
+        entity,
+
+// CharacterController::OnCreate
+[](const Entity& entity, std::any& dataBlock)
+{
+    dataBlock = std::make_any<MonsterLogicData>();
+},
+
+// CharacterController::OnUpdate
+[](const Entity& entity, std::any& dataBlock)
+{
+    NavAgent* navAgent = entity.FindComponent<NavAgent>();
+    if (!navAgent || navAgent->GetAgent()->IsMoving())
+    {
+        return;
+    }
+
+    MonsterLogicData& data = std::any_cast<MonsterLogicData&>(dataBlock);
+    Transform* transform = entity.FindComponent<Transform>();
+    if (!transform || !data.target)
+    {
+        return;
+    }
+
+    Transform* targetTransform = data.target.FindComponent<Transform>();
+    if (!targetTransform)
+    {
+        return;
+    }
+
+    glm::vec2 pos = {transform->transform[3].x, transform->transform[3].z};
+    glm::vec2 targetPos = {targetTransform->transform[3].x, targetTransform->transform[3].z};
+    glm::vec2 toTarget = targetPos - pos;
+
+    glm::vec2 viewDir = glm::normalize(glm::vec2(transform->transform[2].x, transform->transform[2].z));
+    glm::vec2 targetDir = glm::normalize(toTarget);
+
+    if (std::max(glm::dot(viewDir, targetDir), 0.0f) > (std::cos(glm::radians(data.angleOfView * 0.5f))))
+    {
+        LOG_INFO("In view !");
+    }
+
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
+
+
+
+
+
 },
 
 // CharacterController::OnEvent

@@ -28,22 +28,22 @@
                 {
                     "id": 1,
                     "name": "Khrryh",
-                    "origin": [10, 5],
-                    "model": "Models/Gobelin.obj",
+                    "origin": [22, 16],
+                    "model": "Models/Fire_Elemental.obj",
 
                     "health": 25,
-                    "strength": 2,
-                    "speed": 4
+                    "strength": 2.0,
+                    "speed": 4.0
                 },
                 {
                     "id": 1,
                     "name": "Akharr",
-                    "origin": [10, 5],
-                    "model": "Models/Gobelin.obj",
+                    "origin": [5, 10],
+                    "model": "Models/Fire_Elemental.obj",
 
                     "health": 20,
-                    "speed": 4,
-                    "strength": 3
+                    "strength": 3.0,
+                    "speed": 4.0
                 },
                 {
                     "id": 2,
@@ -52,8 +52,8 @@
                     "model": "Models/Fire_Elemental.obj",
 
                     "health": 45,
-                    "strength": 8,
-                    "speed": 2
+                    "strength": 8.0,
+                    "speed": 2.0
                 }
             ]
         }

@@ -51,6 +51,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Scripting/Engine.cpp
 
                           src/Navigation/Agent.cpp
+                          src/Navigation/Components.cpp
                           src/Navigation/Engine.cpp
 
                           src/Resources/Model.cpp

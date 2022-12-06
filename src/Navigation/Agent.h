@@ -21,8 +21,8 @@ class Agent
 public:
     ~Agent();
 
-    inline const glm::vec3& GetPosition() const { return m_position; }
-    void SetPosition(const glm::vec3& position);
+    inline const glm::mat4& GetTransform() const { return m_transform; }
+    void SetTransform(const glm::mat4& transform);
 
     inline const glm::vec3& GetDestination() const { return m_destination; }
     void SetDestination(const glm::vec3& destination);
@@ -32,23 +32,23 @@ public:
 
     inline void SetAdvanced() { m_hasAdvanced = true; }
     inline bool HasAdvanced() { return m_hasAdvanced; }
-    inline const glm::vec3& GetNextPosition() const { return m_nextPosition; }
+    inline glm::mat4 GetNextTransform() const { return m_nextTransform; }
 
     bool IsMoving() const;
 
 private:
     Agent();
 
-    void SetPath(const std::vector<glm::vec2>);
+    void SetPath(const std::vector<glm::vec2>& path);
     inline bool NeedsNewPath() const { return m_requestsNewPath; }
 
     void MakeProgress(const float& deltaTime);
 
-    glm::vec3 m_position;
     glm::vec3 m_destination;
-    glm::vec3 m_nextPosition;
+    glm::mat4 m_nextTransform;
+    glm::mat4 m_transform;
     float m_speed = 1.0f;
-    Animation<glm::vec3> m_interpolator;
+    Animation<glm::mat4> m_interpolator;
 
     std::vector<glm::vec2> m_path;
 

@@ -1,26 +1,19 @@
 #include "Components.h"
 
 #include "Navigation/Components.h"
-#include "Navigation/Engine.h"
 
 #include "Core/Event.h"
 #include "Core/Inputs.h"
 #include "Core/Time.h"
 #include "Core/Animation.h"
 
+#include <glm/gtx/norm.hpp>
+
+
 namespace Components {
 
 
 // == Character Controller ==
-
-struct CharacterControllerData
-{
-    Animation<glm::mat4> moveAnimation;
-    Animation<glm::mat4> attackAnimation;
-    float speed = 2.0f;
-    Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
-};
-
 
 Scriptable CreateCharacterController(const Entity& entity)
 {
@@ -44,7 +37,6 @@ Scriptable CreateCharacterController(const Entity& entity)
     }
 
     CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
-    Navigation::Engine& navEngine = Navigation::Engine::Get();
 
     bool shouldSampleInput = true;
 
@@ -70,6 +62,8 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         return;
     }
+    
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
 
     // Sample keyboard inputs
     if (Inputs::IsKeyPressed(KeyCode::Up))
@@ -123,12 +117,12 @@ Scriptable CreateCharacterController(const Entity& entity)
         {
             data.attackAnimation = {{
                     {0.0f, childTransform->transform},
-                    {0.2f, glm::rotate(childTransform->transform, -(float)M_PI / 8.0f, glm::vec3(0, 1, 0))},
-                    {0.4f, glm::rotate(childTransform->transform, (float)M_PI / 4.0f, glm::vec3(0, 1, 0))},
+                    {0.2f, glm::rotate(childTransform->transform, -(float)M_PI / 8.0f, glm::vec3(0, 0, 1))},
+                    {0.4f, glm::rotate(childTransform->transform, (float)M_PI / 4.0f, glm::vec3(0, 0, 1))},
                     {1.0f, childTransform->transform}
                 },
                 InterpolationType::Smooth, 
-                data.speed
+                1.5f
             };
             data.attackAnimation.Start();
         }
@@ -143,31 +137,24 @@ nullptr);
 
 // == Moster Logic ==
 
-struct MonsterLogicData
-{
-    float speed = 2.0f;
-    float angleOfView = 45.0f;
-    Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
-    Entity target;
-};
-
-
 Scriptable CreateMonsterLogic(const Entity& entity)
 {
     return Scriptable(
         "MonsterLogic",
         entity,
 
-// CharacterController::OnCreate
+// MonsterLogic::OnCreate
 [](const Entity& entity, std::any& dataBlock)
 {
     dataBlock = std::make_any<MonsterLogicData>();
 },
 
-// CharacterController::OnUpdate
+// MonsterLogic::OnUpdate
 [](const Entity& entity, std::any& dataBlock)
 {
     NavAgent* navAgent = entity.FindComponent<NavAgent>();
+    auto agent = navAgent->GetAgent();
+    auto ismoving = navAgent->GetAgent()->IsMoving();
     if (!navAgent || navAgent->GetAgent()->IsMoving())
     {
         return;
@@ -190,23 +177,40 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     glm::vec2 targetPos = {targetTransform->transform[3].x, targetTransform->transform[3].z};
     glm::vec2 toTarget = targetPos - pos;
 
+    // Target is too far away
+    if (glm::length2(toTarget) > (data.viewDistance * data.viewDistance))
+    {
+        return;
+    }
+
     glm::vec2 viewDir = glm::normalize(glm::vec2(transform->transform[2].x, transform->transform[2].z));
     glm::vec2 targetDir = glm::normalize(toTarget);
 
-    if (std::max(glm::dot(viewDir, targetDir), 0.0f) > (std::cos(glm::radians(data.angleOfView * 0.5f))))
+    // Target is not in the angle of view
+    if (std::max(glm::dot(viewDir, targetDir), 0.0f) < (std::cos(glm::radians(data.angleOfView * 0.5f))))
     {
-        LOG_INFO("In view !");
+        return;
     }
 
-    Navigation::Engine& navEngine = Navigation::Engine::Get();
+    navAgent->GetAgent()->SetDestination(glm::vec3(targetPos.x, 0.0f, targetPos.y));
 
+    // Navigation::Engine& navEngine = Navigation::Engine::Get();
+    // if (toTarget.x < 0)
+    // {
+    //     std::swap(pos, targetPos);
+    //     toTarget *= -1.0;
+    // }
 
-
-
+    // float e = pos.y;
+    // for (size_t x=pos.x ; x < targetPos.x ; x += 1)
+    // {
+    //     // Test pixel
+    //     e += toTarget.y;
+    // }
 
 },
 
-// CharacterController::OnEvent
+// MonsterLogic::OnEvent
 [](Event* event, const Entity& entity, std::any& dataBlock) {},
 nullptr);
 

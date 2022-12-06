@@ -92,6 +92,10 @@ void Application::OnUpdate()
 {
     double time = GetCurrentTime();
 
+    // Update Navigation
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
+    navEngine.OnUpdate();
+
     // Updating Scripts
     Scripting::Engine::Get().OnUpdate();
 

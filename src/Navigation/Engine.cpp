@@ -29,10 +29,7 @@ void Engine::SetNavMap(const ImagePtr& navMap)
     m_navHeight = navMap->GetHeight();
 
     uint32_t pixelCount = m_navWidth * m_navHeight;
-    if (pixelCount >= m_navMap.size())
-        m_navMap.reserve(pixelCount);
-    else 
-        m_navMap.resize(pixelCount);
+    m_navMap.resize(pixelCount);
     
     auto pixels = navMap->GetPixels();
     for (size_t i=0 ; i < pixelCount ; ++i)
@@ -90,9 +87,9 @@ void Engine::OnUpdate()
 
 void Engine::ComputeAgentPath(const AgentPtr& agent)
 {
-    glm::vec3 pos = agent->GetPosition();
+    glm::vec3 pos = agent->GetTransform()[3];
     glm::vec3 dest = agent->GetDestination();
-    auto path = FindPath(glm::vec2(pos.x, pos.z), glm::vec2(dest.x, dest.z));
+    agent->SetPath(FindPath(glm::vec2(pos.x, -pos.z), glm::vec2(dest.x, -dest.z)));
 }
 
 AgentPtr Engine::CreateAgent()
@@ -141,7 +138,7 @@ uint32_t CostHeuristic(const glm::vec2& start, const glm::vec2& end)
 }
 
 std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
-                                                  const CellFilters& filter) const
+                                        const CellFilters& filter) const
 {
     if (!IsWalkableCell(startPos, filter))
     {
@@ -157,14 +154,12 @@ std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::ve
     while (!openedCells.empty())
     {
         auto currentIt = std::min_element(openedCells.begin(), openedCells.end(),
-                                            [](const auto& l, const auto& r) { return *l.second < *r.second; });
+                                          [](const auto& l, const auto& r) { return *l.second < *r.second; });
 
         if (currentIt->first == endPos)
         {
-            // Yeah !
-            LOG_INFO("FOUND !");
             result = ReconstructPath(*currentIt->second); 
-            break; 
+            break;
         }
 
         Cell* currentCell = currentIt->second;

@@ -24,6 +24,11 @@ struct Transform
     Transform() = default;
     Transform(const glm::mat4& transform) : transform(transform) {}
 
+    inline glm::vec3 GetSideVector() const  { return transform[0]; }
+    inline glm::vec3 GetUpVector() const    { return transform[1]; }
+    inline glm::vec3 GetFrontVector() const { return transform[2]; }
+    inline glm::vec3 GetPosition() const    { return transform[3]; }   
+
     static glm::mat4 ComputeWorldMatrix(const Entity& entity);
 
     glm::mat4 transform{1.0f};

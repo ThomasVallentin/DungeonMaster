@@ -3,6 +3,9 @@
 
 #include "Resources/Resource.h"
 #include "Resources/Prefab.h"
+
+#include "Scene/Entity.h"
+
 #include "Renderer/Material.h"
 
 #include <glm/glm.hpp>
@@ -32,15 +35,19 @@ private:
                         const std::string& modelIdentifier,
                         const uint32_t& health,
                         const float& strength,
-                        const float& speed);
+                        const float& speed,
+                        const Entity& target);
     void BuildMaterials();
     ResourceHandle<Prefab> BuildLevelMap(const std::string& path);
 
     ResourceHandle<Scene> m_scene;
+
+    glm::vec2 m_playerPos{-1.0f};
+    Entity m_player;
+
     ResourceHandle<Material> m_floorMat;
     ResourceHandle<Material> m_wallMat;
     ResourceHandle<Material> m_waterMat;
-    glm::vec2 m_playerPos{-1.0f};
 };
 
 #endif  // LEVELLOADER_H

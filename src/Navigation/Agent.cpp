@@ -2,6 +2,9 @@
 
 #include "Engine.h"
 
+#include "Core/Logging.h"
+
+#include <glm/gtx/quaternion.hpp>
 
 namespace Navigation {
 
@@ -16,9 +19,9 @@ Agent::~Agent()
 
 }
 
-void Agent::SetPosition(const glm::vec3& position)
+void Agent::SetTransform(const glm::mat4& transform)
 {
-    m_position = position;
+    m_transform = transform;
 }
 
 void Agent::SetDestination(const glm::vec3& destination)
@@ -27,30 +30,59 @@ void Agent::SetDestination(const glm::vec3& destination)
     m_requestsNewPath = true;
 }
 
+void Agent::SetPath(const std::vector<glm::vec2>& path)
+{
+    m_path = path;
+    m_requestsNewPath = false;
+}
+
 bool Agent::IsMoving() const
 {
-    return (!m_interpolator.ended && m_path.empty());
+    return (!m_interpolator.ended || !m_path.empty());
 }
 
 void Agent::MakeProgress(const float& deltaTime) 
 {
     if (!m_interpolator.ended)
     {
-        m_nextPosition = m_interpolator.Evaluate(deltaTime * m_speed);
+        m_nextTransform = m_interpolator.Evaluate(deltaTime);
         return;
     }
 
     if (m_path.size() > 1)
     {
-        m_interpolator = Animation<glm::vec3>{{{0.0f, glm::vec3(m_path[0].x, 0.0f, m_path[0].y)},
-                                               {1.0f, glm::vec3(m_path[1].x, 0.0f, m_path[1].y)}},
-                                              InterpolationType::Smooth,
-                                              1.0f};
-        m_path.erase(m_path.begin());
+        glm::vec3 dir = glm::normalize(glm::vec3(m_transform[2].x, 0.0, -m_transform[2].z));
+        glm::vec3 nextDir = glm::normalize(glm::vec3(m_path[1].x - m_path[0].x, 0.0f, m_path[1].y - m_path[0].y));
+        float cosDirs = glm::dot(dir, nextDir);
+        if (abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be tiny errors due to the 
+        {
+            // Agent faces the wrong direction 
+            // -> Orienting the character so that it faces the path
+            m_interpolator = Animation<glm::mat4>{{{0.0f, m_transform},
+                                                   {1.0f, m_transform * glm::toMat4(glm::rotation(nextDir, dir))}},
+                                                  InterpolationType::Smooth,
+                                                  m_speed};
+        }
+        else
+        {
+            // Moving the character to the next cell
+            glm::mat4 nextTransform = m_transform;
+            nextTransform[3].x = m_path[1].x;
+            nextTransform[3].z = -m_path[1].y;
+
+            m_interpolator = Animation<glm::mat4>{{{0.0f, m_transform},
+                                                   {1.0f, nextTransform}},
+                                                  InterpolationType::Smooth,
+                                                  m_speed};
+            m_path.erase(m_path.begin());
+        }
+        m_interpolator.Start();
+        m_nextTransform = m_interpolator.Evaluate(deltaTime);
+        
         return;
     }
 
-    m_nextPosition = m_position;
+    m_nextTransform = m_transform;
     m_path.clear();
 }
 

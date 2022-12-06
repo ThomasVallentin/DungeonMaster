@@ -34,26 +34,6 @@
                     "health": 25,
                     "strength": 2.0,
                     "speed": 4.0
-                },
-                {
-                    "id": 1,
-                    "name": "Akharr",
-                    "origin": [5, 10],
-                    "model": "Models/Fire_Elemental.obj",
-
-                    "health": 20,
-                    "strength": 3.0,
-                    "speed": 4.0
-                },
-                {
-                    "id": 2,
-                    "name": "Sbrrrgl the hot",
-                    "origin": [7, 8],
-                    "model": "Models/Fire_Elemental.obj",
-
-                    "health": 45,
-                    "strength": 8.0,
-                    "speed": 2.0
                 }
             ]
         }

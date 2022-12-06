@@ -4,6 +4,8 @@
 
 #include "Scene/Components/Basics.h"
 
+#include <glm/gtx/string_cast.hpp>
+
 
 namespace Components {
 
@@ -33,22 +35,21 @@ void NavAgent::OnUpdate()
 {
     if (!m_agent->IsMoving())
     {
-        auto transform = GetEntity().FindComponent<Transform>();
+        Transform* transform = GetEntity().FindComponent<Transform>();
         if (transform)
         {
-            m_agent->SetPosition(transform->transform[3]);
+            glm::vec3 pos = transform->GetPosition();
+            m_agent->SetTransform(transform->transform);
         }
         
         return;
     }
     
-    auto transform = GetEntity().FindComponent<Transform>();
+    Transform* transform = GetEntity().FindComponent<Transform>();
     if (transform)
     {
-        auto nextPos = m_agent->GetNextPosition();
-
-        transform->transform[3] = glm::vec4(nextPos, 1.0);
-        m_agent->SetPosition(nextPos);
+        transform->transform = m_agent->GetNextTransform();
+        m_agent->SetTransform(transform->transform);
 
         m_agent->SetAdvanced();
     }

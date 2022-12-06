@@ -59,6 +59,12 @@ public:
     void OnEvent(Event* event) override;
     void OnDestroy();
 
+    template <typename DataType>
+    DataType& GetDataBlock()
+    {
+        return std::any_cast<DataType&>(m_dataBlock);
+    }
+
 private:
     std::any m_dataBlock;
 

@@ -23,6 +23,7 @@ endif()
 
 set(DungeonMaster_SOURCES src/main.cpp
 
+                          src/Core/Animation.cpp
                           src/Core/Application.cpp
                           src/Core/Image.cpp
                           src/Core/Inputs.cpp

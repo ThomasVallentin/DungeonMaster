@@ -62,12 +62,12 @@ Entity LevelLoader::BuildPlayer()
     scene->SetMainCamera(camera);
     
     // Weapon
-    auto sword = ResourceManager::LoadModel("Models/Sting-Sword.fbx");
+    auto sword = ResourceManager::LoadModel("Models/Sword.fbx");
     Entity weapon = scene->CopyEntity(sword.Get()->GetRootEntity(), "Weapon", player);
     weapon.GetComponent<Components::Transform>().transform =
-        glm::translate(glm::mat4(1.0f), glm::vec3(0.15f, 0.0f, -0.5f)) *
-        glm::eulerAngleXYZ((float)M_PI_4, 0.0f, (float)M_PI_4) * 
-        glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)) 
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.06f, -0.08f, -0.15f)) *
+        glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f) 
+        // glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)
     ;
 
     return player;
@@ -78,7 +78,8 @@ Entity LevelLoader::BuildMonster(const std::string& name,
                                  const std::string& modelIdentifier,
                                  const uint32_t& health,
                                  const float& strength,
-                                 const float& speed)
+                                 const float& speed,
+                                 const Entity& target)
 {
     ScenePtr scene = m_scene.Get();
 
@@ -87,21 +88,18 @@ Entity LevelLoader::BuildMonster(const std::string& name,
     monster.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                     glm::vec3(origin.x, 0.0f, -origin.y)));
     monster.EmplaceComponent<Components::NavAgent>(monster);
-    monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
+    auto& logic = monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
+    logic.GetDataBlock<Components::MonsterLogicData>().target = m_player;
 
     ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
     if (model)
     {
         Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", monster);
-        modelEntity.GetComponent<Components::Transform>().transform =
-            // glm::translate(glm::mat4(1.0f), glm::vec3(0.15f, 0.0f, -0.5f)) *
-            // glm::eulerAngleXYZ((float)M_PI_4, 0.0f, (float)M_PI_4) * 
-            glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)) // TODO: Fix model instead of scaling here
-    ;
+        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)); // TODO: Fix model instead of scaling here
     }
     else 
     {
-        LOG_WARNING("Could not find model \"%s\"", modelIdentifier.c_str());
+        LOG_WARNING("Could not find model of %s", name.c_str());
     }
 
     return monster;
@@ -310,7 +308,7 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
     scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
     // Building the player, camera, weapon
-    BuildPlayer();
+    m_player = BuildPlayer();
 
     assert(firstFloor.HasMember("monsters"));
     assert(firstFloor["monsters"].IsArray());
@@ -342,7 +340,8 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
                      monster["model"].GetString(),
                      monster["health"].GetInt(),
                      monster["strength"].GetFloat(),
-                     monster["speed"].GetFloat());
+                     monster["speed"].GetFloat(),
+                     m_player);
     }
 
 

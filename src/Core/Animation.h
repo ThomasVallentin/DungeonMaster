@@ -3,6 +3,8 @@
 
 #include "Core/Application.h"
 
+#include <glm/gtx/matrix_interpolation.hpp>
+
 #include <map>
 
 // The application doesn't allow us to load scripts yet, which means
@@ -57,14 +59,14 @@ struct Animation
                     case InterpolationType::Linear:
                     {
                         float weight = (currentTime - prevTime) / (keyTime - prevTime);
-                        return prevValue * (1.0f - weight) + keyValue * weight;
+                        return Interpolate(prevValue, keyValue, weight);
                     }
 
                     case InterpolationType::Smooth:
                     {
                         float weight = (currentTime - prevTime) / (keyTime - prevTime);
                         weight = weight * weight * (3 - 2 * weight);  // cubic hermite interpolation
-                        return prevValue * (1.0f - weight) + keyValue * weight;
+                        return Interpolate(prevValue, keyValue, weight);
                     }
                 }
             }
@@ -76,6 +78,13 @@ struct Animation
         ended = true;
         return prevValue;
     }
+
+private:
+    T Interpolate(const T& first, const T& second, const float& weight)
+    {
+        return first * (1.0f - weight) + second * weight;
+    }
 };
+
 
 #endif  // ANIMATION_H

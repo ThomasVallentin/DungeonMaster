@@ -77,13 +77,11 @@ void Engine::OnUpdate()
         }
         else if (agent->NeedsNewPath())  // If a more recent path has been set, compute it
         {
-            LOG_INFO("agent->NeedsNewPath()");
             ComputeAgentPath(agent);
             agent->MakeProgress(0.03f); // TODO: Use deltaTime here
         }
         else if (agent->HasPath()) // Keep on moving on the current path otherwise
         {
-            LOG_INFO("Has path!");
             if (agent->HasAdvanced())
             {
                 agent->MakeProgress(0.03f); // TODO: Use deltaTime here

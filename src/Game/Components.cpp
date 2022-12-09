@@ -174,7 +174,6 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     }
 
     glm::vec2 pos = {round(transform->transform[3].x), round(transform->transform[3].z)};
-    LOG_INFO("%s", glm::to_string(pos).c_str());
     glm::vec2 targetPos = {round(targetTransform->transform[3].x), round(targetTransform->transform[3].z)};
     glm::vec2 toTarget = targetPos - pos;
 

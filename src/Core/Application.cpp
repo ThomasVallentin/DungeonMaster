@@ -11,6 +11,9 @@
 
 #include "Navigation/Engine.h"
 #include "Navigation/Agent.h"
+#include "Navigation/Components.h"
+
+#include "Scripting/Trigger.h"
 
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
@@ -87,6 +90,30 @@ void Application::Run()
         m_window->SetTitle(titleStream.str());
     }
 }
+
+void Application::EmitEvent(Event* event)
+{
+    switch (event->GetCategory())
+    {
+        case EventCategory::Window:
+        {
+            OnEvent(event);
+            break;
+        }
+        case EventCategory::Input:
+        {
+            OnEvent(event);
+            Scripting::Engine::Get().OnEvent(event);
+            break;
+        }
+        case EventCategory::Game:
+        {
+            Scripting::Engine::Get().OnEvent(event);
+            break;
+        }
+    }
+}
+
 
 void Application::OnUpdate() 
 {
@@ -179,12 +206,26 @@ void Application::OnEvent(Event* event)
             break;
         }
     }
-
-    // Sending events to the scripted components
-    Scripting::Engine::Get().OnEvent(event);
 }
 
-double Application::GetCurrentTime()
+
+ScenePtr Application::GetMainScene() const
 {
-    return glfwGetTime();
+    return m_scene;
 }
+
+void Application::SetMainScene(const ScenePtr& scene)
+{
+    m_scene = scene;
+    Scripting::Engine::Get().Clear();
+    
+    for (const auto& entity : scene->Traverse())
+    {
+        Components::Scripted* script = entity.FindComponent<Components::Scriptable>();
+
+        script = entity.FindComponent<Components::NavAgent>();
+        script = entity.FindComponent<Components::Trigger>();
+
+    }
+}
+

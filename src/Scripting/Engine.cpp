@@ -2,6 +2,8 @@
 
 #include "Scene/Components/Basics.h"
 
+#include "Core/Application.h"
+
 #include <algorithm>
 
 
@@ -18,6 +20,11 @@ Engine& Engine::Init()
 
 void Engine::Register(Components::Scripted* script)
 {
+    if (script->GetEntity().GetScene() != Application::Get().GetMainScene().get())
+    {
+        return;
+    }
+
     if (std::find(m_scripts.begin(), m_scripts.end(), script) == m_scripts.end())
     {
         m_scripts.push_back(script);
@@ -29,15 +36,24 @@ void Engine::Deregister(Components::Scripted* script)
     auto it = std::find(m_scripts.begin(), m_scripts.end(), script);
     if (it != m_scripts.end())
     {
-        m_scripts.erase(it);
+        // only "nullifying" the script when it is deregistered to avoid changing 
+        // the amount of scripts while looping over them
+        *it = nullptr; 
     }
 }
 
 void Engine::OnUpdate()
 {
-    for (auto* script : m_scripts)
+    for (auto it = m_scripts.begin() ; it != m_scripts.end() ; )
     {
-        script->OnUpdate();
+        if (!*it)
+        {
+            m_scripts.erase(it);
+            continue;
+        }
+        
+        (*it)->OnUpdate();
+        it++;
     }
 }
 

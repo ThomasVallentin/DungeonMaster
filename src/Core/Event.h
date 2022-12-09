@@ -3,11 +3,19 @@
 
 #include "Inputs.h"
 
-#define DEFINE_EVENT_TYPE(_type) inline EventType GetType() const override { return EventType::_type; }  \
+#define DEFINE_EVENT_CATEGORY(_type) inline EventCategory GetCategory() const override { return EventCategory::_type; }  \
+                                 inline const char* GetName() const override { return #_type; }   
+#define DEFINE_EVENT_TYPE(_type) inline uint32_t GetType() const override { return EventType::_type; }  \
                                  inline const char* GetName() const override { return #_type; }   
 
+enum class EventCategory {
+    None = 0,
+    Window,
+    Input,
+    Game
+};
 
-enum class EventType {
+enum EventType {
     None = 0,
     WindowResized, WindowClosed,
     KeyPressed, KeyReleased, 
@@ -17,7 +25,8 @@ enum class EventType {
 
 class Event {
 public:
-    virtual EventType GetType() const = 0;
+    virtual EventCategory GetCategory() const = 0;
+    virtual uint32_t GetType() const = 0;
     virtual const char* GetName() const = 0;
 };
 
@@ -33,6 +42,7 @@ public:
     inline float GetWidth() const { return m_width; }
     inline float GetHeight() const { return m_height; }
 
+    DEFINE_EVENT_CATEGORY(Window)
     DEFINE_EVENT_TYPE(WindowResized)
 
 private:
@@ -45,6 +55,7 @@ class WindowClosedEvent : public Event {
 public:
     WindowClosedEvent() = default;
 
+    DEFINE_EVENT_CATEGORY(Window)
     DEFINE_EVENT_TYPE(WindowClosed)
 };
 
@@ -59,6 +70,8 @@ public:
 
     inline KeyCode GetKey() const { return m_key; }
     inline int GetModifiers() const { return m_modifiers; }
+
+    DEFINE_EVENT_CATEGORY(Input)
 
 private:
     KeyCode m_key;
@@ -95,6 +108,8 @@ public:
     inline MouseButton GetButton() const { return m_button; }
     inline int GetModifiers() const { return m_modifiers; }
 
+    DEFINE_EVENT_CATEGORY(Input)
+
 private:
     MouseButton m_button;
     int m_modifiers;
@@ -127,6 +142,7 @@ public:
     inline float GetPosX() const { return m_posX; }
     inline float GetPosY() const { return m_posY; }
 
+    DEFINE_EVENT_CATEGORY(Input)
     DEFINE_EVENT_TYPE(MouseMoved)
 
 private:
@@ -143,6 +159,7 @@ public:
     inline float GetOffsetX() const { return m_offsetX; }
     inline float GetOffsetY() const { return m_offsetY; }
 
+    DEFINE_EVENT_CATEGORY(Input)
     DEFINE_EVENT_TYPE(MouseScrolled)
 
 private:

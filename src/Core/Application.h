@@ -20,9 +20,12 @@ public:
     static Application& Init(int argc, char* argv[]);
     inline static Application& Get() { return *s_instance; };
 
+    ScenePtr GetMainScene() const;
+    void SetMainScene(const ScenePtr& scene);
+
     void Run();
-    void OnUpdate();
-    void OnEvent(Event* event);
+    void EmitEvent(Event* event);
+
     inline int GetExitCode() const { return m_exitCode; }
 
     inline Window& GetWindow() const { return *m_window; };
@@ -32,7 +35,9 @@ private:
     Application(int argc, char* argv[]);
     ~Application() = default;
 
-private:
+    void OnUpdate();
+    void OnEvent(Event* event);
+
     uint32_t m_exitCode = 0;
 
     std::unique_ptr<Window> m_window;

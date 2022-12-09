@@ -41,7 +41,7 @@ private:
 };
 
 
-class Scriptable final : Scripted 
+class Scriptable final : public Scripted 
 {
 public:
     Scriptable() = default;

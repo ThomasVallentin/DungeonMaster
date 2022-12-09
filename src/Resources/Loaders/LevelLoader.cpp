@@ -67,8 +67,12 @@ Entity LevelLoader::BuildPlayer()
     weapon.GetComponent<Components::Transform>().transform =
         glm::translate(glm::mat4(1.0f), glm::vec3(0.06f, -0.08f, -0.15f)) *
         glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f) 
-        // glm::scale(glm::mat4(1.0f), glm::vec3(0.01f)
     ;
+
+    auto arm = ResourceManager::LoadModel("Models/arm.fbx");
+    Entity armEntity = scene->CopyEntity(arm.Get()->GetRootEntity(), "Arm", player);
+    armEntity.GetComponent<Components::Transform>().transform =
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.05));
 
     return player;
 }

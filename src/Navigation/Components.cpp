@@ -33,26 +33,23 @@ NavAgent::~NavAgent()
 
 void NavAgent::OnUpdate()
 {
-    if (!m_agent->IsMoving())
+    Transform* transform = GetEntity().FindComponent<Transform>();
+    if (!transform)
+    {
+        return;
+    }
+
+    if (m_agent->IsMoving() || m_agent->HasPath())
     {
         Transform* transform = GetEntity().FindComponent<Transform>();
         if (transform)
         {
-            glm::vec3 pos = transform->GetPosition();
-            m_agent->SetTransform(transform->transform);
+            transform->transform = m_agent->GetNextTransform();
+            m_agent->SetAdvanced();
         }
-        
-        return;
     }
     
-    Transform* transform = GetEntity().FindComponent<Transform>();
-    if (transform)
-    {
-        transform->transform = m_agent->GetNextTransform();
-        m_agent->SetTransform(transform->transform);
-
-        m_agent->SetAdvanced();
-    }
+    m_agent->SetTransform(transform->transform);
 }
 
 Navigation::AgentPtr NavAgent::GetAgent() {

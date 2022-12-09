@@ -12,7 +12,7 @@ struct CharacterControllerData
 {
     Animation<glm::mat4> moveAnimation;
     Animation<glm::mat4> attackAnimation;
-    float speed = 2.0f;
+    float speed = 4.0f;
     Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
 };
 
@@ -23,7 +23,7 @@ struct MonsterLogicData
     float speed = 2.0f;
     float angleOfView = 120.0f;
     float viewDistance = 4.0f;
-    Navigation::CellFilters navFilter = Navigation::CellFilters::Default;
+    Navigation::CellFilters navFilter = Navigation::CellFilters::Flying;
     Entity target;
 };
 

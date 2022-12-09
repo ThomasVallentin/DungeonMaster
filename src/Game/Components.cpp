@@ -8,6 +8,7 @@
 #include "Core/Animation.h"
 
 #include <glm/gtx/norm.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 
 namespace Components {
@@ -69,7 +70,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     if (Inputs::IsKeyPressed(KeyCode::Up))
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, -1.0f));
-        glm::vec2 nextCell = glm::vec2(nextTransform[3].x, -nextTransform[3].z);
+        glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
         if (navEngine.IsWalkableCell(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
@@ -82,7 +83,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     else if (Inputs::IsKeyPressed(KeyCode::Down))
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, 1.0f));
-        glm::vec2 nextCell = glm::vec2(nextTransform[3].x, -nextTransform[3].z);
+        glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
         if (navEngine.IsWalkableCell(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
@@ -154,8 +155,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
 {
     NavAgent* navAgent = entity.FindComponent<NavAgent>();
     auto agent = navAgent->GetAgent();
-    auto ismoving = navAgent->GetAgent()->IsMoving();
-    if (!navAgent || navAgent->GetAgent()->IsMoving())
+    if (!navAgent)
     {
         return;
     }
@@ -173,8 +173,9 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         return;
     }
 
-    glm::vec2 pos = {transform->transform[3].x, transform->transform[3].z};
-    glm::vec2 targetPos = {targetTransform->transform[3].x, targetTransform->transform[3].z};
+    glm::vec2 pos = {round(transform->transform[3].x), round(transform->transform[3].z)};
+    LOG_INFO("%s", glm::to_string(pos).c_str());
+    glm::vec2 targetPos = {round(targetTransform->transform[3].x), round(targetTransform->transform[3].z)};
     glm::vec2 toTarget = targetPos - pos;
 
     // Target is too far away
@@ -184,30 +185,80 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     }
 
     glm::vec2 viewDir = glm::normalize(glm::vec2(transform->transform[2].x, transform->transform[2].z));
-    glm::vec2 targetDir = glm::normalize(toTarget);
+    glm::vec2 toTargetDir = glm::normalize(toTarget);
 
     // Target is not in the angle of view
-    if (std::max(glm::dot(viewDir, targetDir), 0.0f) < (std::cos(glm::radians(data.angleOfView * 0.5f))))
+    if (std::max(glm::dot(viewDir, toTargetDir), 0.0f) < (std::cos(glm::radians(data.angleOfView * 0.5f))))
     {
         return;
     }
 
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
+    glm::vec2 searchPos = targetPos;
+    if (std::abs(toTargetDir.x) > std::abs(toTargetDir.y))
+    {
+        // Normalizing the direction by its x
+        toTargetDir.y /= toTargetDir.x;
+        toTargetDir.x = 1.0f;
+
+        // Make sure that pos has a smaller x than searchPos
+        if (pos.x > searchPos.x)
+        {
+            std::swap(searchPos, pos);
+            toTargetDir *= -1.0f;
+        }
+
+        int ySign = toTargetDir.y > 0 ? 1 : -1;
+        float e = 0.0f;
+        while (pos.x <= searchPos.x)
+        {
+            if (std::abs(e) >= 0.5f)
+            {
+                if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                    return;
+                pos.y += ySign;
+                e = ySign - e;
+            }
+
+            if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                return;
+            e -= toTargetDir.y;
+            pos.x++;
+        }
+    }
+    else
+    {
+        // Normalizing the direction by its y
+        toTargetDir.x /= toTargetDir.y;
+        toTargetDir.y = 1.0f;
+
+        // Make sure that pos has a smaller x than searchPos
+        if (pos.y > searchPos.y)
+        {
+            std::swap(searchPos, pos);
+            toTargetDir *= -1.0;
+        }
+
+        int xSign = toTargetDir.x > 0 ? 1 : -1;
+        float e = 0;
+        while (pos.y <= searchPos.y)
+        {
+            if (std::abs(e) >= 0.5)
+            {
+                if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                    return;
+                pos.x += xSign;
+                e = xSign - e;
+            }
+
+            if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                return;
+            pos.y++;
+            e -= toTargetDir.x;
+        }
+    }
+
     navAgent->GetAgent()->SetDestination(glm::vec3(targetPos.x, 0.0f, targetPos.y));
-
-    // Navigation::Engine& navEngine = Navigation::Engine::Get();
-    // if (toTarget.x < 0)
-    // {
-    //     std::swap(pos, targetPos);
-    //     toTarget *= -1.0;
-    // }
-
-    // float e = pos.y;
-    // for (size_t x=pos.x ; x < targetPos.x ; x += 1)
-    // {
-    //     // Test pixel
-    //     e += toTarget.y;
-    // }
-
 },
 
 // MonsterLogic::OnEvent

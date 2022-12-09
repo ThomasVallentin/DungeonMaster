@@ -75,10 +75,19 @@ void Engine::OnUpdate()
                 agent->MakeProgress(0.03f); // TODO: Use deltaTime here
             }
         }
-        else if (agent->NeedsNewPath())
+        else if (agent->NeedsNewPath())  // If a more recent path has been set, compute it
         {
+            LOG_INFO("agent->NeedsNewPath()");
             ComputeAgentPath(agent);
             agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+        }
+        else if (agent->HasPath()) // Keep on moving on the current path otherwise
+        {
+            LOG_INFO("Has path!");
+            if (agent->HasAdvanced())
+            {
+                agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+            }
         }
     }
     
@@ -89,7 +98,7 @@ void Engine::ComputeAgentPath(const AgentPtr& agent)
 {
     glm::vec3 pos = agent->GetTransform()[3];
     glm::vec3 dest = agent->GetDestination();
-    agent->SetPath(FindPath(glm::vec2(pos.x, -pos.z), glm::vec2(dest.x, -dest.z)));
+    agent->SetPath(FindPath(glm::vec2(round(pos.x), round(pos.z)), glm::vec2(round(dest.x), round(dest.z))));
 }
 
 AgentPtr Engine::CreateAgent()
@@ -116,7 +125,7 @@ uint32_t Engine::GetCell(const uint32_t& x, const uint32_t& y) const
 
 bool Engine::IsWalkableCell(const glm::vec2& cell, const CellFilters& filter) const
 {
-    uint32_t a = GetCell(cell.x, cell.y);
+    uint32_t a = GetCell(cell.x, -cell.y);
     return a & filter;
 }
 

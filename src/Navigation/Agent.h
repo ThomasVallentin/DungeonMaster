@@ -35,6 +35,7 @@ public:
     inline glm::mat4 GetNextTransform() const { return m_nextTransform; }
 
     bool IsMoving() const;
+    bool HasPath() const;
 
 private:
     Agent();

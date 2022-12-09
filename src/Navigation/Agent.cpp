@@ -38,7 +38,12 @@ void Agent::SetPath(const std::vector<glm::vec2>& path)
 
 bool Agent::IsMoving() const
 {
-    return (!m_interpolator.ended || !m_path.empty());
+    return !m_interpolator.ended;
+}
+
+bool Agent::HasPath() const
+{
+    return !m_path.empty();
 }
 
 void Agent::MakeProgress(const float& deltaTime) 
@@ -46,15 +51,12 @@ void Agent::MakeProgress(const float& deltaTime)
     if (!m_interpolator.ended)
     {
         m_nextTransform = m_interpolator.Evaluate(deltaTime);
-        return;
     }
-
-    if (m_path.size() > 1)
+    else if (m_path.size() > 1)
     {
         glm::vec3 dir = glm::normalize(glm::vec3(m_transform[2].x, 0.0, -m_transform[2].z));
-        glm::vec3 nextDir = glm::normalize(glm::vec3(m_path[1].x - m_path[0].x, 0.0f, m_path[1].y - m_path[0].y));
-        float cosDirs = glm::dot(dir, nextDir);
-        if (abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be tiny errors due to the 
+        glm::vec3 nextDir = glm::normalize(glm::vec3(m_path[1].x - m_path[0].x, 0.0f, -(m_path[1].y - m_path[0].y)));
+        if (std::abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be tiny errors due to the 
         {
             // Agent faces the wrong direction 
             // -> Orienting the character so that it faces the path
@@ -68,7 +70,7 @@ void Agent::MakeProgress(const float& deltaTime)
             // Moving the character to the next cell
             glm::mat4 nextTransform = m_transform;
             nextTransform[3].x = m_path[1].x;
-            nextTransform[3].z = -m_path[1].y;
+            nextTransform[3].z = m_path[1].y;
 
             m_interpolator = Animation<glm::mat4>{{{0.0f, m_transform},
                                                    {1.0f, nextTransform}},
@@ -79,11 +81,11 @@ void Agent::MakeProgress(const float& deltaTime)
         m_interpolator.Start();
         m_nextTransform = m_interpolator.Evaluate(deltaTime);
         
-        return;
     }
-
-    m_nextTransform = m_transform;
-    m_path.clear();
+    else {
+        m_nextTransform = m_transform;
+        m_path.clear();
+    }
 }
 
 

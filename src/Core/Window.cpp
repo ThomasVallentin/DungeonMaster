@@ -48,7 +48,7 @@ Window::Window(const WindowSettings& settings) :
     glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
     {
         WindowClosedEvent event;
-        Application::Get().OnEvent(&event);
+        Application::Get().EmitEvent(&event);
     });
 
     glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
@@ -58,19 +58,19 @@ Window::Window(const WindowSettings& settings) :
         internalData.height = height;
 
         WindowResizedEvent event(width, height);
-        Application::Get().OnEvent(&event);
+        Application::Get().EmitEvent(&event);
     });
 
     glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos)
     {
         MouseMovedEvent event(xpos, ypos);
-        Application::Get().OnEvent(&event);
+        Application::Get().EmitEvent(&event);
     });
 
     glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset)
     {
         MouseScrolledEvent event(xoffset, yoffset);
-        Application::Get().OnEvent(&event);
+        Application::Get().EmitEvent(&event);
     });
 
     glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
@@ -78,12 +78,12 @@ Window::Window(const WindowSettings& settings) :
         switch (action) {
             case GLFW_PRESS: {
                 MouseButtonPressedEvent event((MouseButton)button, mods);
-                Application::Get().OnEvent(&event);
+                Application::Get().EmitEvent(&event);
                 break;
             }
             case GLFW_RELEASE: {
                 MouseButtonReleasedEvent event((MouseButton)button, mods);
-                Application::Get().OnEvent(&event);
+                Application::Get().EmitEvent(&event);
                 break;
             }
         }
@@ -95,12 +95,12 @@ Window::Window(const WindowSettings& settings) :
             case GLFW_PRESS:
             case GLFW_REPEAT: {
                 KeyPressedEvent event((KeyCode)key, mods);
-                Application::Get().OnEvent(&event);
+                Application::Get().EmitEvent(&event);
                 break;
             }
             case GLFW_RELEASE: {
                 KeyReleasedEvent event((KeyCode)key, mods);
-                Application::Get().OnEvent(&event);
+                Application::Get().EmitEvent(&event);
                 break;
             }
         }

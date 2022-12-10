@@ -29,6 +29,7 @@ public:
             TriggerEvent(triggered, source) {}
 
     inline uint32_t GetType() const { return TriggerEnterEvent::TypeId; }
+    inline const char* GetName() const { return "TriggerEnterEvent"; }
     static const uint32_t TypeId = 0x401;
 };
 
@@ -39,6 +40,7 @@ public:
             TriggerEvent(triggered, source) {}
 
     inline uint32_t GetType() const { return TriggerStayEvent::TypeId; }
+    inline const char* GetName() const { return "TriggerStayEvent"; }
     static const uint32_t TypeId = 0x402;
 };
 
@@ -49,6 +51,7 @@ public:
             TriggerEvent(triggered, source) {}
 
     inline uint32_t GetType() const { return TriggerExitEvent::TypeId; }
+    inline const char* GetName() const { return "TriggerExitEvent"; }
     static const uint32_t TypeId = 0x403;
 };
 
@@ -59,11 +62,17 @@ namespace Components {
 class Trigger : public Scripted
 {
 public:
-    Trigger(const Entity& target, const float& radius = 0.5) :
-            m_target(target), m_radius(radius) {}
+    Trigger(const Entity& entity, const Entity& target, const float& radius = 0.5f) :
+            Scripted("Trigger", entity),
+            m_target(target), 
+            m_radius(radius) {}
+
     ~Trigger() = default;
 
-    void OnUpdate();
+    void OnUpdate() override;
+
+    inline Entity GetTarget() { return m_target; }
+    inline void SetTarget(const Entity& target) { m_target = target; }
 
 private:
     Entity m_target;

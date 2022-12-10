@@ -70,7 +70,7 @@ void Application::Run()
 
     auto& resolver = Resolver::Get(); 
 
-    m_scene = ResourceManager::LoadLevel("Levels/Labyrinth.json").Get();
+    SetMainScene(ResourceManager::LoadLevel("Levels/Labyrinth.json").Get());
     m_scene->GetMainCamera().GetComponent<Components::Camera>().camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
 
     Navigation::Engine& navEngine = Navigation::Engine::Get();
@@ -91,33 +91,9 @@ void Application::Run()
     }
 }
 
-void Application::EmitEvent(Event* event)
-{
-    switch (event->GetCategory())
-    {
-        case EventCategory::Window:
-        {
-            OnEvent(event);
-            break;
-        }
-        case EventCategory::Input:
-        {
-            OnEvent(event);
-            Scripting::Engine::Get().OnEvent(event);
-            break;
-        }
-        case EventCategory::Game:
-        {
-            Scripting::Engine::Get().OnEvent(event);
-            break;
-        }
-    }
-}
-
-
 void Application::OnUpdate() 
 {
-    double time = GetCurrentTime();
+    double time = Time::GetTime();
 
     // Update Navigation
     Navigation::Engine& navEngine = Navigation::Engine::Get();
@@ -182,6 +158,29 @@ void Application::OnUpdate()
     m_renderBuffer->Unbind();
 }
 
+void Application::EmitEvent(Event* event)
+{
+    switch (event->GetCategory())
+    {
+        case EventCategory::Window:
+        {
+            OnEvent(event);
+            break;
+        }
+        case EventCategory::Input:
+        {
+            OnEvent(event);
+            Scripting::Engine::Get().OnEvent(event);
+            break;
+        }
+        case EventCategory::Game:
+        {
+            Scripting::Engine::Get().OnEvent(event);
+            break;
+        }
+    }
+}
+
 void Application::OnEvent(Event* event)
 {
     switch (event->GetType()) 
@@ -217,15 +216,28 @@ ScenePtr Application::GetMainScene() const
 void Application::SetMainScene(const ScenePtr& scene)
 {
     m_scene = scene;
-    Scripting::Engine::Get().Clear();
+    Scripting::Engine& engine = Scripting::Engine::Get();
+    engine.Clear();
     
     for (const auto& entity : scene->Traverse())
     {
         Components::Scripted* script = entity.FindComponent<Components::Scriptable>();
+        if (script)
+        {
+            engine.Register(script);
+        }
 
         script = entity.FindComponent<Components::NavAgent>();
-        script = entity.FindComponent<Components::Trigger>();
+        if (script)
+        {
+            engine.Register(script);
+        }
 
+        script = entity.FindComponent<Components::Trigger>();
+        if (script)
+        {
+            engine.Register(script);
+        }
     }
 }
 

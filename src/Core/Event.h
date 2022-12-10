@@ -3,8 +3,7 @@
 
 #include "Inputs.h"
 
-#define DEFINE_EVENT_CATEGORY(_type) inline EventCategory GetCategory() const override { return EventCategory::_type; }  \
-                                 inline const char* GetName() const override { return #_type; }   
+#define DEFINE_EVENT_CATEGORY(_type) inline EventCategory GetCategory() const override { return EventCategory::_type; }
 #define DEFINE_EVENT_TYPE(_type) inline uint32_t GetType() const override { return EventType::_type; }  \
                                  inline const char* GetName() const override { return #_type; }   
 

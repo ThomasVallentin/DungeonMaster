@@ -10,6 +10,7 @@
 
 #include "Navigation/Components.h"
 #include "Game/Components.h"
+#include "Scripting/Trigger.h"
 
 #include "Resources/Manager.h"
 
@@ -82,8 +83,7 @@ Entity LevelLoader::BuildMonster(const std::string& name,
                                  const std::string& modelIdentifier,
                                  const uint32_t& health,
                                  const float& strength,
-                                 const float& speed,
-                                 const Entity& target)
+                                 const float& speed)
 {
     ScenePtr scene = m_scene.Get();
 
@@ -109,6 +109,66 @@ Entity LevelLoader::BuildMonster(const std::string& name,
     return monster;
 }
 
+
+Entity LevelLoader::BuildHeal(const std::string& name,
+                    const glm::vec2& origin,
+                    const std::string& modelIdentifier,
+                    const uint32_t& healing)
+{
+    ScenePtr scene = m_scene.Get();
+
+    // Create entity & components
+    Entity entity = scene->CreateEntity(name);
+    entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
+                                                    glm::vec3(origin.x, 0.5f, -origin.y)));
+    entity.EmplaceComponent<Components::Trigger>(entity, m_player);
+    auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateHealLogic(entity));
+    logic.GetDataBlock<Components::HealData>().healing = healing;
+
+    // Load model
+    ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
+    if (model)
+    {
+        Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", entity);
+        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.003f)); // TODO: Fix model instead of scaling here
+    }
+    else 
+    {
+        LOG_WARNING("Could not find model of %s", name.c_str());
+    }
+
+    return entity;
+}
+
+Entity LevelLoader::BuildWeapon(const std::string& name,
+                    const glm::vec2& origin,
+                    const std::string& modelIdentifier,
+                    const uint32_t& damage)
+{
+    ScenePtr scene = m_scene.Get();
+
+    // Create entity & components
+    Entity entity = scene->CreateEntity(name);
+    entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
+                                                    glm::vec3(origin.x, 0.0f, -origin.y)));
+    entity.EmplaceComponent<Components::Trigger>(entity, m_player);
+    auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
+    logic.GetDataBlock<Components::WeaponData>().damage = damage;
+
+    // Load model
+    ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
+    if (model)
+    {
+        Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", entity);
+        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.003f)); // TODO: Fix model instead of scaling here
+    }
+    else 
+    {
+        LOG_WARNING("Could not find model of %s", name.c_str());
+    }
+
+    return entity;
+}
 
 void LevelLoader::BuildMaterials()
 {
@@ -344,8 +404,7 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
                      monster["model"].GetString(),
                      monster["health"].GetInt(),
                      monster["strength"].GetFloat(),
-                     monster["speed"].GetFloat(),
-                     m_player);
+                     monster["speed"].GetFloat());
     }
 
 
@@ -367,24 +426,29 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
         assert(reward.HasMember("type"));
         assert(reward["type"].IsString());
 
-        Entity rewardEntity = PushGameEntity(reward["name"].GetString(), 
-                                             reward["model"].GetString(), 
-                                             glm::vec3(reward["origin"][0].GetInt(), 0.0, reward["origin"][1].GetInt()),
-                                             scene);
-
         std::string type = reward["type"].GetString();
         if (type == "weapon")
         {
             assert(reward.HasMember("damage"));
             assert(reward["damage"].IsUint());
 
-
+            auto origin = reward["origin"].GetArray();
+            BuildWeapon(reward["name"].GetString(),
+                        glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
+                        reward["model"].GetString(),
+                        reward["damage"].GetUint());
         }
 
         else if (type == "heal")
         {
             assert(reward.HasMember("healing"));
             assert(reward["healing"].IsUint());
+
+            auto origin = reward["origin"].GetArray();
+            BuildHeal(reward["name"].GetString(),
+                      glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
+                      reward["model"].GetString(),
+                      reward["healing"].GetUint());
 
         }
     }

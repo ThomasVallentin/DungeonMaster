@@ -121,7 +121,7 @@ uint32_t Engine::GetCell(const uint32_t& x, const uint32_t& y) const
     return m_navMap[y * m_navWidth + x];
 }
 
-bool Engine::IsWalkableCell(const glm::vec2& cell, const CellFilters& filter) const
+bool Engine::CellIsEmpty(const glm::vec2& cell, const CellFilters& filter) const
 {
     uint32_t a = GetCell(cell.x, -cell.y);
     return a & filter;
@@ -147,7 +147,7 @@ uint32_t CostHeuristic(const glm::vec2& start, const glm::vec2& end)
 std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
                                         const CellFilters& filter) const
 {
-    if (!IsWalkableCell(startPos, filter))
+    if (!CellIsEmpty(startPos, filter))
     {
         return {};
     }

@@ -73,7 +73,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, -1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
-        if (navEngine.IsWalkableCell(nextCell, data.navFilter))
+        if (navEngine.CellIsEmpty(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
                                    {1.0f, nextTransform}},
@@ -86,7 +86,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, 1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
-        if (navEngine.IsWalkableCell(nextCell, data.navFilter))
+        if (navEngine.CellIsEmpty(nextCell, data.navFilter))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
                                    {1.0f, nextTransform}},
@@ -215,13 +215,13 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         {
             if (std::abs(e) >= 0.5f)
             {
-                if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                if (!navEngine.CellIsEmpty(pos, data.navFilter))
                     return;
                 pos.y += ySign;
                 e = ySign - e;
             }
 
-            if (!navEngine.IsWalkableCell(pos, data.navFilter))
+            if (!navEngine.CellIsEmpty(pos, data.navFilter))
                 return;
             e -= toTargetDir.y;
             pos.x++;
@@ -246,13 +246,13 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         {
             if (std::abs(e) >= 0.5)
             {
-                if (!navEngine.IsWalkableCell(pos, data.navFilter))
+                if (!navEngine.CellIsEmpty(pos, data.navFilter))
                     return;
                 pos.x += xSign;
                 e = xSign - e;
             }
 
-            if (!navEngine.IsWalkableCell(pos, data.navFilter))
+            if (!navEngine.CellIsEmpty(pos, data.navFilter))
                 return;
             pos.y++;
             e -= toTargetDir.x;

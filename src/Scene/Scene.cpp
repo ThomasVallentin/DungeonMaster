@@ -102,6 +102,17 @@ Entity Scene::GetRootEntity()
 
 void Scene::RemoveEntity(Entity& entity)
 {
+    HierarchyComponent& hierarchy = m_index.GetComponent<HierarchyComponent>(entity.m_id);
+    HierarchyComponent& parentHierarchy = m_index.GetComponent<HierarchyComponent>(hierarchy.parent);
+
+    uint32_t* nextSibling = &parentHierarchy.firstChild;
+    while (*nextSibling != entity.m_id) 
+    {
+        nextSibling = &m_index.GetComponent<HierarchyComponent>(*nextSibling).nextSibling;
+    }
+    *nextSibling = hierarchy.nextSibling;
+
+    // Remove all children (and the current) entities
     EntityView view(entity);
     std::vector<Entity> descendants;
     std::copy(view.begin(), view.end(), std::back_inserter(descendants));

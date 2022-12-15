@@ -61,7 +61,10 @@ void Engine::OnEvent(Event* event)
 {
     for (auto* script : m_scripts)
     {
-        script->OnEvent(event);
+        if (script)
+        {
+            script->OnEvent(event);
+        }
     }
 }
 

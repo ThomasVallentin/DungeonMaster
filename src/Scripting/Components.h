@@ -11,10 +11,10 @@
 class Event;
 
 
-typedef std::function<void(const Entity&, std::any&)>         OnCreateFn;
-typedef std::function<void(const Entity&, std::any&)>         OnUpdateFn;
-typedef std::function<void(Event*, const Entity&, std::any&)> OnEventFn;
-typedef std::function<void(const Entity&, std::any&)>         OnDestroyFn;
+typedef std::function<void(Entity, std::any&)>         OnCreateFn;
+typedef std::function<void(Entity, std::any&)>         OnUpdateFn;
+typedef std::function<void(Event*, Entity, std::any&)> OnEventFn;
+typedef std::function<void(Entity, std::any&)>         OnDestroyFn;
 
 
 namespace Components

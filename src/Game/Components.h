@@ -29,6 +29,24 @@ struct MonsterLogicData
 
 Scriptable CreateMonsterLogic(const Entity& entity);
 
+
+struct HealData
+{
+    float healing = 2.0f;
+};
+
+Scriptable CreateHealLogic(const Entity& entity);
+
+
+struct WeaponData
+{
+    float damage = 2.0f;
+    float speed = 1.0f;
+};
+
+Scriptable CreateWeaponLogic(const Entity& entity);
+
+
 } // Namespace Components
 
 

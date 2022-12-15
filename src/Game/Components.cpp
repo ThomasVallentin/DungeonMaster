@@ -2,6 +2,8 @@
 
 #include "Navigation/Components.h"
 
+#include "Scripting/Trigger.h"
+
 #include "Core/Event.h"
 #include "Core/Inputs.h"
 #include "Core/Time.h"
@@ -23,13 +25,13 @@ Scriptable CreateCharacterController(const Entity& entity)
         entity,
 
 // CharacterController::OnCreate
-[](const Entity& entity, std::any& dataBlock)
+[](Entity entity, std::any& dataBlock)
 {
     dataBlock = std::make_any<CharacterControllerData>();
 },
 
 // CharacterController::OnUpdate
-[](const Entity& entity, std::any& dataBlock)
+[](Entity entity, std::any& dataBlock)
 {
     auto* transform = entity.FindComponent<Transform>();
     if (!transform)
@@ -131,7 +133,7 @@ Scriptable CreateCharacterController(const Entity& entity)
 },
 
 // CharacterController::OnEvent
-[](Event* event, const Entity& entity, std::any& dataBlock) {},
+[](Event* event, Entity entity, std::any& dataBlock) {},
 nullptr);
 
 } 
@@ -145,13 +147,13 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         entity,
 
 // MonsterLogic::OnCreate
-[](const Entity& entity, std::any& dataBlock)
+[](Entity entity, std::any& dataBlock)
 {
     dataBlock = std::make_any<MonsterLogicData>();
 },
 
 // MonsterLogic::OnUpdate
-[](const Entity& entity, std::any& dataBlock)
+[](Entity entity, std::any& dataBlock)
 {
     NavAgent* navAgent = entity.FindComponent<NavAgent>();
     auto agent = navAgent->GetAgent();
@@ -261,10 +263,75 @@ Scriptable CreateMonsterLogic(const Entity& entity)
 },
 
 // MonsterLogic::OnEvent
-[](Event* event, const Entity& entity, std::any& dataBlock) {},
+[](Event* event, Entity entity, std::any& dataBlock) {},
 nullptr);
 
 } 
 
+
+Scriptable CreateHealLogic(const Entity& entity)
+{
+    return Scriptable(
+        "MonsterLogic",
+        entity,
+
+// HealLogic::OnCreate
+[](Entity entity, std::any& dataBlock)
+{
+    dataBlock = std::make_any<HealData>();
+},
+
+// HealLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+},
+
+// HealLogic::OnEvent
+[](Event* event, Entity entity, std::any& dataBlock) {
+    switch (event->GetCategory())
+    {
+        case EventCategory::Game:
+        {
+            switch (event->GetType())    
+            {
+                case TriggerEnterEvent::TypeId:
+                {
+                    entity.Remove();
+                }
+            }
+            break;
+        }
+    }
+},
+
+// HealLogic::OnDestroy
+nullptr);
+} 
+
+Scriptable CreateWeaponLogic(const Entity& entity)
+{
+    return Scriptable(
+        "MonsterLogic",
+        entity,
+
+// HealLogic::OnCreate
+[](Entity entity, std::any& dataBlock)
+{
+    dataBlock = std::make_any<WeaponData>();
+},
+
+// HealLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+},
+
+// HealLogic::OnEvent
+[](Event* event, Entity entity, std::any& dataBlock) {
+
+},
+
+// HealLogic::OnDestroy
+nullptr);
+} 
 
 } // Namespace Components

@@ -64,7 +64,6 @@ Entity Entity::AddChild(const std::string& name) const
 void Entity::Remove()
 {
     m_scene->RemoveEntity(*this);
-    m_id = 0;
 }
 
 bool Entity::IsValid() const

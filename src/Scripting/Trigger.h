@@ -77,6 +77,7 @@ public:
 private:
     Entity m_target;
     float m_radius;
+    bool m_isInside = false;
 };
 
 

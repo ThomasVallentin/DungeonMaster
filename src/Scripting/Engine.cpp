@@ -22,74 +22,94 @@ Engine& Engine::Init()
 
 void Engine::Register(Components::Scripted* script)
 {
-    if (script->GetEntity().GetScene() != Application::Get().GetMainScene().get())
+    Entity entity = script->GetEntity();
+    if (entity.GetScene() != Application::Get().GetMainScene().get())
     {
         return;
     }
 
-    if (std::find(m_scripts.begin(), m_scripts.end(), script) == m_scripts.end())
+    auto it = m_scripts.find(entity);
+    if (it == m_scripts.end())
     {
-        m_scripts.push_back(script);
+        it = m_scripts.insert({entity, {script}}).first;
+    }
+
+    if (std::find(it->second.begin(), it->second.end(), script) == it->second.end())
+    {
+        it->second.push_back(script);
     }
 }
 
 void Engine::Deregister(Components::Scripted* script)
 {
-    auto it = std::find(m_scripts.begin(), m_scripts.end(), script);
-    if (it != m_scripts.end())
+    Entity entity = script->GetEntity();
+    auto it = m_scripts.find(entity);
+    if (it == m_scripts.end())
+    {
+        return;
+    }
+
+    auto scriptIt = std::find(it->second.begin(), it->second.end(), script);
+    if (scriptIt != it->second.end())
     {
         // only "nullifying" the script when it is deregistered to avoid changing 
         // the amount of scripts while looping over them
-        *it = nullptr; 
+        *scriptIt = nullptr; 
     }
 }
 
 void Engine::OnUpdate()
 {
-    for (auto it = m_scripts.begin() ; it != m_scripts.end() ; )
+    for (auto& [entity, scripts] : m_scripts)
     {
-        if (!*it)
+        for (auto it = scripts.begin() ; it != scripts.end() ; )
         {
-            m_scripts.erase(it);
-            continue;
+            if (!*it)
+            {
+                scripts.erase(it);
+                continue;
+            }
+            
+            (*it)->OnUpdate();
+            it++;
         }
-        
-        (*it)->OnUpdate();
-        it++;
     }
 }
 
 void Engine::OnEvent(Event* event)
 {
-    for (auto* script : m_scripts)
+    for (auto& [entity, scripts] : m_scripts)
     {
-        if (!script)
+        for (auto* script : scripts)
         {
-            continue;
-        }
-        switch (event->GetCategory())
-        {
-            case EventCategory::Game:
+            if (!script)
             {
-                switch (event->GetType())
-                {
-                    case TriggerEnterEvent::TypeId:
-                    case TriggerStayEvent::TypeId:
-                    case TriggerExitEvent::TypeId:
-                    {
-                        auto* triggerEvent = dynamic_cast<TriggerEvent*>(event);
-                        if (triggerEvent->GetTriggered() == script->GetEntity())
-                            script->OnEvent(event);
-
-                        break;
-                    }
-                }
-                break;
+                continue;
             }
+            switch (event->GetCategory())
+            {
+                case EventCategory::Game:
+                {
+                    switch (event->GetType())
+                    {
+                        case TriggerEnterEvent::TypeId:
+                        case TriggerStayEvent::TypeId:
+                        case TriggerExitEvent::TypeId:
+                        {
+                            auto* triggerEvent = dynamic_cast<TriggerEvent*>(event);
+                            if (triggerEvent->GetTriggered() == script->GetEntity())
+                                script->OnEvent(event);
 
-            default:
-                script->OnEvent(event);
-                break;
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    script->OnEvent(event);
+                    break;
+            }
         }
     }
 }

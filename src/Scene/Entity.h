@@ -4,6 +4,8 @@
 #include "Scene.h"
 #include "Core/Foundations.h"
 
+#include "Utils/TypeUtils.h"
+
 #include <stdint.h>
 #include <string>
 
@@ -57,6 +59,21 @@ private:
 
     friend Scene;
     friend class EntityView;
+    friend std::hash<Entity>;
+};
+
+
+// Mandatory to define unordered_maps with Entity as keys
+template <>
+struct std::hash<Entity>
+{
+    std::size_t operator()(const Entity& entity) const
+    {
+        size_t hash = 0;
+        HashCombine(hash, entity.m_id);
+
+        return hash;
+    }
 };
 
 #endif  // ENTITY_H

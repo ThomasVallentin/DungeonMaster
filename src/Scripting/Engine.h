@@ -4,8 +4,10 @@
 #include "Components.h"
 
 #include "Core/Event.h"
+#include "Scene/Entity.h"
 
 #include <vector>
+#include <unordered_map>
 
 
 namespace Scripting {
@@ -30,7 +32,7 @@ private:
     Engine() = default;
     ~Engine() = default;
 
-    std::vector<Components::Scripted*> m_scripts;
+    std::unordered_map<Entity, std::vector<Components::Scripted*>> m_scripts;
 
     static Engine* s_instance;
 };

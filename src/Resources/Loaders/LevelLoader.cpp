@@ -130,7 +130,7 @@ Entity LevelLoader::BuildHeal(const std::string& name,
     if (model)
     {
         Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", entity);
-        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.003f)); // TODO: Fix model instead of scaling here
+        modelEntity.EmplaceComponent<Components::Scriptable>(Components::CreateRewardAnimator(modelEntity));
     }
     else 
     {
@@ -150,7 +150,7 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
     // Create entity & components
     Entity entity = scene->CreateEntity(name);
     entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
-                                                    glm::vec3(origin.x, 0.0f, -origin.y)));
+                                                    glm::vec3(origin.x, 0.5f, -origin.y)));
     entity.EmplaceComponent<Components::Trigger>(entity, m_player);
     auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
     logic.GetDataBlock<Components::WeaponData>().damage = damage;
@@ -160,7 +160,7 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
     if (model)
     {
         Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", entity);
-        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.003f)); // TODO: Fix model instead of scaling here
+        modelEntity.EmplaceComponent<Components::Scriptable>(Components::CreateRewardAnimator(modelEntity));
     }
     else 
     {
@@ -449,7 +449,6 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
                       glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
                       reward["model"].GetString(),
                       reward["healing"].GetUint());
-
         }
     }
 

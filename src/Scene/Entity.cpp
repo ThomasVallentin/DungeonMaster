@@ -1,6 +1,5 @@
 #include "Entity.h"
 
-
 std::string Entity::GetName() const
 {
     return m_scene->GetEntityName(m_id);

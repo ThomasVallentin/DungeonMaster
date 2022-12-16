@@ -24,6 +24,8 @@ struct Animation
     std::map<float, const T> keyframes;
     InterpolationType interpolation = Linear;
     float speed = 1.0f;
+    bool isLooping = false;
+    
     float currentTime = 0.0f;
     bool ended = true;
 
@@ -36,6 +38,11 @@ struct Animation
     T Evaluate(const float& deltaTime)
     {
         currentTime += deltaTime * speed;
+        while (isLooping && currentTime > keyframes.rbegin()->first)
+        {
+            currentTime -= keyframes.rbegin()->first;
+        }
+
         float prevTime = 0;
         T prevValue;
 

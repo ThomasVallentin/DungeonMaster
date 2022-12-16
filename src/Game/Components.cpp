@@ -9,6 +9,7 @@
 #include "Core/Time.h"
 #include "Core/Animation.h"
 
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -269,6 +270,50 @@ nullptr);
 } 
 
 
+Scriptable CreateRewardAnimator(const Entity& entity)
+{
+    return Scriptable(
+        "RewardAnimator",
+        entity,
+
+// RewardAnimator::OnCreate
+[](Entity entity, std::any& dataBlock)
+{
+    Animation<glm::vec3> translate = {{{0.0f, glm::vec3(0.0f, 0.05f, 0.0f)},
+                                       {0.5f, glm::vec3(0.0f, -0.05f, 0.0f)},
+                                       {1.0f, glm::vec3(0.0f, 0.05f, 0.0f)}},
+                                      InterpolationType::Smooth,
+                                      1.0f, true};
+    Animation<float> rotate = {{{0.0f, 0.0f},
+                                {1.0f, 360.0f}},
+                               InterpolationType::Linear,
+                               0.015f, true};
+    dataBlock = RewardAnimatorData{translate, rotate};
+},
+
+// RewardAnimator::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+    auto* transform = entity.FindComponent<Transform>();
+    if (!transform)
+    {
+        return;
+    }
+
+    RewardAnimatorData& data = std::any_cast<RewardAnimatorData&>(dataBlock);
+    transform->transform = glm::translate(glm::mat4(1.0f), data.translateAnimation.Evaluate(Time::GetDeltaTime())) *
+                           glm::rotate(glm::mat4(1.0f), data.rotateAnimation.Evaluate(Time::GetDeltaTime()), glm::vec3(0, 1, 0));
+},
+
+// RewardAnimator::OnEvent
+nullptr,
+
+// RewardAnimator::OnDestroy
+nullptr);
+
+} 
+
+
 Scriptable CreateHealLogic(const Entity& entity)
 {
     return Scriptable(
@@ -279,6 +324,45 @@ Scriptable CreateHealLogic(const Entity& entity)
 [](Entity entity, std::any& dataBlock)
 {
     dataBlock = std::make_any<HealData>();
+},
+
+// HealLogic::OnUpdate
+nullptr,
+
+// HealLogic::OnEvent
+[](Event* event, Entity entity, std::any& dataBlock) {
+    switch (event->GetCategory())
+    {
+        case EventCategory::Game:
+        {
+            switch (event->GetType())    
+            {
+                case TriggerEnterEvent::TypeId:
+                {
+                    // GetPlayer().Heal(data.healing)
+                    entity.Remove();
+                }
+            }
+            break;
+        }
+    }
+},
+
+// HealLogic::OnDestroy
+nullptr);
+} 
+
+
+Scriptable CreateWeaponLogic(const Entity& entity)
+{
+    return Scriptable(
+        "WeaponLogic",
+        entity,
+
+// HealLogic::OnCreate
+[](Entity entity, std::any& dataBlock)
+{
+    dataBlock = std::make_any<WeaponData>();
 },
 
 // HealLogic::OnUpdate
@@ -296,38 +380,13 @@ Scriptable CreateHealLogic(const Entity& entity)
             {
                 case TriggerEnterEvent::TypeId:
                 {
+                    // GetPlayer().ChangeWeapon(entity)
                     entity.Remove();
                 }
             }
             break;
         }
     }
-},
-
-// HealLogic::OnDestroy
-nullptr);
-} 
-
-Scriptable CreateWeaponLogic(const Entity& entity)
-{
-    return Scriptable(
-        "MonsterLogic",
-        entity,
-
-// HealLogic::OnCreate
-[](Entity entity, std::any& dataBlock)
-{
-    dataBlock = std::make_any<WeaponData>();
-},
-
-// HealLogic::OnUpdate
-[](Entity entity, std::any& dataBlock)
-{
-},
-
-// HealLogic::OnEvent
-[](Event* event, Entity entity, std::any& dataBlock) {
-
 },
 
 // HealLogic::OnDestroy

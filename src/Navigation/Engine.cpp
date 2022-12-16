@@ -180,7 +180,7 @@ std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::ve
         {
             glm::vec2 pos = currentCell->pos + neighbour;
             // Skipping walls
-            if (!IsWalkableCell(pos, filter))
+            if (!CellIsEmpty(pos, filter))
             {
                 continue;
             }

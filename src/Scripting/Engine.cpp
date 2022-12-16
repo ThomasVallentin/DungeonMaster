@@ -1,8 +1,10 @@
 #include "Engine.h"
 
+#include "Trigger.h"
 #include "Scene/Components/Basics.h"
 
 #include "Core/Application.h"
+#include "Core/Logging.h"
 
 #include <algorithm>
 
@@ -61,9 +63,33 @@ void Engine::OnEvent(Event* event)
 {
     for (auto* script : m_scripts)
     {
-        if (script)
+        if (!script)
         {
-            script->OnEvent(event);
+            continue;
+        }
+        switch (event->GetCategory())
+        {
+            case EventCategory::Game:
+            {
+                switch (event->GetType())
+                {
+                    case TriggerEnterEvent::TypeId:
+                    case TriggerStayEvent::TypeId:
+                    case TriggerExitEvent::TypeId:
+                    {
+                        auto* triggerEvent = dynamic_cast<TriggerEvent*>(event);
+                        if (triggerEvent->GetTriggered() == script->GetEntity())
+                            script->OnEvent(event);
+
+                        break;
+                    }
+                }
+                break;
+            }
+
+            default:
+                script->OnEvent(event);
+                break;
         }
     }
 }

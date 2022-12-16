@@ -9,7 +9,7 @@
                     "id": 1,
                     "name": "Long Sword",
                     "origin": [18, 11],
-                    "model": "Models/Sting-Sword.fbx",
+                    "model": "Models/Sword.fbx",
 
                     "type": "weapon",
                     "damage": 10
@@ -18,7 +18,7 @@
                     "id": 2,
                     "name": "Strange Mixture",
                     "origin": [20, 13],
-                    "model": "Models/Potion.obj",
+                    "model": "Models/Sword.fbx",
 
                     "type": "heal",
                     "healing": 20

@@ -30,6 +30,15 @@ struct MonsterLogicData
 Scriptable CreateMonsterLogic(const Entity& entity);
 
 
+struct RewardAnimatorData
+{
+    Animation<glm::vec3> translateAnimation;
+    Animation<float> rotateAnimation;
+};
+
+Scriptable CreateRewardAnimator(const Entity& entity);
+
+
 struct HealData
 {
     float healing = 2.0f;

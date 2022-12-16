@@ -15,6 +15,9 @@ public:
     inline Entity GetTriggered() const { return m_triggered; }
     inline Entity GetSource() const { return m_source; }
 
+    inline uint32_t GetType() const { return 0; }
+    inline const char* GetName() const { return "TriggerEvent"; }
+
     DEFINE_EVENT_CATEGORY(Game)
 
 private:

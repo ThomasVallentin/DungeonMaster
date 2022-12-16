@@ -1,6 +1,9 @@
 #include "Scene.h"
 
 #include "Entity.h"
+
+#include "Core/Logging.h"
+
 #include <iostream>
 
 

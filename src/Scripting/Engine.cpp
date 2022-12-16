@@ -76,7 +76,7 @@ void Engine::OnUpdate()
     }
 }
 
-void Engine::OnEvent(Event* event)
+void Engine::EmitGameEvent(GameEvent* event)
 {
     for (auto& [entity, scripts] : m_scripts)
     {
@@ -86,30 +86,13 @@ void Engine::OnEvent(Event* event)
             {
                 continue;
             }
-            switch (event->GetCategory())
+
+            if (entity != event->GetEntity())
             {
-                case EventCategory::Game:
-                {
-                    switch (event->GetType())
-                    {
-                        case TriggerEnterEvent::TypeId:
-                        case TriggerStayEvent::TypeId:
-                        case TriggerExitEvent::TypeId:
-                        {
-                            auto* triggerEvent = dynamic_cast<TriggerEvent*>(event);
-                            if (triggerEvent->GetTriggered() == script->GetEntity())
-                                script->OnEvent(event);
-
-                            break;
-                        }
-                    }
-                    break;
-                }
-
-                default:
-                    script->OnEvent(event);
-                    break;
+                continue;
             }
+
+            script->OnEvent(event);
         }
     }
 }

@@ -3,8 +3,7 @@
 
 #include "Components.h"
 
-#include "Core/Event.h"
-#include "Scene/Entity.h"
+#include "Game/GameEvents.h"
 
 #include <vector>
 #include <unordered_map>
@@ -24,7 +23,7 @@ public:
     void Deregister(Components::Scripted* script);
 
     void OnUpdate();
-    void OnEvent(Event* event);
+    void EmitGameEvent(GameEvent* event);
 
     void Clear();
 

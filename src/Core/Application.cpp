@@ -160,29 +160,6 @@ void Application::OnUpdate()
 
 void Application::EmitEvent(Event* event)
 {
-    switch (event->GetCategory())
-    {
-        case EventCategory::Window:
-        {
-            OnEvent(event);
-            break;
-        }
-        case EventCategory::Input:
-        {
-            OnEvent(event);
-            Scripting::Engine::Get().OnEvent(event);
-            break;
-        }
-        case EventCategory::Game:
-        {
-            Scripting::Engine::Get().OnEvent(event);
-            break;
-        }
-    }
-}
-
-void Application::OnEvent(Event* event)
-{
     switch (event->GetType()) 
     {
         case EventType::WindowClosed:
@@ -206,7 +183,6 @@ void Application::OnEvent(Event* event)
         }
     }
 }
-
 
 ScenePtr Application::GetMainScene() const
 {

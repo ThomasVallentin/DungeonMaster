@@ -1,8 +1,8 @@
 #include "Trigger.h"
+#include "Engine.h"
 
 #include "Scene/Components/Basics.h"
-
-#include "Core/Application.h"
+#include "Game/GameEvents.h"
 
 #include <glm/gtx/norm.hpp>
 
@@ -25,19 +25,19 @@ void Trigger::OnUpdate()
         {
             m_isInside = true;
             TriggerEnterEvent event(entity, target);
-            Application::Get().EmitEvent(&event);
+            Scripting::Engine::Get().EmitGameEvent(&event);
         }
         else 
         {
             TriggerStayEvent event(entity, target);
-            Application::Get().EmitEvent(&event);
+            Scripting::Engine::Get().EmitGameEvent(&event);
         }
     }
     else if (m_isInside)
     {
         m_isInside = false;
         TriggerExitEvent event(entity, target);
-        Application::Get().EmitEvent(&event);
+        Scripting::Engine::Get().EmitGameEvent(&event);
     }
 
 }

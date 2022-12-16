@@ -36,7 +36,6 @@ private:
     ~Application() = default;
 
     void OnUpdate();
-    void OnEvent(Event* event);
 
     uint32_t m_exitCode = 0;
 

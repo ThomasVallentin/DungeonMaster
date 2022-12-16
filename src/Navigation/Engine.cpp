@@ -3,6 +3,7 @@
 #include "Resources/Loaders/LevelLoader.h"
 
 #include "Core/Logging.h"
+#include "Core/Time.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_access.hpp>
@@ -72,19 +73,19 @@ void Engine::OnUpdate()
         {
             if (agent->HasAdvanced())
             {
-                agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+                agent->MakeProgress(Time::GetDeltaTime()); // TODO: Use deltaTime here
             }
         }
         else if (agent->NeedsNewPath())  // If a more recent path has been set, compute it
         {
             ComputeAgentPath(agent);
-            agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+            agent->MakeProgress(Time::GetDeltaTime()); // TODO: Use deltaTime here
         }
         else if (agent->HasPath()) // Keep on moving on the current path otherwise
         {
             if (agent->HasAdvanced())
             {
-                agent->MakeProgress(0.03f); // TODO: Use deltaTime here
+                agent->MakeProgress(Time::GetDeltaTime()); // TODO: Use deltaTime here
             }
         }
     }

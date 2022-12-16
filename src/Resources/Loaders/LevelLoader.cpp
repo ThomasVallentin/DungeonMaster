@@ -121,7 +121,7 @@ Entity LevelLoader::BuildHeal(const std::string& name,
     Entity entity = scene->CreateEntity(name);
     entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                     glm::vec3(origin.x, 0.5f, -origin.y)));
-    entity.EmplaceComponent<Components::Trigger>(entity, m_player);
+    entity.EmplaceComponent<Components::Trigger>(entity, m_player, 0.2);
     auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateHealLogic(entity));
     logic.GetDataBlock<Components::HealData>().healing = healing;
 
@@ -151,7 +151,7 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
     Entity entity = scene->CreateEntity(name);
     entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                     glm::vec3(origin.x, 0.5f, -origin.y)));
-    entity.EmplaceComponent<Components::Trigger>(entity, m_player);
+    entity.EmplaceComponent<Components::Trigger>(entity, m_player, 0.2);
     auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
     logic.GetDataBlock<Components::WeaponData>().damage = damage;
 

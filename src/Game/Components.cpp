@@ -279,9 +279,9 @@ Scriptable CreateRewardAnimator(const Entity& entity)
 // RewardAnimator::OnCreate
 [](Entity entity, std::any& dataBlock)
 {
-    Animation<glm::vec3> translate = {{{0.0f, glm::vec3(0.0f, 0.05f, 0.0f)},
-                                       {0.5f, glm::vec3(0.0f, -0.05f, 0.0f)},
-                                       {1.0f, glm::vec3(0.0f, 0.05f, 0.0f)}},
+    Animation<glm::vec3> translate = {{{0.0f, glm::vec3(0.0f, -0.10f, 0.0f)},
+                                       {0.5f, glm::vec3(0.0f, -0.15f, 0.0f)},
+                                       {1.0f, glm::vec3(0.0f, -0.10f, 0.0f)}},
                                       InterpolationType::Smooth,
                                       1.0f, true};
     Animation<float> rotate = {{{0.0f, 0.0f},

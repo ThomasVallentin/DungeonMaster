@@ -9,11 +9,12 @@
 
 
 class Event;
+class GameEvent;
 
 
 typedef std::function<void(Entity, std::any&)>         OnCreateFn;
 typedef std::function<void(Entity, std::any&)>         OnUpdateFn;
-typedef std::function<void(Event*, Entity, std::any&)> OnEventFn;
+typedef std::function<void(GameEvent*, Entity, std::any&)> OnEventFn;
 typedef std::function<void(Entity, std::any&)>         OnDestroyFn;
 
 
@@ -30,7 +31,7 @@ public:
     inline const std::string& GetName() const { return m_name; };
 
     virtual void OnUpdate() {};
-    virtual void OnEvent(Event* event) {};
+    virtual void OnEvent(GameEvent* event) {};
 
     inline Entity GetEntity() const { return m_entity; };
     inline void SetEntity(const Entity& entity) { m_entity = entity; };
@@ -56,7 +57,7 @@ public:
     
     void OnCreate();
     void OnUpdate() override;
-    void OnEvent(Event* event) override;
+    void OnEvent(GameEvent* event) override;
     void OnDestroy();
 
     template <typename DataType>

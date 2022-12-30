@@ -86,6 +86,7 @@ struct Animation
         return prevValue;
     }
 
+
 private:
     T Interpolate(const T& first, const T& second, const float& weight)
     {

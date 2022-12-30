@@ -63,7 +63,7 @@ public:
             }
         }
 
-        throw std::runtime_error("Access was made to a non-existing component of entity !");
+        throw std::runtime_error("Access was made to a non-existing component !");
     }
 
     template<typename ComponentType>

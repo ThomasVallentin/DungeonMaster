@@ -18,6 +18,8 @@
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
 
+#include "Game/GameManager.h"
+
 #include "Resolver.h"
 #include "Window.h"
 #include "Event.h"
@@ -58,6 +60,7 @@ Application::Application(int argc, char* argv[])
 
     Scripting::Engine::Init();
     Navigation::Engine::Init();
+    GameManager::Init();
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
@@ -193,7 +196,10 @@ void Application::SetMainScene(const ScenePtr& scene)
 {
     m_scene = scene;
     Scripting::Engine& engine = Scripting::Engine::Get();
+    GameManager& gameManager = GameManager::Get();
+    
     engine.Clear();
+    gameManager.Clear();
     
     for (const auto& entity : scene->Traverse())
     {
@@ -213,6 +219,12 @@ void Application::SetMainScene(const ScenePtr& scene)
         if (script)
         {
             engine.Register(script);
+        }
+
+        Components::MonsterData* monster = entity.FindComponent<Components::MonsterData>();
+        if (monster)
+        {
+            gameManager.AddMonster(entity);
         }
     }
 }

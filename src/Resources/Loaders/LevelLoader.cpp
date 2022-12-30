@@ -55,7 +55,6 @@ Entity LevelLoader::BuildPlayer()
     Entity player = scene->CreateEntity("Player");
     player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_playerPos.x, 0.5f, m_playerPos.y)));
     auto& controller = player.EmplaceComponent<Components::Scriptable>(Components::CreateCharacterController(player));
-    // auto& agent = player.EmplaceComponent<Components::NavAgent>(player);
     
     // Camera
     Entity camera = player.AddChild("Camera");
@@ -67,8 +66,8 @@ Entity LevelLoader::BuildPlayer()
     Entity weapon = scene->CopyEntity(sword.Get()->GetRootEntity(), "Weapon", player);
     weapon.GetComponent<Components::Transform>().transform =
         glm::translate(glm::mat4(1.0f), glm::vec3(0.06f, -0.08f, -0.15f)) *
-        glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f) 
-    ;
+        glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f);
+    weapon.EmplaceComponent<Components::WeaponData>(1.0);
 
     auto arm = ResourceManager::LoadModel("Models/arm.fbx");
     Entity armEntity = scene->CopyEntity(arm.Get()->GetRootEntity(), "Arm", player);
@@ -93,7 +92,11 @@ Entity LevelLoader::BuildMonster(const std::string& name,
                                                     glm::vec3(origin.x, 0.0f, -origin.y)));
     monster.EmplaceComponent<Components::NavAgent>(monster);
     auto& logic = monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
-    logic.GetDataBlock<Components::MonsterLogicData>().target = m_player;
+    monster.EmplaceComponent<Components::CharacterData>(health);
+    auto& monsterData = monster.EmplaceComponent<Components::MonsterData>();
+    monsterData.target = m_player;
+    monsterData.strength = strength;
+    monsterData.speed = speed;
 
     ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
     if (model)
@@ -149,11 +152,12 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
 
     // Create entity & components
     Entity entity = scene->CreateEntity(name);
+    LOG_INFO("NAME %s", name.c_str());
     entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
-                                                    glm::vec3(origin.x, 0.5f, -origin.y)));
+                                                   glm::vec3(origin.x, 0.5f, -origin.y)));
     entity.EmplaceComponent<Components::Trigger>(entity, m_player, 0.2);
-    auto& logic = entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
-    logic.GetDataBlock<Components::WeaponData>().damage = damage;
+    entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
+    entity.EmplaceComponent<Components::WeaponData>(damage);
 
     // Load model
     ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);

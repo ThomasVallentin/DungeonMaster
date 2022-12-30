@@ -1,6 +1,9 @@
 #ifndef GAMEEVENTS_H
 #define GAMEEVENTS_H
 
+#include "Components.h"
+#include "Attack.h"
+
 #include "Core/Event.h"
 
 
@@ -77,18 +80,21 @@ public:
 
 // == AttackEvent ==
 
-// class AttackEvent : public GameEvent
-// {
-// public:
-//     AttackEvent(const WeaponData& data, const Entity& target) : 
-//             Event() {}
+class AttackEvent : public GameEvent
+{
+public:
+    AttackEvent(const Entity& target, const Attack& attack) : 
+            GameEvent(target), m_attack(attack) {}
 
-//     inline uint32_t GetType() const { return 0x501; }
-//     inline const char* GetName() const { return "DamageEvent"; }
+    inline uint32_t GetType() const { return AttackEvent::TypeId; }
+    inline const char* GetName() const { return "DamageEvent"; }
+    static const uint32_t TypeId = 0x501;
 
-// private:
-//     float m_damage;
+    inline const Attack& GetAttack() const { return m_attack; }
 
-// };
+private:
+    const Attack m_attack;
+
+};
 
 #endif // GAMEEVENTS_H

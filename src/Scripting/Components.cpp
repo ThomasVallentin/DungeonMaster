@@ -2,6 +2,8 @@
 
 #include "Engine.h"
 
+#include "Game/GameEvents.h"
+
 
 namespace Components {
 
@@ -73,7 +75,7 @@ void Scriptable::OnUpdate()
         m_onUpdateFn(GetEntity(), m_dataBlock);
 }
 
-void Scriptable::OnEvent(Event* event)
+void Scriptable::OnEvent(GameEvent* event)
 {
     if (m_onEventFn)
         m_onEventFn(event, GetEntity(), m_dataBlock);

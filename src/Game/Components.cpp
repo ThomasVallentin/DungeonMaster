@@ -1,11 +1,15 @@
 #include "Components.h"
 
+#include "GameEvents.h"
+#include "GameManager.h"
+
 #include "Navigation/Components.h"
 
 #include "Scripting/Trigger.h"
 
 #include "Core/Event.h"
 #include "Core/Inputs.h"
+#include "Core/Logging.h"
 #include "Core/Time.h"
 #include "Core/Animation.h"
 
@@ -18,6 +22,7 @@ namespace Components {
 
 
 // == Character Controller ==
+
 
 Scriptable CreateCharacterController(const Entity& entity)
 {
@@ -54,10 +59,25 @@ Scriptable CreateCharacterController(const Entity& entity)
     // The character is currently attacking, evaluate the move animation
     if (!data.attackAnimation.ended)
     {
-        auto* childTransform = entity.FindChild("Weapon").FindComponent<Transform>();
+        Entity weapon = entity.FindChild("Weapon");
+        auto* childTransform = weapon.FindComponent<Transform>();
         if (childTransform)
         {
             childTransform->transform = data.attackAnimation.Evaluate(Time::GetDeltaTime());
+
+            // Hack: The attack is really happening here to make it match with the animation
+            if (!data.hasAttacked && data.attackAnimation.currentTime > 0.4f)
+            {
+                data.hasAttacked = true;
+                auto& weaponData = weapon.GetComponent<WeaponData>();
+                glm::mat4 worldMatrix = Transform::ComputeWorldMatrix(entity);
+                PerformAttack(Attack{weaponData.damage,
+                                     worldMatrix[3],
+                                     -worldMatrix[2],
+                                     weaponData.range,
+                                     60.0f}, 
+                              GameManager::Get().GetMonsters());
+            }
         }
         shouldSampleInput = false;
     }
@@ -80,7 +100,7 @@ Scriptable CreateCharacterController(const Entity& entity)
                                    {1.0f, nextTransform}},
                                   InterpolationType::Smooth,
                                   data.speed};
-            data.moveAnimation.Start();    
+            data.moveAnimation.Start();
         }
     }
     else if (Inputs::IsKeyPressed(KeyCode::Down))
@@ -129,13 +149,41 @@ Scriptable CreateCharacterController(const Entity& entity)
                 1.5f
             };
             data.attackAnimation.Start();
+            data.hasAttacked = false;
         }
     }
 },
 
 // CharacterController::OnEvent
-[](Event* event, Entity entity, std::any& dataBlock) {},
-nullptr);
+[](GameEvent* event, Entity entity, std::any& dataBlock)
+{
+    switch (event->GetType())
+    {
+        case AttackEvent::TypeId:
+        {
+            auto* character = entity.FindComponent<CharacterData>();
+            if (!character)
+            {
+                return;
+            }
+            auto* attackEvent = dynamic_cast<AttackEvent*>(event);
+            character->InflictDamage(attackEvent->GetAttack().damage);
+
+            if (!character->IsAlive())
+            {
+                entity.Remove();
+            }
+        }
+    }
+},
+
+// CharacterController::OnDestroy
+[](Entity entity, std::any& dataBlock)
+{
+    GameManager::Get().RemoveMonster(entity);
+}
+
+);
 
 } 
 
@@ -150,7 +198,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
 // MonsterLogic::OnCreate
 [](Entity entity, std::any& dataBlock)
 {
-    dataBlock = std::make_any<MonsterLogicData>();
+    GameManager::Get().AddMonster(entity);
 },
 
 // MonsterLogic::OnUpdate
@@ -163,7 +211,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         return;
     }
 
-    MonsterLogicData& data = std::any_cast<MonsterLogicData&>(dataBlock);
+    MonsterData& data = entity.GetComponent<MonsterData>();
     Transform* transform = entity.FindComponent<Transform>();
     if (!transform || !data.target)
     {
@@ -264,8 +312,39 @@ Scriptable CreateMonsterLogic(const Entity& entity)
 },
 
 // MonsterLogic::OnEvent
-[](Event* event, Entity entity, std::any& dataBlock) {},
-nullptr);
+[](Event* event, Entity entity, std::any& dataBlock) 
+{
+    switch (event->GetType())
+    {
+        case AttackEvent::TypeId:
+        {
+            auto& characterData = entity.GetComponent<CharacterData>();
+            const Attack& attack = dynamic_cast<AttackEvent*>(event)->GetAttack();
+
+            LOG_INFO("Health %f ; Damage %f", characterData.health, attack.damage);
+            characterData.InflictDamage(attack.damage);
+            LOG_INFO("Health %f", characterData.health);
+            if (!characterData.IsAlive())
+            {
+                LOG_INFO("Dead");
+                entity.Remove();
+                return;
+            }
+            // TODO: Insert on hit effect here 
+            // else
+            // {
+            // }
+        }
+    }
+},
+
+// MonsterLogic::OnDestroy
+[](Entity entity, std::any& dataBlock)
+{
+    GameManager::Get().RemoveMonster(entity);
+}
+
+);
 
 } 
 
@@ -359,18 +438,15 @@ Scriptable CreateWeaponLogic(const Entity& entity)
         "WeaponLogic",
         entity,
 
-// HealLogic::OnCreate
-[](Entity entity, std::any& dataBlock)
-{
-    dataBlock = std::make_any<WeaponData>();
-},
-
-// HealLogic::OnUpdate
+// WeaponLogic::OnCreate
 [](Entity entity, std::any& dataBlock)
 {
 },
 
-// HealLogic::OnEvent
+// WeaponLogic::OnUpdate
+nullptr,
+
+// WeaponLogic::OnEvent
 [](Event* event, Entity entity, std::any& dataBlock) {
     switch (event->GetCategory())
     {
@@ -389,7 +465,7 @@ Scriptable CreateWeaponLogic(const Entity& entity)
     }
 },
 
-// HealLogic::OnDestroy
+// WeaponLogic::OnDestroy
 nullptr);
 } 
 

@@ -321,12 +321,9 @@ Scriptable CreateMonsterLogic(const Entity& entity)
             auto& characterData = entity.GetComponent<CharacterData>();
             const Attack& attack = dynamic_cast<AttackEvent*>(event)->GetAttack();
 
-            LOG_INFO("Health %f ; Damage %f", characterData.health, attack.damage);
             characterData.InflictDamage(attack.damage);
-            LOG_INFO("Health %f", characterData.health);
             if (!characterData.IsAlive())
             {
-                LOG_INFO("Dead");
                 entity.Remove();
                 return;
             }

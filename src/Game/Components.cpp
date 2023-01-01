@@ -94,7 +94,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, -1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
-        if (navEngine.CellIsEmpty(nextCell, data.navFilter))
+        if (navEngine.CellIsEmpty(nextCell, data.navFilter) && !navEngine.CellContainsAgent(nextCell))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
                                    {1.0f, nextTransform}},
@@ -107,7 +107,7 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, 1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
-        if (navEngine.CellIsEmpty(nextCell, data.navFilter))
+        if (navEngine.CellIsEmpty(nextCell, data.navFilter) && !navEngine.CellContainsAgent(nextCell))
         {
             data.moveAnimation = {{{0.0f, transform->transform},
                                    {1.0f, nextTransform}},
@@ -180,14 +180,15 @@ Scriptable CreateCharacterController(const Entity& entity)
 // CharacterController::OnDestroy
 [](Entity entity, std::any& dataBlock)
 {
-    GameManager::Get().RemoveMonster(entity);
+    GameManager::Get().ShowLooseScreen();
 }
 
 );
 
 } 
 
-// == Moster Logic ==
+
+// == Monster Logic ==
 
 Scriptable CreateMonsterLogic(const Entity& entity)
 {
@@ -212,29 +213,26 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     }
 
     MonsterData& data = entity.GetComponent<MonsterData>();
-    Transform* transform = entity.FindComponent<Transform>();
-    if (!transform || !data.target)
+    if (!data.target)
     {
         return;
     }
 
-    Transform* targetTransform = data.target.FindComponent<Transform>();
-    if (!targetTransform)
-    {
-        return;
-    }
+    glm::mat4 worldMatrix = Transform::ComputeWorldMatrix(entity);
+    glm::mat4 targetWorldMatrix = Transform::ComputeWorldMatrix(data.target);
 
-    glm::vec2 pos = {round(transform->transform[3].x), round(transform->transform[3].z)};
-    glm::vec2 targetPos = {round(targetTransform->transform[3].x), round(targetTransform->transform[3].z)};
+    glm::vec2 pos = {round(worldMatrix[3].x), round(worldMatrix[3].z)};
+    glm::vec2 targetPos = {round(targetWorldMatrix[3].x), round(targetWorldMatrix[3].z)};
     glm::vec2 toTarget = targetPos - pos;
+    float targetDistance = glm::length2(toTarget);
 
     // Target is too far away
-    if (glm::length2(toTarget) > (data.viewDistance * data.viewDistance))
+    if (targetDistance > (data.viewDistance * data.viewDistance))
     {
         return;
     }
 
-    glm::vec2 viewDir = glm::normalize(glm::vec2(transform->transform[2].x, transform->transform[2].z));
+    glm::vec2 viewDir = glm::normalize(glm::vec2(worldMatrix[2].x, worldMatrix[2].z));
     glm::vec2 toTargetDir = glm::normalize(toTarget);
 
     // Target is not in the angle of view
@@ -242,73 +240,35 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     {
         return;
     }
-
+    
+    // Something is blocking the view (a wall for example)
     Navigation::Engine& navEngine = Navigation::Engine::Get();
-    glm::vec2 searchPos = targetPos;
-    if (std::abs(toTargetDir.x) > std::abs(toTargetDir.y))
+    if (!navEngine.CanSeeCell(pos, targetPos))
     {
-        // Normalizing the direction by its x
-        toTargetDir.y /= toTargetDir.x;
-        toTargetDir.x = 1.0f;
-
-        // Make sure that pos has a smaller x than searchPos
-        if (pos.x > searchPos.x)
-        {
-            std::swap(searchPos, pos);
-            toTargetDir *= -1.0f;
-        }
-
-        int ySign = toTargetDir.y > 0 ? 1 : -1;
-        float e = 0.0f;
-        while (pos.x <= searchPos.x)
-        {
-            if (std::abs(e) >= 0.5f)
-            {
-                if (!navEngine.CellIsEmpty(pos, data.navFilter))
-                    return;
-                pos.y += ySign;
-                e = ySign - e;
-            }
-
-            if (!navEngine.CellIsEmpty(pos, data.navFilter))
-                return;
-            e -= toTargetDir.y;
-            pos.x++;
-        }
-    }
-    else
-    {
-        // Normalizing the direction by its y
-        toTargetDir.x /= toTargetDir.y;
-        toTargetDir.y = 1.0f;
-
-        // Make sure that pos has a smaller x than searchPos
-        if (pos.y > searchPos.y)
-        {
-            std::swap(searchPos, pos);
-            toTargetDir *= -1.0;
-        }
-
-        int xSign = toTargetDir.x > 0 ? 1 : -1;
-        float e = 0;
-        while (pos.y <= searchPos.y)
-        {
-            if (std::abs(e) >= 0.5)
-            {
-                if (!navEngine.CellIsEmpty(pos, data.navFilter))
-                    return;
-                pos.x += xSign;
-                e = xSign - e;
-            }
-
-            if (!navEngine.CellIsEmpty(pos, data.navFilter))
-                return;
-            pos.y++;
-            e -= toTargetDir.x;
-        }
+        return;
     }
 
     navAgent->GetAgent()->SetDestination(glm::vec3(targetPos.x, 0.0f, targetPos.y));
+
+    if (navAgent->GetAgent()->IsMoving())
+    {
+        return;
+    }
+
+    if (data.attackDelay < (1.0 / data.speed))
+    {
+        data.attackDelay += Time::GetDeltaTime();
+    }
+    else
+    {
+        PerformAttack(Attack{data.strength,
+                             worldMatrix[3],
+                             worldMatrix[2],
+                             1.001,  // Attack range is a little bit over 1.0 to ensure the attack lands doesn't get cancelled due to some imprecision 
+                             data.angleOfView}, 
+                      {data.target});
+        data.attackDelay = 0.0;
+    }
 },
 
 // MonsterLogic::OnEvent
@@ -345,6 +305,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
 
 } 
 
+// == Rewards ==
 
 Scriptable CreateRewardAnimator(const Entity& entity)
 {
@@ -389,6 +350,7 @@ nullptr);
 
 } 
 
+// == Heal Logic ==
 
 Scriptable CreateHealLogic(const Entity& entity)
 {
@@ -428,6 +390,7 @@ nullptr,
 nullptr);
 } 
 
+// == Weapon Logic ==
 
 Scriptable CreateWeaponLogic(const Entity& entity)
 {

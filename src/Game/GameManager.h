@@ -21,6 +21,9 @@ public:
     
     void Clear();
 
+    void StartGame();
+    void ShowLooseScreen() const;
+
 private:
     GameManager() = default;
     ~GameManager() = default;

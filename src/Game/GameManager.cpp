@@ -52,3 +52,8 @@ void GameManager::Clear()
     m_monsters.clear();
     m_player = Entity();
 }
+
+void GameManager::ShowLooseScreen() const
+{
+    LOG_INFO("LOOSE !");
+}

@@ -42,6 +42,10 @@ struct MonsterData
     float viewDistance = 4.0f;
     Navigation::CellFilters navFilter = Navigation::CellFilters::Flying;
     Entity target;
+
+// Scripts cannot access to private variables in the current state of the engine, letting everything public for now
+// private: 
+    double attackDelay = 0.0;
 };
 
 Scriptable CreateMonsterLogic(const Entity& entity);

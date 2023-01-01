@@ -33,7 +33,8 @@ NavAgent::~NavAgent()
 
 void NavAgent::OnUpdate()
 {
-    Transform* transform = GetEntity().FindComponent<Transform>();
+    const Entity& entity = GetEntity();
+    Transform* transform = entity.FindComponent<Transform>();
     if (!transform)
     {
         return;
@@ -49,7 +50,7 @@ void NavAgent::OnUpdate()
         }
     }
     
-    m_agent->SetTransform(transform->transform);
+    m_agent->SetTransform(Transform::ComputeWorldMatrix(entity));
 }
 
 Navigation::AgentPtr NavAgent::GetAgent() {

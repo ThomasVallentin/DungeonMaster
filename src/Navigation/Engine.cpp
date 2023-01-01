@@ -122,10 +122,97 @@ uint32_t Engine::GetCell(const uint32_t& x, const uint32_t& y) const
     return m_navMap[y * m_navWidth + x];
 }
 
-bool Engine::CellIsEmpty(const glm::vec2& cell, const CellFilters& filter) const
+bool Engine::CellIsEmpty(const glm::vec2& cell, 
+                         const CellFilters& filter) const
 {
     uint32_t a = GetCell(cell.x, -cell.y);
-    return a & filter;
+    return (a & filter);
+}
+
+bool Engine::CellContainsAgent(const glm::vec2& cell)
+{
+    for (const auto& agent : m_agents)
+    {
+        const glm::vec4& position = agent->GetTransform()[3];
+        if (cell == glm::vec2(round(position.x), round(position.z)))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Engine::CanSeeCell(glm::vec2 source, 
+                        glm::vec2 target, 
+                        const CellFilters& filter)
+{
+    glm::vec2 toTargetDir = glm::normalize(target - source);
+
+    if (std::abs(toTargetDir.x) > std::abs(toTargetDir.y))
+    {
+        // Normalizing the direction by its x
+        toTargetDir.y /= toTargetDir.x;
+        toTargetDir.x = 1.0f;
+
+        // Make sure that pos has a smaller x than searchPos
+        if (source.x > target.x)
+        {
+            std::swap(target, source);
+            toTargetDir *= -1.0f;
+        }
+
+        int ySign = toTargetDir.y > 0 ? 1 : -1;
+        float e = 0.0f;
+        while (source.x <= target.x)
+        {
+            if (std::abs(e) >= 0.5f)
+            {
+                if (!CellIsEmpty(source, filter))
+                    return false;
+                source.y += ySign;
+                e = ySign - e;
+            }
+
+            if (!CellIsEmpty(source, filter))
+                return false;
+            e -= toTargetDir.y;
+            source.x++;
+        }
+    }
+    else
+    {
+        // Normalizing the direction by its y
+        toTargetDir.x /= toTargetDir.y;
+        toTargetDir.y = 1.0f;
+
+        // Make sure that pos has a smaller x than searchPos
+        if (source.y > target.y)
+        {
+            std::swap(target, source);
+            toTargetDir *= -1.0;
+        }
+
+        int xSign = toTargetDir.x > 0 ? 1 : -1;
+        float e = 0;
+        while (source.y <= target.y)
+        {
+            if (std::abs(e) >= 0.5)
+            {
+                if (!CellIsEmpty(source, filter))
+                    return false;
+                source.x += xSign;
+                e = xSign - e;
+            }
+
+            if (!CellIsEmpty(source, filter))
+                return false;
+            source.y++;
+            e -= toTargetDir.x;
+        }
+    }
+
+    return true;
 }
 
 std::vector<glm::vec2> Engine::ReconstructPath(const Cell& end) const
@@ -148,7 +235,7 @@ uint32_t CostHeuristic(const glm::vec2& start, const glm::vec2& end)
 std::vector<glm::vec2> Engine::FindPath(const glm::vec2& startPos, const glm::vec2& endPos,
                                         const CellFilters& filter) const
 {
-    if (!CellIsEmpty(startPos, filter))
+    if (startPos == endPos)
     {
         return {};
     }

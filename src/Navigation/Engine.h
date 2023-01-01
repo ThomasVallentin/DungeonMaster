@@ -53,7 +53,12 @@ public:
 
     std::vector<glm::vec2> FindPath(const glm::vec2& startPos, const glm::vec2& endPos, 
                                     const CellFilters& filter=CellFilters::Default) const;
-    bool CellIsEmpty(const glm::vec2& cell, const CellFilters& filter=CellFilters::Default) const;
+    bool CellIsEmpty(const glm::vec2& cell, 
+                     const CellFilters& filter=CellFilters::Default) const;
+    bool CellContainsAgent(const glm::vec2& cell);
+    bool CanSeeCell(glm::vec2 source, 
+                    glm::vec2 target, 
+                    const CellFilters& filter=CellFilters::Flying);
 
     AgentPtr CreateAgent();
     void RemoveAgent(const AgentPtr& agent);

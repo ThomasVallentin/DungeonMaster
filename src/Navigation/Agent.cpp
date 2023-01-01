@@ -5,6 +5,7 @@
 #include "Core/Logging.h"
 
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 namespace Navigation {
 
@@ -56,7 +57,8 @@ void Agent::MakeProgress(const float& deltaTime)
     {
         glm::vec3 dir = glm::normalize(glm::vec3(m_transform[2].x, 0.0, -m_transform[2].z));
         glm::vec3 nextDir = glm::normalize(glm::vec3(m_path[1].x - m_path[0].x, 0.0f, -(m_path[1].y - m_path[0].y)));
-        if (std::abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be tiny errors due to the 
+        bool cellIsFree = !Engine::Get().CellContainsAgent(m_path[1]);
+        if (std::abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be some imprecision due to the matrix interpolation
         {
             // Agent faces the wrong direction 
             // -> Orienting the character so that it faces the path
@@ -64,8 +66,10 @@ void Agent::MakeProgress(const float& deltaTime)
                                                    {1.0f, m_transform * glm::toMat4(glm::rotation(nextDir, dir))}},
                                                   InterpolationType::Smooth,
                                                   m_speed};
+            m_interpolator.Start();
+            m_nextTransform = m_interpolator.Evaluate(deltaTime);
         }
-        else
+        else if (cellIsFree)
         {
             // Moving the character to the next cell
             glm::mat4 nextTransform = m_transform;
@@ -77,10 +81,9 @@ void Agent::MakeProgress(const float& deltaTime)
                                                   InterpolationType::Smooth,
                                                   m_speed};
             m_path.erase(m_path.begin());
+            m_interpolator.Start();
+            m_nextTransform = m_interpolator.Evaluate(deltaTime);
         }
-        m_interpolator.Start();
-        m_nextTransform = m_interpolator.Evaluate(deltaTime);
-        
     }
     else {
         m_nextTransform = m_transform;

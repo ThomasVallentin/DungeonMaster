@@ -51,10 +51,12 @@ Entity LevelLoader::BuildPlayer()
 
     ScenePtr scene = m_scene.Get();
 
-    // Character controller
+    // Main Components
     Entity player = scene->CreateEntity("Player");
     player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_playerPos.x, 0.5f, m_playerPos.y)));
     auto& controller = player.EmplaceComponent<Components::Scriptable>(Components::CreateCharacterController(player));
+    player.EmplaceComponent<Components::NavAgent>(player);
+    player.EmplaceComponent<Components::CharacterData>(10.0f);
     
     // Camera
     Entity camera = player.AddChild("Camera");

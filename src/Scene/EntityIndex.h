@@ -19,8 +19,9 @@ public:
 
     // Entity management
 
-    uint32_t Create();
-    void Remove(const uint32_t& entity);
+    uint32_t CreateId();
+    void RemoveId(const uint32_t& entity);
+    bool ContainsId(const uint32_t& entity) const;
     void Clear();
     
     // ComponentType management

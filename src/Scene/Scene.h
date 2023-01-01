@@ -67,6 +67,7 @@ public:
 
 private:
     Scene();
+
     Entity CreateEntity(const std::string& name, const uint32_t& parent);
     std::string GetEntityName(const uint32_t& id);
     uint32_t GetEntityParent(const uint32_t& id);

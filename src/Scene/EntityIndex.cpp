@@ -20,7 +20,7 @@ EntityIndex::~EntityIndex()
     Clear();
 }
 
-uint32_t EntityIndex::Create()
+uint32_t EntityIndex::CreateId()
 {
     m_last_uuid += nextUuidDistrib(uuidRandomGenerator);
     m_dataMap.insert({m_last_uuid, {}});
@@ -28,12 +28,18 @@ uint32_t EntityIndex::Create()
     return m_last_uuid;
 }
 
-void EntityIndex::Remove(const uint32_t& entity)
+void EntityIndex::RemoveId(const uint32_t& entity)
 {
     auto it = m_dataMap.find(entity);
     if (it != m_dataMap.end()) {
         m_dataMap.erase(it);
     }
+}
+
+bool EntityIndex::ContainsId(const uint32_t& entity) const
+{
+    const auto it = m_dataMap.find(entity);
+    return it != m_dataMap.end();
 }
 
 void EntityIndex::Clear() {

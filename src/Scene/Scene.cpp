@@ -9,7 +9,7 @@
 
 Scene::Scene()
 {
-    m_rootId = m_index.Create();
+    m_rootId = m_index.CreateId();
     m_index.EmplaceComponent<BaseComponent>(m_rootId, "RootEntity");
     m_index.EmplaceComponent<HierarchyComponent>(m_rootId);
 }
@@ -31,7 +31,7 @@ Entity Scene::CreateEntity(const std::string& name, const Entity& parent)
 
 Entity Scene::CreateEntity(const std::string& name, const uint32_t& parent)
 {
-    uint32_t id = m_index.Create();
+    uint32_t id = m_index.CreateId();
     m_index.EmplaceComponent<BaseComponent>(id, name);
     m_index.EmplaceComponent<HierarchyComponent>(id, parent, 0, 0, 0);
 
@@ -76,7 +76,7 @@ Entity Scene::CopyEntity(const Entity& source, const std::string& name, const En
 uint32_t Scene::CopyEntity(const Entity& source, const uint32_t& parent, const uint32_t& nextSibling) 
 {
     // Create new Entity and copy the source data into it
-    uint32_t newEntity = m_index.Create();
+    uint32_t newEntity = m_index.CreateId();
     m_index.SetData(newEntity, source.m_scene->m_index.GetData(source.m_id));
 
     // Reinitialize hierarchy (since the ids will be different)
@@ -123,7 +123,7 @@ void Scene::RemoveEntity(Entity& entity)
 
     for (auto& descendant : descendants)
     {
-        m_index.Remove(entity.m_id);
+        m_index.RemoveId(entity.m_id);
     }
 
     entity.m_id = 0;

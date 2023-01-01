@@ -67,10 +67,10 @@ void Entity::Remove()
 
 bool Entity::IsValid() const
 {
-    return m_id && m_scene;
+    return m_id && m_scene && m_scene->m_index.ContainsId(m_id);
 }
 
 bool Entity::IsRoot() const
 {
-    return m_id == m_scene->m_rootId;
+    return m_scene && m_id == m_scene->m_rootId;
 }

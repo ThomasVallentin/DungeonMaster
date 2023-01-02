@@ -97,6 +97,10 @@ void Renderer::RenderScene(const ScenePtr& scene, const Entity& cameraEntity)
             double time = Time::GetTime();
             material->Bind();
             material->ApplyUniforms();
+            material->GetShader()->SetInt("uDoubleSided", meshRenderComp->doubleSided); 
+
+            // Pass global uniforms to the shader
+            // Should be an uniform buffer as well
             material->GetShader()->SetMat4("uModelMatrix", modelMatrix);
             material->GetShader()->SetMat4("uViewMatrix", viewMatrix);
             material->GetShader()->SetMat4("uCameraModelMatrix", camModelMatrix);
@@ -105,7 +109,6 @@ void Renderer::RenderScene(const ScenePtr& scene, const Entity& cameraEntity)
             material->GetShader()->SetVec3("uPointLights[0].position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));
             material->GetShader()->SetVec3("uPointLights[0].color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3) * 10.0f);  // Flicking torch effect
             material->GetShader()->SetFloat("uPointLights[0].decay", 2.0f);
-            material->GetShader()->SetInt("uDoubleSided", meshRenderComp->doubleSided); 
             material->GetShader()->SetFloat("uTime", time); 
             mesh->Bind();
 

@@ -27,7 +27,10 @@ public:
 
     void StartGame();
     void RestartGame();
-    void ShowLooseScreen() const;
+
+    void ShowTitleScreen() const;
+    void ShowGameOverScreen() const;
+    void ShowEndScreen() const;
 
 private:
     GameManager() = default;

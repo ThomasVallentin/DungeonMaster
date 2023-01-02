@@ -79,9 +79,9 @@ void Application::Run()
 {
     m_isRunning = true;
 
-    GameManager::Get().StartGame();
+    GameManager::Get().ShowTitleScreen();
 
-    glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     while (m_isRunning)
     {
         Time::SetTime(m_window->GetInternalTime());
@@ -203,6 +203,11 @@ void Application::OnUpdate()
     m_postProcessShader->SetInt("uDepth", 1);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     varray->Unbind();
+}
+
+void Application::Stop()
+{
+    m_isRunning = false; 
 }
 
 void Application::EmitEvent(Event* event)

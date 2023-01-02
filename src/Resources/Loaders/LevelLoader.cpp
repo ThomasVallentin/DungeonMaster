@@ -40,17 +40,17 @@ glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& 
 
 Entity LevelLoader::BuildPlayer()
 {
-    if (m_playerPos == glm::vec2(-1.0f))
+    if (m_entrancePos == glm::vec2(-1.0f))
     {
         LOG_WARNING("Player position was not found, moving it to (0, 0) !");
-        m_playerPos = glm::vec2(0.0f);
+        m_entrancePos = glm::vec2(0.0f);
     }
 
     ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Main Components
     Entity player = scene->CreateEntity("Player");
-    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_playerPos.x, 0.5f, m_playerPos.y)));
+    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_entrancePos.x, 0.5f, m_entrancePos.y)));
     auto& controller = player.EmplaceComponent<Components::Scriptable>(Components::CreateCharacterController(player));
     player.EmplaceComponent<Components::NavAgent>(player);
     player.EmplaceComponent<Components::CharacterData>(10.0f);
@@ -74,6 +74,25 @@ Entity LevelLoader::BuildPlayer()
         glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, 0.05));
 
     return player;
+}
+
+Entity LevelLoader::BuildExit()
+{
+    if (m_exitPos == glm::vec2(-1.0f))
+    {
+        LOG_WARNING("Exit position was not found, moving it to (1, 1) !");
+        m_exitPos = glm::vec2(1.0f);
+    }
+
+    ScenePtr scene = m_levelHandle.Get()->scene;
+
+    // Main Components
+    Entity exit = scene->CreateEntity("Exit");
+    exit.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_exitPos.x, 0.5f, m_exitPos.y)));
+    exit.EmplaceComponent<Components::Trigger>(exit, m_player, 0.2);
+    exit.EmplaceComponent<Components::Scriptable>(Components::CreateExitLogic(exit));
+
+    return exit;
 }
 
 Entity LevelLoader::BuildMonster(const std::string& name,
@@ -227,10 +246,10 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std
                 glm::vec4 pixel = GetPixel(pixels, x, y, width, height);
                 if (pixel == LevelCell::Entrance)
                 {
-                    if (m_playerPos != glm::vec2(-1.0f))
+                    if (m_entrancePos != glm::vec2(-1.0f))
                         LOG_WARNING("Multiple entrances have been specified, using the first one.");
                     else
-                        m_playerPos = glm::vec2(x, -y);
+                        m_entrancePos = glm::vec2(x, -y);
                 }
             }
         }
@@ -270,12 +289,23 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std
             if (pixel == LevelCell::Wall)
                 continue;
 
-            if (pixel == LevelCell::Entrance)
-            {
-                if (m_playerPos != glm::vec2(-1.0f))
-                    LOG_WARNING("Multiple entrances have been specified, using the first one.");
-                else
-                    m_playerPos = glm::vec2(x, -y);
+            // Find the most common case as quickly as possible to avoid having to proceed too many if statements
+            if (pixel != LevelCell::Floor)  {
+                if (pixel == LevelCell::Entrance)
+                {
+                    if (m_entrancePos != glm::vec2(-1.0f))
+                        LOG_WARNING("Multiple entrances have been specified, using the first one.");
+                    else
+                        m_entrancePos = glm::vec2(x, -y);
+                }
+
+                else if (pixel == LevelCell::Exit)
+                {
+                    if (m_exitPos != glm::vec2(-1.0f))
+                        LOG_WARNING("Multiple exits have been specified, using the first one.");
+                    else
+                        m_exitPos = glm::vec2(x, -y);
+                }
             }
 
             // Floor entity
@@ -421,7 +451,7 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
     auto floorPrefab = BuildLevelMap(level->map, mapPath);
     level->scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
-    // Building the player, camera, weapon
+    // Building the player, camera, weapon and exit of the level
     m_player = BuildPlayer();
 
     if (firstFloor.HasMember("monsters") && firstFloor["monsters"].IsArray())
@@ -500,6 +530,8 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
             }
         }
     }
+
+    BuildExit();
 
     return m_levelHandle;
 }

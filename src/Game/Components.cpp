@@ -171,7 +171,7 @@ Scriptable CreateCharacterController(const Entity& entity)
 
             if (!character->IsAlive())
             {
-                GameManager::Get().ShowLooseScreen();
+                GameManager::Get().ShowGameOverScreen();
             }
         }
     }
@@ -427,6 +427,39 @@ nullptr);
 } 
 
 
+// == Title Screen Logic ==
+
+Scriptable CreateTitleScreenLogic(const Entity& entity)
+{
+    return Scriptable(
+        "TitleScreen",
+        entity,
+
+// TitleScreenLogic::OnCreate
+nullptr,
+
+// TitleScreenLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+    if (Inputs::IsKeyPressed(KeyCode::Enter) || Inputs::IsKeyPressed(KeyCode::KeyPad_Enter))
+    {
+        GameManager::Get().StartGame();
+    }
+    else if (Inputs::IsKeyPressed(KeyCode::Escape))
+    {
+        Application::Get().Stop();
+    }
+},
+
+// TitleScreenLogic::OnEvent
+nullptr,
+
+// TitleScreenLogic::OnDestroy
+nullptr);
+
+}
+
+
 // == Game Over Logic ==
 
 Scriptable CreateGameOverLogic(const Entity& entity)
@@ -443,7 +476,6 @@ nullptr,
 {
     if (Inputs::IsKeyPressed(KeyCode::Enter) || Inputs::IsKeyPressed(KeyCode::Backspace))
     {
-        LOG_INFO("AAAAAH");
         GameManager::Get().RestartGame();
     }
 },
@@ -452,6 +484,68 @@ nullptr,
 nullptr,
 
 // GameOverLogic::OnDestroy
+nullptr);
+
+}
+
+
+// == Exit Logic ==
+
+Scriptable CreateExitLogic(const Entity& entity)
+{
+    return Scriptable(
+        "TitleScreen",
+        entity,
+
+// ExitLogic::OnCreate
+nullptr,
+
+// ExitLogic::OnUpdate
+nullptr,
+
+// ExitLogic::OnEvent
+[](Event* event, Entity entity, std::any& dataBlock)
+{
+    switch (event->GetType())
+    {
+        case TriggerEnterEvent::TypeId:
+        {
+            LOG_INFO("END !");
+            GameManager::Get().ShowEndScreen();
+        }
+    };
+},
+
+// ExitLogic::OnDestroy
+nullptr);
+
+}
+
+
+// == End Screen Logic ==
+
+Scriptable CreateEndScreenLogic(const Entity& entity)
+{
+    return Scriptable(
+        "EndScreen",
+        entity,
+
+// EndScreenLogic::OnCreate
+nullptr,
+
+// EndScreenLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+    if (Inputs::IsKeyPressed(KeyCode::Enter) || Inputs::IsKeyPressed(KeyCode::KeyPad_Enter))
+    {
+        Application::Get().Stop();
+    }
+},
+
+// EndScreenLogic::OnEvent
+nullptr,
+
+// EndScreenLogic::OnDestroy
 nullptr);
 
 }

@@ -25,6 +25,7 @@ public:
     void SetMainScene(const ScenePtr& scene);
 
     void Run();
+    void Stop();
     void EmitEvent(Event* event);
 
     inline int GetExitCode() const { return m_exitCode; }

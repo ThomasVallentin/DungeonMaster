@@ -68,22 +68,6 @@ void GameManager::SetNextFloor(const uint32_t& floor)
     m_nextFloor = floor;
 }
 
-void GameManager::ShowLooseScreen() const
-{
-    LOG_INFO("LOOSE !");
-    ScenePtr scene = Scene::Create();
-
-    Entity camera = scene->CreateEntity();
-    camera.EmplaceComponent<Components::Camera>();
-
-    Entity gameOverScreen = scene->CreateEntity();
-    gameOverScreen.EmplaceComponent<Components::RenderImage>(ResourceManager::LoadTexture("Textures/GameOver.png"));
-    gameOverScreen.EmplaceComponent<Components::Scriptable>(Components::CreateGameOverLogic(gameOverScreen));
-
-    Application& application = Application::Get();
-    application.SetMainScene(scene);
-}
-
 void GameManager::StartGame()
 {
     if (m_nextLevel.empty())
@@ -130,4 +114,50 @@ void GameManager::LoadLevel(const std::string& levelIdentifier, const uint32_t& 
     m_nextFloor = -1;
 
     LOG_INFO("Starting %s !", level->floorName.c_str());
+}
+
+void GameManager::ShowTitleScreen() const
+{
+    ScenePtr scene = Scene::Create();
+
+    Entity camera = scene->CreateEntity();
+    camera.EmplaceComponent<Components::Camera>();
+
+    Entity titleScreen = scene->CreateEntity();
+    titleScreen.EmplaceComponent<Components::RenderImage>(ResourceManager::LoadTexture("Textures/TitleScreen.png"));
+    titleScreen.EmplaceComponent<Components::Scriptable>(Components::CreateTitleScreenLogic(titleScreen));
+
+    Application& application = Application::Get();
+    application.SetMainScene(scene);
+}
+
+void GameManager::ShowGameOverScreen() const
+{
+    LOG_INFO("GAME OVER !");
+    ScenePtr scene = Scene::Create();
+
+    Entity camera = scene->CreateEntity();
+    camera.EmplaceComponent<Components::Camera>();
+
+    Entity gameOverScreen = scene->CreateEntity();
+    gameOverScreen.EmplaceComponent<Components::RenderImage>(ResourceManager::LoadTexture("Textures/GameOver.png"));
+    gameOverScreen.EmplaceComponent<Components::Scriptable>(Components::CreateGameOverLogic(gameOverScreen));
+
+    Application& application = Application::Get();
+    application.SetMainScene(scene);
+}
+
+void GameManager::ShowEndScreen() const
+{
+    ScenePtr scene = Scene::Create();
+
+    Entity camera = scene->CreateEntity();
+    camera.EmplaceComponent<Components::Camera>();
+
+    Entity endScreen = scene->CreateEntity();
+    endScreen.EmplaceComponent<Components::RenderImage>(ResourceManager::LoadTexture("Textures/EndScreen.png"));
+    endScreen.EmplaceComponent<Components::Scriptable>(Components::CreateEndScreenLogic(endScreen));
+
+    Application& application = Application::Get();
+    application.SetMainScene(scene);
 }

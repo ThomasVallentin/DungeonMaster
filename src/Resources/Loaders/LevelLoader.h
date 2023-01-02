@@ -37,6 +37,7 @@ public:
 
 private:
     Entity BuildPlayer();
+    Entity BuildExit();
     Entity BuildMonster(const std::string& name,
                         const glm::vec2& origin,
                         const std::string& modelIdentifier,
@@ -56,8 +57,9 @@ private:
 
     ResourceHandle<Level> m_levelHandle;
 
-    glm::vec2 m_playerPos{-1.0f};
     Entity m_player;
+    glm::vec2 m_entrancePos{-1.0f};
+    glm::vec2 m_exitPos{-1.0f};
 
     ResourceHandle<Material> m_floorMat;
     ResourceHandle<Material> m_wallMat;

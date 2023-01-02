@@ -48,9 +48,9 @@
                     "origin": [20, 14],
                     "model": "Models/SlimeWarrior.fbx",
 
-                    "health": 5,
+                    "health": 8,
                     "strength": 3.0,
-                    "attackSpeed": 0.5,
+                    "attackSpeed": 0.7,
                     "speed": 1.0
                 }
             ]

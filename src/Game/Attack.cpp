@@ -23,7 +23,7 @@ void PerformAttack(const Attack& attack, const std::vector<Entity>& targets)
         // Victim is too far away
         if (glm::length2(toTarget) > (attack.range * attack.range))
         {
-            return;
+            continue;
         }
 
         glm::vec2 toTargetDir = glm::normalize(toTarget);
@@ -31,7 +31,7 @@ void PerformAttack(const Attack& attack, const std::vector<Entity>& targets)
         // Victim is not in the angle of view
         if (std::max(glm::dot(viewDir, toTargetDir), 0.0f) < (std::cos(attack.angleOfEffect)))
         {
-            return;
+            continue;
         }
 
         AttackEvent event(target, attack);

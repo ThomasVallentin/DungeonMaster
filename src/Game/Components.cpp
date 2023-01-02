@@ -168,8 +168,8 @@ Scriptable CreateCharacterController(const Entity& entity)
         case AttackEvent::TypeId:
         {
             auto* attackEvent = dynamic_cast<AttackEvent*>(event);
-            auto* character = entity.FindComponent<CharacterData>();
-            character->InflictDamage(attackEvent->GetAttack().damage);
+            auto& character = entity.GetComponent<CharacterData>();
+            character.InflictDamage(attackEvent->GetAttack().damage);
 
             CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
             data.haloEffectAnimation = {{{0.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.2f)},
@@ -178,7 +178,8 @@ Scriptable CreateCharacterController(const Entity& entity)
                                         1.0f, false};
             data.haloEffectAnimation.Start();
 
-            if (!character->IsAlive())
+            LOG_INFO("You've been hit ! Only %f health left...", character.health);
+            if (!character.IsAlive())
             {
                 GameManager::Get().ShowGameOverScreen();
             }
@@ -325,15 +326,12 @@ Scriptable CreateMonsterLogic(const Entity& entity)
             const Attack& attack = dynamic_cast<AttackEvent*>(event)->GetAttack();
 
             characterData.InflictDamage(attack.damage);
+            LOG_INFO("You hit %s ! only %f health left...", entity.GetName().c_str(), characterData.health);
             if (!characterData.IsAlive())
             {
                 entity.Remove();
                 return;
             }
-            // TODO: Insert on hit effect here 
-            // else
-            // {
-            // }
         }
     }
 },

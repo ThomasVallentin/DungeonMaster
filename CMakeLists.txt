@@ -34,6 +34,7 @@ set(DungeonMaster_SOURCES src/main.cpp
                           src/Renderer/FrameBuffer.cpp
                           src/Renderer/Material.cpp
                           src/Renderer/Mesh.cpp
+                          src/Renderer/Renderer.cpp
                           src/Renderer/Shader.cpp
                           src/Renderer/Texture.cpp
                           src/Renderer/UniformBuffer.cpp

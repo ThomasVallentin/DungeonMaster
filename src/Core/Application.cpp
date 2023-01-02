@@ -1,10 +1,6 @@
 #include "Application.h"
 
-#include "Renderer/Mesh.h"
-#include "Renderer/Shader.h"
-#include "Renderer/VertexArray.h"
-#include "Renderer/Texture.h"
-#include "Renderer/Material.h"
+#include "Game/GameManager.h"
 
 #include "Scene/Entity.h"
 #include "Scene/Components/Basics.h"
@@ -15,10 +11,10 @@
 
 #include "Scripting/Trigger.h"
 
+#include "Renderer/Renderer.h"
+
 #include "Resources/Model.h"
 #include "Resources/Manager.h"
-
-#include "Game/GameManager.h"
 
 #include "Resolver.h"
 #include "Window.h"
@@ -65,14 +61,14 @@ Application::Application(int argc, char* argv[])
     gameManager.SetNextLevel("Levels/Labyrinth.json");
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
-    m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8, {GL_RGBA32F} });
-    m_postProcessBuffer = FrameBuffer::Create({ 1280, 720, 1, {GL_RGBA32F} });
-    m_scene = Scene::Create();   
 
-    m_renderImageShader = Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
-                                       resolver.Resolve("Shaders/sprite.frag"));
-    m_postProcessShader = Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
-                                       resolver.Resolve("Shaders/postProcess.frag"));
+    Renderer& renderer = Renderer::Init();
+    renderer.SetClearColor(glm::vec3(0.0f, 0.0f, 0.0f));
+    renderer.SetRenderBuffer(FrameBuffer::Create({ 1280, 720, 8, {GL_RGBA32F} }));
+    renderer.SetPostProcessShader(Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
+                                               resolver.Resolve("Shaders/postProcess.frag")));
+
+    m_scene = Scene::Create();
 }
 
 void Application::Run()
@@ -81,7 +77,6 @@ void Application::Run()
 
     GameManager::Get().ShowTitleScreen();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     while (m_isRunning)
     {
         Time::SetTime(m_window->GetInternalTime());
@@ -113,100 +108,11 @@ void Application::OnUpdate()
     // Updating Scripts
     Scripting::Engine::Get().OnUpdate();
 
-    // Clearing all the FrameBuffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    m_postProcessBuffer->Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    m_renderBuffer->Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    Renderer& renderer = Renderer::Get();
 
-    glm::mat4 viewMatrix(1.0f);
-    glm::mat4 camModelMatrix(1.0f);
-    glm::mat4 projMatrix(1.0f);
-
-    Entity cameraEntity = m_scene->GetMainCamera();
-    auto* camera = cameraEntity.FindComponent<Components::Camera>();
-    if (camera)
-    {
-        camModelMatrix = Components::Transform::ComputeWorldMatrix(cameraEntity);
-        viewMatrix = glm::inverse(camModelMatrix);
-        projMatrix = camera->camera.GetProjMatrix();
-    }
-
-    glm::mat4 viewProjMatrix = projMatrix * viewMatrix;
-
-    // Rendering the scene
-    for (Entity entity : m_scene->Traverse())
-    {
-        auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
-        if (meshRenderComp)
-        {
-            auto* meshComp = entity.FindComponent<Components::Mesh>();
-            if (!meshComp)
-            {
-                continue;
-            }
-            
-            glm::mat4 modelMatrix = Components::Transform::ComputeWorldMatrix(entity);
-
-            auto material = meshRenderComp->material.Get();
-            auto mesh = meshComp->mesh.Get();
-
-            // TODO: Insert culling here
-
-            material->Bind();
-            material->ApplyUniforms();
-            material->GetShader()->SetMat4("uModelMatrix", modelMatrix);
-            material->GetShader()->SetMat4("uViewMatrix", viewMatrix);
-            material->GetShader()->SetMat4("uCameraModelMatrix", camModelMatrix);
-            material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
-            material->GetShader()->SetMat4("uMVPMatrix", viewProjMatrix * modelMatrix);
-            material->GetShader()->SetVec3("uPointLight.position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));
-            material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3) * 3.0f);  // Flicking torch effect
-            material->GetShader()->SetInt("uDoubleSided", meshRenderComp->doubleSided); 
-            material->GetShader()->SetFloat("uTime", time); 
-            mesh->Bind();
-
-            glDrawElements(GL_TRIANGLES, 
-                           mesh->GetElementCount(),
-                           GL_UNSIGNED_INT,
-                           nullptr);
-
-            mesh->Unbind();
-            material->Unbind();
-            continue;
-        }
-
-        auto* renderImage = entity.FindComponent<Components::RenderImage>();
-        if (renderImage)
-        {
-            VertexArrayPtr varray = VertexArray::Create();
-            varray->Bind();
-
-            m_renderImageShader->Bind();
-            renderImage->image.Get()->Bind(0);
-            m_renderImageShader->SetInt("uTexture", 0);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            varray->Unbind();
-            continue;
-        }
-    }
-
-    // Blit the render to the "post processing" buffer (non-multisampled)
-    m_renderBuffer->Blit(m_postProcessBuffer->GetId(), m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
-    m_renderBuffer->Unbind();
-
-    // Applying post processing in the main frame buffer
-    VertexArrayPtr varray = VertexArray::Create();
-    varray->Bind();
-
-    m_postProcessShader->Bind();
-    Texture::BindFromId(m_postProcessBuffer->GetColorAttachmentId(0), 0);
-    Texture::BindFromId(m_postProcessBuffer->GetDepthAttachmentId(), 1);
-    m_postProcessShader->SetInt("uBeauty", 0);
-    m_postProcessShader->SetInt("uDepth", 1);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    varray->Unbind();
+    renderer.ClearBuffer(0);
+    renderer.RenderScene(m_scene, m_scene->GetMainCamera());
+    renderer.BlitRenderToBuffer(0);
 }
 
 void Application::Stop()
@@ -234,8 +140,11 @@ void Application::EmitEvent(Event* event)
                 mainCamera->camera.SetAspectRatio((float)resizeEvent->GetWidth() / (float)resizeEvent->GetHeight());
             }
 
-            m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
-            m_postProcessBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
+            Renderer& renderer = Renderer::Get();
+            FrameBufferPtr renderBuffer = renderer.GetRenderBuffer();
+            renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
+            renderer.SetRenderBuffer(renderBuffer);
+
             break;
         }
     }

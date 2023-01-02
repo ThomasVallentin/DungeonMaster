@@ -94,6 +94,7 @@ Entity LevelLoader::BuildMonster(const std::string& name,
                                  const std::string& modelIdentifier,
                                  const uint32_t& health,
                                  const float& strength,
+                                 const float& attackSpeed,
                                  const float& speed)
 {
     ScenePtr scene = m_levelHandle.Get()->scene;
@@ -102,13 +103,16 @@ Entity LevelLoader::BuildMonster(const std::string& name,
     Entity monster = scene->CreateEntity(name);
     monster.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                     glm::vec3(origin.x, 0.0f, -origin.y)));
-    monster.EmplaceComponent<Components::NavAgent>(monster);
-    auto& logic = monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
-    monster.EmplaceComponent<Components::CharacterData>(health);
     auto& monsterData = monster.EmplaceComponent<Components::MonsterData>();
     monsterData.target = m_player;
     monsterData.strength = strength;
-    monsterData.speed = speed;
+    monsterData.attackSpeed = attackSpeed;
+
+    auto& navAgent = monster.EmplaceComponent<Components::NavAgent>(monster);
+    navAgent.GetAgent()->SetSpeed(speed);
+
+    auto& logic = monster.EmplaceComponent<Components::Scriptable>(Components::CreateMonsterLogic(monster));
+    monster.EmplaceComponent<Components::CharacterData>(health);
 
     ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
     if (model)
@@ -191,7 +195,7 @@ void LevelLoader::BuildMaterials()
 
     auto defaultShader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                       resolver.Resolve("Shaders/default.frag"));
-    
+
     // Floor
     if(!(m_floorMat = ResourceManager::GetResource<Material>("floorMaterial")))
     {
@@ -543,6 +547,9 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
             ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("strength"), path, "Invalid monster strength.");
             ASSERT_AND_FREE_LEVEL_DATA(monster["strength"].IsFloat(), path, "Invalid monster strength.");
 
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("attackSpeed"), path, "Invalid monster attack speed.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["attackSpeed"].IsFloat(), path, "Invalid monster attack speed.");
+
             ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("speed"), path, "Invalid monster speed.");
             ASSERT_AND_FREE_LEVEL_DATA(monster["speed"].IsFloat(), path, "Invalid monster speed.");
 
@@ -552,6 +559,7 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
                         monster["model"].GetString(),
                         monster["health"].GetInt(),
                         monster["strength"].GetFloat(),
+                        monster["attackSpeed"].GetFloat(),
                         monster["speed"].GetFloat());
         }
     }

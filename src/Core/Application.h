@@ -45,14 +45,8 @@ private:
     std::unique_ptr<Window> m_window;
     bool m_isRunning;
 
-    FrameBufferPtr m_renderBuffer;
-    FrameBufferPtr m_postProcessBuffer;
-
     ScenePtr m_scene;
     ScenePtr m_nextScene = nullptr;
-
-    ShaderPtr m_renderImageShader;
-    ShaderPtr m_postProcessShader;
 
 private:
     static Application* s_instance;

@@ -175,3 +175,8 @@ FrameBufferPtr FrameBuffer::Create(const FrameBufferSpecs& specs)
 {
     return FrameBufferPtr(new FrameBuffer(specs));
 }
+
+void FrameBuffer::BindFromId(const GLuint& id)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, id);
+}

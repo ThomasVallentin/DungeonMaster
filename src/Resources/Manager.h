@@ -58,10 +58,6 @@ public:
     template <typename T>
     static void FreeResource(const std::string& identifier)
     {
-        for (const auto& resource : s_resources<T>)
-        {
-            LOG_INFO("Freeing %s", resource.first.c_str());
-        }
         auto it = s_resources<T>.find(identifier);
         if (it != s_resources<T>.end()) 
             s_resources<T>.erase(it);

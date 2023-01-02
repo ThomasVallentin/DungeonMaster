@@ -43,6 +43,7 @@ private:
                         const std::string& modelIdentifier,
                         const uint32_t& health,
                         const float& strength,
+                        const float& attackSpeed,
                         const float& speed);
     Entity BuildHeal(const std::string& name,
                      const glm::vec2& origin,

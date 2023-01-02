@@ -36,6 +36,7 @@ public:
 
     inline uint32_t GetWidth() const { return m_specs.width; }
     inline uint32_t GetHeight() const { return m_specs.height; }
+    inline FrameBufferSpecs GetSpecs() const { return m_specs; }
 
     GLuint GetColorAttachmentId(const uint32_t& index) const;
     GLuint GetDepthAttachmentId() const;
@@ -44,6 +45,8 @@ public:
     void Blit(const GLuint& destFrameBufferId, const uint32_t& destWidth, const uint32_t& destHeight) const;
 
     static FrameBufferPtr Create(const FrameBufferSpecs& specs);
+
+    static void BindFromId(const GLuint& id);
 
 private:
     FrameBuffer(const FrameBufferSpecs& specs);

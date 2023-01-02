@@ -25,6 +25,7 @@ struct CharacterData
 
 struct CharacterControllerData
 {
+    Animation<float> onHitAnimation;
     Animation<glm::mat4> moveAnimation;
     Animation<glm::mat4> attackAnimation;
     float speed = 4.0f;
@@ -36,7 +37,7 @@ Scriptable CreateCharacterController(const Entity& entity);
 
 struct MonsterData
 {
-    float speed = 2.0f;
+    float attackSpeed = 2.0f;
     float strength = 1.0;
     float angleOfView = 120.0f;
     float viewDistance = 4.0f;

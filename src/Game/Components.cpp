@@ -7,6 +7,8 @@
 
 #include "Scripting/Trigger.h"
 
+#include "Renderer/Renderer.h"
+
 #include "Core/Event.h"
 #include "Core/Inputs.h"
 #include "Core/Logging.h"
@@ -33,26 +35,33 @@ Scriptable CreateCharacterController(const Entity& entity)
 // CharacterController::OnCreate
 [](Entity entity, std::any& dataBlock)
 {
-    dataBlock = std::make_any<CharacterControllerData>();
+    Animation<float> onHit = {{{0.0f, 0.25f},
+                               {1.0f, 0.0f}},
+                              InterpolationType::Smooth,
+                              1.0f, false};
+    dataBlock = CharacterControllerData{onHit};
 },
 
 // CharacterController::OnUpdate
 [](Entity entity, std::any& dataBlock)
 {
-    auto* transform = entity.FindComponent<Transform>();
-    if (!transform)
+    CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
+    if (!data.onHitAnimation.ended)
     {
-        return;
+        Renderer::Get().GetPostProcessShader()->SetFloat("uOnHitEffect", data.onHitAnimation.Evaluate(Time::GetDeltaTime()));
+    }
+    else 
+    {
+        Renderer::Get().GetPostProcessShader()->SetFloat("uOnHitEffect", 0.0f);
     }
 
-    CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
-
+    auto& transform = entity.GetComponent<Transform>();
     bool shouldSampleInput = true;
 
     // The character is currently moving, evaluate the move animation
     if (!data.moveAnimation.ended)
     {
-        transform->transform = data.moveAnimation.Evaluate(Time::GetDeltaTime());
+        transform.transform = data.moveAnimation.Evaluate(Time::GetDeltaTime());
         shouldSampleInput = false;
     }
 
@@ -92,11 +101,11 @@ Scriptable CreateCharacterController(const Entity& entity)
     // Sample keyboard inputs
     if (Inputs::IsKeyPressed(KeyCode::Up))
     {
-        glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, -1.0f));
+        glm::mat4 nextTransform = glm::translate(transform.transform, glm::vec3(0, 0, -1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
         if (navEngine.CellIsEmpty(nextCell, data.navFilter) && !navEngine.CellContainsAgent(nextCell))
         {
-            data.moveAnimation = {{{0.0f, transform->transform},
+            data.moveAnimation = {{{0.0f, transform.transform},
                                    {1.0f, nextTransform}},
                                   InterpolationType::Smooth,
                                   data.speed};
@@ -105,11 +114,11 @@ Scriptable CreateCharacterController(const Entity& entity)
     }
     else if (Inputs::IsKeyPressed(KeyCode::Down))
     {
-        glm::mat4 nextTransform = glm::translate(transform->transform, glm::vec3(0, 0, 1.0f));
+        glm::mat4 nextTransform = glm::translate(transform.transform, glm::vec3(0, 0, 1.0f));
         glm::vec2 nextCell = glm::vec2(nextTransform[3].x, nextTransform[3].z);
         if (navEngine.CellIsEmpty(nextCell, data.navFilter) && !navEngine.CellContainsAgent(nextCell))
         {
-            data.moveAnimation = {{{0.0f, transform->transform},
+            data.moveAnimation = {{{0.0f, transform.transform},
                                    {1.0f, nextTransform}},
                                   InterpolationType::Smooth,
                                   data.speed};
@@ -118,16 +127,16 @@ Scriptable CreateCharacterController(const Entity& entity)
     }
     else if (Inputs::IsKeyPressed(KeyCode::Left))
     {
-        data.moveAnimation = {{{0.0f, transform->transform},
-                               {1.0f, glm::rotate(transform->transform, (float)M_PI_2, glm::vec3(0, 1, 0))}},
+        data.moveAnimation = {{{0.0f, transform.transform},
+                               {1.0f, glm::rotate(transform.transform, (float)M_PI_2, glm::vec3(0, 1, 0))}},
                               InterpolationType::Smooth,
                               data.speed};
         data.moveAnimation.Start();
     }
     else if (Inputs::IsKeyPressed(KeyCode::Right))
     {
-        data.moveAnimation = {{{0.0f, transform->transform},
-                               {1.0f, glm::rotate(transform->transform, -(float)M_PI_2, glm::vec3(0, 1, 0))}},
+        data.moveAnimation = {{{0.0f, transform.transform},
+                               {1.0f, glm::rotate(transform.transform, -(float)M_PI_2, glm::vec3(0, 1, 0))}},
                               InterpolationType::Smooth,
                               data.speed};
         data.moveAnimation.Start();
@@ -168,6 +177,9 @@ Scriptable CreateCharacterController(const Entity& entity)
             }
             auto* attackEvent = dynamic_cast<AttackEvent*>(event);
             character->InflictDamage(attackEvent->GetAttack().damage);
+
+            CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
+            data.onHitAnimation.Start();
 
             if (!character->IsAlive())
             {
@@ -252,7 +264,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         return;
     }
 
-    if (data.attackDelay < (1.0 / data.speed))
+    if (data.attackDelay < (1.0 / data.attackSpeed))
     {
         data.attackDelay += Time::GetDeltaTime();
     }
@@ -261,7 +273,7 @@ Scriptable CreateMonsterLogic(const Entity& entity)
         PerformAttack(Attack{data.strength,
                              worldMatrix[3],
                              worldMatrix[2],
-                             1.001,  // Attack range is a little bit over 1.0 to ensure the attack lands doesn't get cancelled due to some imprecision 
+                             1.001,  // Attack range is a little bit over 1.0 to ensure the attack doesn't get skiped due to some imprecision 
                              data.angleOfView}, 
                       {data.target});
         data.attackDelay = 0.0;

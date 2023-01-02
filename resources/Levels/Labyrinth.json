@@ -33,7 +33,8 @@
 
                     "health": 3,
                     "strength": 2.0,
-                    "speed": 4.0
+                    "attackSpeed": 1.0,
+                    "speed": 1.0
                 }
             ]
         }

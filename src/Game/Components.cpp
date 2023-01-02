@@ -5,6 +5,7 @@
 
 #include "Navigation/Components.h"
 
+#include "Scripting/Engine.h"
 #include "Scripting/Trigger.h"
 
 #include "Renderer/Renderer.h"
@@ -197,6 +198,26 @@ Scriptable CreateCharacterController(const Entity& entity)
                                         1.0f, false};
             data.haloEffectAnimation.Start();
 
+            break;
+        }
+
+        case PickupWeaponEvent::TypeId:
+        {
+            auto* weaponEvent = dynamic_cast<PickupWeaponEvent*>(event);
+            const WeaponData& newWeaponData = weaponEvent->GetWeapon();
+            LOG_INFO("%s", weaponEvent->GetWeapon().modelIdentifier.c_str());
+
+            Entity weapon = entity.FindChild("Weapon");
+            WeaponData& weaponData = weapon.GetComponent<WeaponData>();
+            if (newWeaponData.GetDPS() > weaponData.GetDPS())
+            {
+                weaponData = newWeaponData;
+
+                // Switch weapon models
+                weapon.FindChild("model").Remove();
+                auto model = ResourceManager::LoadModel(newWeaponData.modelIdentifier);
+                weapon.GetScene()->CopyEntity(model.Get()->GetRootEntity(), "model", weapon);
+            }
             break;
         }
     }
@@ -402,8 +423,8 @@ nullptr,
                     TriggerEnterEvent* triggerEvent = dynamic_cast<TriggerEnterEvent*>(event);
                     HealData& data = std::any_cast<HealData&>(dataBlock);
 
-                    HealEvent event(triggerEvent->GetSource(), data.healing);
-                    Scripting::Engine::Get().EmitGameEvent(&event);
+                    HealEvent healEvent(triggerEvent->GetSource(), data.healing);
+                    Scripting::Engine::Get().EmitGameEvent(&healEvent);
                     entity.Remove();
                 }
             }
@@ -442,7 +463,11 @@ nullptr,
             {
                 case TriggerEnterEvent::TypeId:
                 {
-                    // GetPlayer().ChangeWeapon(entity)
+                    TriggerEnterEvent* triggerEvent = dynamic_cast<TriggerEnterEvent*>(event);
+                    WeaponData& data = entity.GetComponent<WeaponData>();
+
+                    PickupWeaponEvent weaponEvent(triggerEvent->GetSource(), data);
+                    Scripting::Engine::Get().EmitGameEvent(&weaponEvent);
                     entity.Remove();
                 }
             }

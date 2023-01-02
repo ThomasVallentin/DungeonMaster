@@ -9,6 +9,7 @@
 #include "Navigation/Agent.h"
 #include "Navigation/Components.h"
 
+#include "Scripting/Engine.h"
 #include "Scripting/Trigger.h"
 
 #include "Renderer/Renderer.h"
@@ -101,15 +102,12 @@ void Application::OnUpdate()
         SwitchScenes();
     }
 
-    // Update Navigation
     Navigation::Engine& navEngine = Navigation::Engine::Get();
     navEngine.OnUpdate();
 
-    // Updating Scripts
     Scripting::Engine::Get().OnUpdate();
 
     Renderer& renderer = Renderer::Get();
-
     renderer.ClearBuffer(0);
     renderer.RenderScene(m_scene, m_scene->GetMainCamera());
     renderer.BlitRenderToBuffer(0);

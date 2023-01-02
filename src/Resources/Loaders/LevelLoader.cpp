@@ -55,12 +55,14 @@ Entity LevelLoader::BuildPlayer()
     scene->SetMainCamera(camera);
     
     // Weapon
-    auto sword = ResourceManager::LoadModel("Models/Sword.fbx");
-    Entity weapon = scene->CopyEntity(sword.Get()->GetRootEntity(), "Weapon", player);
-    weapon.GetComponent<Components::Transform>().transform =
+    Entity weapon = player.AddChild("Weapon");
+    weapon.EmplaceComponent<Components::Transform>(
         glm::translate(glm::mat4(1.0f), glm::vec3(0.06f, -0.08f, -0.15f)) *
-        glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f);
-    weapon.EmplaceComponent<Components::WeaponData>(1.0);
+        glm::eulerAngleXYZ(0.0f, -(float)M_PI * 0.33f, (float)M_PI * 0.1f));
+    weapon.EmplaceComponent<Components::WeaponData>(1.0, 1.0, "");
+
+    auto basicSword = ResourceManager::LoadModel("Models/BasicSword.fbx");
+    scene->CopyEntity(basicSword.Get()->GetRootEntity(), "model", weapon);
 
     auto arm = ResourceManager::LoadModel("Models/arm.fbx");
     Entity armEntity = scene->CopyEntity(arm.Get()->GetRootEntity(), "Arm", player);
@@ -103,10 +105,7 @@ Entity LevelLoader::BuildMonster(const std::string& name,
     Entity monster = scene->CreateEntity(name);
     monster.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                     glm::vec3(origin.x, 0.0f, -origin.y)));
-    auto& monsterData = monster.EmplaceComponent<Components::MonsterData>();
-    monsterData.target = m_player;
-    monsterData.strength = strength;
-    monsterData.attackSpeed = attackSpeed;
+    monster.EmplaceComponent<Components::MonsterData>(m_player, strength, attackSpeed);
 
     auto& navAgent = monster.EmplaceComponent<Components::NavAgent>(monster);
     navAgent.GetAgent()->SetSpeed(speed);
@@ -118,7 +117,6 @@ Entity LevelLoader::BuildMonster(const std::string& name,
     if (model)
     {
         Entity modelEntity = scene->CopyEntity(model.Get()->GetRootEntity(), "model", monster);
-        modelEntity.GetComponent<Components::Transform>().transform = glm::scale(glm::mat4(1.0f), glm::vec3(0.03f)); // TODO: Fix model instead of scaling here
     }
     else 
     {
@@ -132,7 +130,7 @@ Entity LevelLoader::BuildMonster(const std::string& name,
 Entity LevelLoader::BuildHeal(const std::string& name,
                     const glm::vec2& origin,
                     const std::string& modelIdentifier,
-                    const uint32_t& healing)
+                    const float& healing)
 {
     ScenePtr scene = m_levelHandle.Get()->scene;
 
@@ -162,7 +160,8 @@ Entity LevelLoader::BuildHeal(const std::string& name,
 Entity LevelLoader::BuildWeapon(const std::string& name,
                     const glm::vec2& origin,
                     const std::string& modelIdentifier,
-                    const uint32_t& damage)
+                    const float& damage,
+                    const float& attackSpeed)
 {
     ScenePtr scene = m_levelHandle.Get()->scene;
 
@@ -172,7 +171,6 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
                                                    glm::vec3(origin.x, 0.5f, -origin.y)));
     entity.EmplaceComponent<Components::Trigger>(entity, m_player, 0.2);
     entity.EmplaceComponent<Components::Scriptable>(Components::CreateWeaponLogic(entity));
-    entity.EmplaceComponent<Components::WeaponData>(damage);
 
     // Load model
     ResourceHandle<Prefab> model = ResourceManager::LoadModel(modelIdentifier);
@@ -185,6 +183,8 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
     {
         LOG_WARNING("Could not find model of %s", name.c_str());
     }
+
+    entity.EmplaceComponent<Components::WeaponData>(damage, attackSpeed, model.GetIdentifier());
 
     return entity;
 }
@@ -585,25 +585,29 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
             if (type == "weapon")
             {
                 ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("damage"), path, "Invalid weapon damage.");
-                ASSERT_AND_FREE_LEVEL_DATA(reward["damage"].IsUint(), path, "Invalid weapon damage.");
+                ASSERT_AND_FREE_LEVEL_DATA(reward["damage"].IsFloat(), path, "Invalid weapon damage.");
+
+                ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("attackSpeed"), path, "Invalid weapon attack speed.");
+                ASSERT_AND_FREE_LEVEL_DATA(reward["attackSpeed"].IsFloat(), path, "Invalid weapon attack speed.");
 
                 auto origin = reward["origin"].GetArray();
                 BuildWeapon(reward["name"].GetString(),
                             glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
                             reward["model"].GetString(),
-                            reward["damage"].GetUint());
+                            reward["damage"].GetFloat(),
+                            reward["attackSpeed"].GetFloat());
             }
 
             else if (type == "heal")
             {
                 ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("healing"), path, "Invalid heal healing.");
-                ASSERT_AND_FREE_LEVEL_DATA(reward["healing"].IsUint(), path, "Invalid heal healing.");
+                ASSERT_AND_FREE_LEVEL_DATA(reward["healing"].IsFloat(), path, "Invalid heal healing.");
 
                 auto origin = reward["origin"].GetArray();
                 BuildHeal(reward["name"].GetString(),
                         glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
                         reward["model"].GetString(),
-                        reward["healing"].GetUint());
+                        reward["healing"].GetFloat());
             }
         }
     }

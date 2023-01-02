@@ -3,7 +3,6 @@
 
 
 #include "Scene/Entity.h"
-#include "Scripting/Engine.h"
 
 #include "Core/Event.h"
 #include "Core/Logging.h"
@@ -72,7 +71,7 @@ struct RenderImage
     ResourceHandle<Texture> image;
 };
 
-} // Namespace Components::
+} // Namespace Components
 
 
 #endif  // BASICCOMPONENTS_H

@@ -1,9 +1,11 @@
 #ifndef GAMECOMPONENTS_H
 #define GAMECOMPONENTS_H
 
-#include "Scene/Components/Basics.h"
-
 #include "Navigation/Engine.h"
+
+#include "Scripting/Components.h"
+
+#include "Scene/Components/Basics.h"
 
 
 namespace Components {
@@ -43,12 +45,20 @@ Scriptable CreateCharacterController(const Entity& entity);
 
 struct MonsterData
 {
+    MonsterData() = default;
+    MonsterData(const Entity& target, 
+                const float& strength,
+                const float& attackSpeed) :
+            target(target),
+            attackSpeed(attackSpeed),
+            strength(strength) {}
+
+    Entity target;
     float attackSpeed = 2.0f;
     float strength = 1.0;
     float angleOfView = 120.0f;
     float viewDistance = 4.0f;
     Navigation::CellFilters navFilter = Navigation::CellFilters::Flying;
-    Entity target;
 
 // Scripts cannot access to private variables in the current state of the engine, letting everything public for now
 // private: 
@@ -78,11 +88,20 @@ Scriptable CreateHealLogic(const Entity& entity);
 struct WeaponData
 {
     WeaponData() = default;
-    WeaponData(const float& damage) : damage(damage) {}
+    WeaponData(const float& damage, 
+               const float& speed, 
+               const std::string& modelIdentifier) : 
+            damage(damage),
+            speed(speed),
+            modelIdentifier(modelIdentifier) {}
+
+    inline float GetDPS() const { return damage * speed; }
 
     float damage = 2.0f;
     float speed = 1.0f;
-    float range = 1.2f;
+    float range = 1.2f;  // Could be usefull later
+
+    std::string modelIdentifier;
 };
 
 

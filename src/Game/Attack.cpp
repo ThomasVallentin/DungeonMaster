@@ -4,6 +4,8 @@
 
 #include "Scene/Components/Basics.h"
 
+#include "Scripting/Engine.h"
+
 #include <glm/gtx/norm.hpp>
 
 

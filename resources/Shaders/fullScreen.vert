@@ -2,11 +2,9 @@
 
 out vec2 vTexCoords;
 
-// Drawing a single triangle that covers all the screen
+// Small trick from Randall Rauwendaal
+// Drawing a single triangle that covers all the screen without requiring any vertex buffer
 void main(void) {
-    float x = float((gl_VertexID & 1) << 2);
-    float y = float((gl_VertexID & 2) << 1);
-
-    vTexCoords = vec2(x * 0.5, y * 0.5);
-    gl_Position = vec4(x - 1.0, y - 1.0, 0, 1);
+    vTexCoords = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2);
+    gl_Position = vec4(vTexCoords * 2.0 + -1.0, 0.0, 1.0);
 }

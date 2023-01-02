@@ -1,6 +1,8 @@
 #include "GameManager.h"
 #include "Level.h"
 
+#include "Scripting/Components.h"
+
 #include "Navigation/Engine.h"
 
 #include "Core/Resolver.h"

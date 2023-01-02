@@ -7,21 +7,32 @@
             "rewards": [
                 {
                     "id": 1,
-                    "name": "Long Sword",
+                    "name": "Master Sword",
                     "origin": [18, 11],
-                    "model": "Models/Sword.fbx",
+                    "model": "Models/MasterSword.fbx",
 
                     "type": "weapon",
-                    "damage": 10
+                    "damage": 2.0,
+                    "attackSpeed": 1.0
+                },
+                {
+                    "id": 1,
+                    "name": "Sting Sword",
+                    "origin": [14, 10],
+                    "model": "Models/StingSword.fbx",
+
+                    "type": "weapon",
+                    "damage": 2.0,
+                    "attackSpeed": 1.0
                 },
                 {
                     "id": 2,
                     "name": "Strange Mixture",
                     "origin": [20, 13],
-                    "model": "Models/Sword.fbx",
+                    "model": "Models/Potion.fbx",
 
                     "type": "heal",
-                    "healing": 20
+                    "healing": 5.0
                 }
             ],
             "monsters": [
@@ -29,11 +40,22 @@
                     "id": 1,
                     "name": "Khrryh",
                     "origin": [22, 16],
-                    "model": "Models/Fire_Elemental.obj",
+                    "model": "Models/Slime.fbx",
 
                     "health": 3,
-                    "strength": 2.0,
+                    "strength": 1.0,
                     "attackSpeed": 1.0,
+                    "speed": 1.5
+                },
+                {
+                    "id": 1,
+                    "name": "Khrryhaaarghh",
+                    "origin": [20, 14],
+                    "model": "Models/SlimeWarrior.fbx",
+
+                    "health": 5,
+                    "strength": 3.0,
+                    "attackSpeed": 0.5,
                     "speed": 1.0
                 }
             ]

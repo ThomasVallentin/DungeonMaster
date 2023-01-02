@@ -8,7 +8,7 @@ in vec2 vTexCoords;
 
 uniform sampler2D uBeauty;
 uniform sampler2D uDepth;
-uniform float uOnHitEffect = 0.0;
+uniform vec4 uHaloColor = vec4(0.0);
 
 // == OUTPUTS ==
 
@@ -44,7 +44,7 @@ vec3 Tonemap_ACESFilmic(vec3 x) {
 void main()
 {
     vec3 color = texture(uBeauty, vTexCoords).rgb;
-    color = mix(color, vec3(1.0, 0.0, 0.0), uOnHitEffect);
+    color = mix(color, uHaloColor.rgb, uHaloColor.a);
 
     color = Tonemap_ACESFilmic(color);
     color = ODT_Gamma(color, 2.2);  // Pseudo sRGB ODT;

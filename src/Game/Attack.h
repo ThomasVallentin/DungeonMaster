@@ -18,7 +18,7 @@ struct Attack
     const float angleOfEffect;
 };
 
-void PerformAttack(const Attack& attack, const std::vector<Entity>& victims);
+void PerformAttack(const Attack& attack, const std::vector<Entity>& targets);
 
 
 #endif // ATTACK_H

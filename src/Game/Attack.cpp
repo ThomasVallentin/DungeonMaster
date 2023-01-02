@@ -7,14 +7,14 @@
 #include <glm/gtx/norm.hpp>
 
 
-void PerformAttack(const Attack& attack, const std::vector<Entity>& victims)
+void PerformAttack(const Attack& attack, const std::vector<Entity>& targets)
 {
     glm::vec2 pos = {round(attack.source.x), round(attack.source.z)};
     glm::vec2 viewDir = glm::normalize(glm::vec2(attack.direction.x, attack.direction.z));
 
-    for (auto& victim : victims)
+    for (auto& target : targets)
     {
-        glm::mat4 victimWorldMatrix = Components::Transform::ComputeWorldMatrix(victim);
+        glm::mat4 victimWorldMatrix = Components::Transform::ComputeWorldMatrix(target);
         glm::vec2 targetPos = {round(victimWorldMatrix[3].x), round(victimWorldMatrix[3].z)};
         glm::vec2 toTarget = targetPos - pos;
 
@@ -32,7 +32,7 @@ void PerformAttack(const Attack& attack, const std::vector<Entity>& victims)
             return;
         }
 
-        AttackEvent event(victim, attack);
+        AttackEvent event(target, attack);
         Scripting::Engine::Get().EmitGameEvent(&event);
     }
 }

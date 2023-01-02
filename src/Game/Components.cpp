@@ -35,24 +35,20 @@ Scriptable CreateCharacterController(const Entity& entity)
 // CharacterController::OnCreate
 [](Entity entity, std::any& dataBlock)
 {
-    Animation<float> onHit = {{{0.0f, 0.25f},
-                               {1.0f, 0.0f}},
-                              InterpolationType::Smooth,
-                              1.0f, false};
-    dataBlock = CharacterControllerData{onHit};
+    dataBlock = std::make_any<CharacterControllerData>();
 },
 
 // CharacterController::OnUpdate
 [](Entity entity, std::any& dataBlock)
 {
     CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
-    if (!data.onHitAnimation.ended)
+    if (!data.haloEffectAnimation.ended)
     {
-        Renderer::Get().GetPostProcessShader()->SetFloat("uOnHitEffect", data.onHitAnimation.Evaluate(Time::GetDeltaTime()));
+        Renderer::Get().GetPostProcessShader()->SetVec4("uHaloColor", data.haloEffectAnimation.Evaluate(Time::GetDeltaTime()));
     }
     else 
     {
-        Renderer::Get().GetPostProcessShader()->SetFloat("uOnHitEffect", 0.0f);
+        Renderer::Get().GetPostProcessShader()->SetVec4("uHaloColor", glm::vec4(0.0f));
     }
 
     auto& transform = entity.GetComponent<Transform>();
@@ -170,21 +166,38 @@ Scriptable CreateCharacterController(const Entity& entity)
     {
         case AttackEvent::TypeId:
         {
-            auto* character = entity.FindComponent<CharacterData>();
-            if (!character)
-            {
-                return;
-            }
             auto* attackEvent = dynamic_cast<AttackEvent*>(event);
+            auto* character = entity.FindComponent<CharacterData>();
             character->InflictDamage(attackEvent->GetAttack().damage);
 
             CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
-            data.onHitAnimation.Start();
+            data.haloEffectAnimation = {{{0.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.2f)},
+                                         {1.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.0)}},
+                                        InterpolationType::Smooth,
+                                        1.0f, false};
+            data.haloEffectAnimation.Start();
 
             if (!character->IsAlive())
             {
                 GameManager::Get().ShowGameOverScreen();
             }
+            break;
+        }
+
+        case HealEvent::TypeId:
+        {
+            auto* healEvent = dynamic_cast<HealEvent*>(event);
+            auto* character = entity.FindComponent<CharacterData>();
+            character->Heal(healEvent->GetHealing());
+
+            CharacterControllerData& data = std::any_cast<CharacterControllerData&>(dataBlock);
+            data.haloEffectAnimation = {{{0.0f, glm::vec4(0.25f, 0.9f, 0.13f, 0.15f)},
+                                         {1.0f, glm::vec4(0.25f, 0.9f, 0.13f, 0.0)}},
+                                        InterpolationType::Smooth,
+                                        1.0f, false};
+            data.haloEffectAnimation.Start();
+
+            break;
         }
     }
 },
@@ -386,7 +399,11 @@ nullptr,
             {
                 case TriggerEnterEvent::TypeId:
                 {
-                    // GetPlayer().Heal(data.healing)
+                    TriggerEnterEvent* triggerEvent = dynamic_cast<TriggerEnterEvent*>(event);
+                    HealData& data = std::any_cast<HealData&>(dataBlock);
+
+                    HealEvent event(triggerEvent->GetSource(), data.healing);
+                    Scripting::Engine::Get().EmitGameEvent(&event);
                     entity.Remove();
                 }
             }

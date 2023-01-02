@@ -11,21 +11,27 @@ namespace Components {
 struct CharacterData
 {
     CharacterData() = default;
-    CharacterData(const float& health) : health(health) {}
+    CharacterData(const float& health) : health(health), maxHealth(health) {}
 
     inline void InflictDamage(const float& damage)
     {
         health = std::max(0.0f, health - damage);
     }
 
+    inline void Heal(const float& healing)
+    {
+        health = std::min(maxHealth, health + healing);
+    }
+
     inline bool IsAlive() const { return health > 0.0f; }
     
     float health = 10.0f;
+    float maxHealth = 10.0f;
 };
 
 struct CharacterControllerData
 {
-    Animation<float> onHitAnimation;
+    Animation<glm::vec4> haloEffectAnimation;
     Animation<glm::mat4> moveAnimation;
     Animation<glm::mat4> attackAnimation;
     float speed = 4.0f;

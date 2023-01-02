@@ -7,7 +7,7 @@
 #include "Core/Event.h"
 
 
-// == GameEvent ==
+// == Game Event ==
 
 class GameEvent : public Event
 {
@@ -26,7 +26,7 @@ private:
 };
 
 
-// == TriggerEvents ==
+// == Trigger Events ==
 
 class TriggerEvent : public GameEvent
 {
@@ -78,7 +78,7 @@ public:
     static const uint32_t TypeId = 0x403;
 };
 
-// == AttackEvent ==
+// == Attack Event ==
 
 class AttackEvent : public GameEvent
 {
@@ -87,14 +87,51 @@ public:
             GameEvent(target), m_attack(attack) {}
 
     inline uint32_t GetType() const { return AttackEvent::TypeId; }
-    inline const char* GetName() const { return "DamageEvent"; }
+    inline const char* GetName() const { return "AttackEvent"; }
     static const uint32_t TypeId = 0x501;
 
     inline const Attack& GetAttack() const { return m_attack; }
 
 private:
     const Attack m_attack;
-
 };
+
+
+// == Heal Event ==
+
+class HealEvent : public GameEvent
+{
+public:
+    HealEvent(const Entity& target, const float& healing) : 
+            GameEvent(target), m_healing(healing) {}
+
+    inline uint32_t GetType() const { return HealEvent::TypeId; }
+    inline const char* GetName() const { return "HealEvent"; }
+    static const uint32_t TypeId = 0x503;
+
+    inline float GetHealing() const { return m_healing; }
+
+private:
+    const float m_healing;
+};
+
+
+// == Pickup Weapon Event ==
+
+// class PickupWeaponEvent : public GameEvent
+// {
+// public:
+//     PickupWeaponEvent(const Entity& target, const float& healing) : 
+//             GameEvent(target), m_healing(healing) {}
+
+//     inline uint32_t GetType() const { return PickupWeaponEvent::TypeId; }
+//     inline const char* GetName() const { return "PickupWeaponEvent"; }
+//     static const uint32_t TypeId = 0x502;
+
+//     inline float GetWeapon() const { return m_healing; }
+
+// private:
+//     const Weapon m_weapon;
+// };
 
 #endif // GAMEEVENTS_H

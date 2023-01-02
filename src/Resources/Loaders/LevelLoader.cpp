@@ -194,37 +194,38 @@ void LevelLoader::BuildMaterials()
     Resolver& resolver = Resolver::Get();
 
     auto defaultShader = Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                      resolver.Resolve("Shaders/default.frag"));
+                                      resolver.Resolve("Shaders/pbrMaterial.frag"));
 
     // Floor
     if(!(m_floorMat = ResourceManager::GetResource<Material>("floorMaterial")))
     {
         m_floorMat = ResourceManager::CreateResource<Material>("floorMaterial", Material::Create(defaultShader), false);
-        m_floorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
+        m_floorMat.Get()->SetInputTexture("baseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
     }
 
     // Wall
     if(!(m_wallMat = ResourceManager::GetResource<Material>("wallMaterial")))
     {
         m_wallMat = ResourceManager::CreateResource<Material>("wallMaterial", Material::Create(defaultShader), false);
-        m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
+        m_wallMat.Get()->SetInputTexture("baseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
     }
 
     // Door
     if(!(m_doorMat = ResourceManager::GetResource<Material>("doorMaterial")))
     {
         m_doorMat = ResourceManager::CreateResource<Material>("doorMaterial", Material::Create(defaultShader), false);
-        m_doorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Metal_Door/Albedo.jpg").Get());
+        m_doorMat.Get()->SetInputTexture("baseColor", ResourceManager::LoadTexture("Textures/Metal_Door/Albedo.jpg").Get());
     }
 
     // Water
     if(!(m_waterMat = ResourceManager::GetResource<Material>("waterMaterial")))
     {
-        m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial",
-                                                            Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                                                                          resolver.Resolve("Shaders/water.frag"))), false);
-        m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.1, 0.2));
-        m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.25, 0.5));
+        m_waterMat = ResourceManager::CreateResource<Material>(
+            "waterMaterial",
+            Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
+                                          resolver.Resolve("Shaders/water.frag"))), false);
+        m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.05, 0.1));
+        m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.12, 0.25));
     }
 }
 

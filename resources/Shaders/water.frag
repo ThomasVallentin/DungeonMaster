@@ -23,7 +23,6 @@ layout(std140, binding = 0) uniform MaterialInputs
 // == UNIFORMS ==
 
 uniform sampler2D uTextures[2];
-uniform vec3 uLightDirection = vec3(0.2, -0.5, -0.5);
 uniform float uTime = 0.0;
 
 struct PointLight
@@ -33,8 +32,8 @@ struct PointLight
     float decay;
 };
 
-uniform PointLight uPointLight = {vec3(0.0), vec3(1.0), 2.0};
-
+const int pointLightCount = 1;
+uniform PointLight uPointLights[pointLightCount];
 
 // == OUTPUTS ==
 
@@ -48,21 +47,6 @@ const int deepColorTexture = 1;
 
 
 // == HELPER FUNCTIONS ==
-
-vec3 ODT_Gamma(vec3 color, float gamma)
-{
-    return pow(color, vec3(1.0 / gamma));
-}
-
-// From Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
-vec3 Tonemap_ACESFilmic(vec3 x) {
-    const float a = 2.51;
-    const float b = 0.03;
-    const float c = 2.43;
-    const float d = 0.59;
-    const float e = 0.14;
-    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-}
 
 vec2 RandomVec2(vec2 uv){
     uv = vec2(dot(uv, vec2(151.41, 351.753)),
@@ -130,27 +114,34 @@ vec3 SampleMaterial(vec3 pos, vec3 normal)
     vec2 distortedUv = uvAtPos + wavelets * 0.3;
 
     // Compute light power
-    vec3 lightDir = uPointLight.position - pos;
-    float lightDistance = length(lightDir);
-    lightDir /= lightDistance;
-    lightDistance += 1.0; // Using (distance - 1.0) to compute the attenuation over the distance to avoid having a singularity when distance < 1.0 or clamping 
-    float lightAttenuation = LightAttenuation(lightDistance, uPointLight.decay);
-    vec3 incomingLight = uPointLight.color * lightAttenuation;
+    vec3 Lo = vec3(0.0);
+    for (int i=0 ; i < pointLightCount ; i++) {
+        PointLight light = uPointLights[i];
 
-    // Compute diffuse brdf
-    float absCosTheta = max(dot(lightDir, normal), 0.0);
-    float wavesFlow = PerlinNoise(uvAtPos + uTime * 0.1) + PerlinNoise(uvAtPos - uTime * 0.1) * 0.5 + 0.5;
-    
-    float waves = wavesFlow;
-    waves *= (0.66 + 0.33 * TurbulentPerlinNoise(uvAtPos, 2.0, uTime * 0.5));
-    vec3 wavesColor = mix(surface, deep, waves) * incomingLight * absCosTheta;
+        vec3 lightDir = light.position - pos;
+        float lightDistance = length(lightDir);
+        lightDir /= lightDistance;
+        lightDistance += 1.0; // Using (distance - 1.0) to compute the attenuation over the distance to avoid having a singularity when distance < 1.0 or clamping 
+        float lightAttenuation = LightAttenuation(lightDistance, light.decay);
+        vec3 incomingLight = light.color * lightAttenuation;
 
-    float specularWaves = TurbulentPerlinNoise(distortedUv * 8.0, 1.0, uTime * 0.1) * 0.5 + 0.5;
-    float specularAttenuation = LightAttenuation(lightDistance, 0.8);  // The "specular" of the water decays slower than the ligth diffues
-    float specular = float(specularWaves * (waves * 0.6 + 0.4) * specularAttenuation * 1.6> 0.35);
-    vec3 specularColor = vec3(specular) * waves * incomingLight*incomingLight * 0.2 ;
+        // Compute diffuse brdf
+        float absCosTheta = max(dot(lightDir, normal), 0.0);
+        float wavesFlow = PerlinNoise(uvAtPos + uTime * 0.1) + PerlinNoise(uvAtPos - uTime * 0.1) * 0.5 + 0.5;
+        
+        float waves = wavesFlow;
+        waves *= (0.66 + 0.33 * TurbulentPerlinNoise(uvAtPos, 2.0, uTime * 0.5));
+        vec3 wavesColor = mix(surface, deep, waves) * incomingLight * absCosTheta;
 
-    return wavesColor + specularColor;
+        float specularWaves = TurbulentPerlinNoise(distortedUv * 8.0, 1.0, uTime * 0.1) * 0.5 + 0.5;
+        float specularAttenuation = LightAttenuation(lightDistance, 0.8);  // The "specular" of the water decays slower than the ligth diffues
+        float specular = float(specularWaves * (waves * 0.6 + 0.4) * specularAttenuation * 1.6> 0.35);
+        vec3 specularColor = vec3(specular) * waves * incomingLight*incomingLight * 0.2 ;
+
+        Lo += wavesColor + specularColor;
+    }
+
+    return Lo;
 }
 
 // == SHADER EVALUATION ==

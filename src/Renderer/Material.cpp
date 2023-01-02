@@ -4,11 +4,13 @@
 
 const char* MATERIAL_BLOCK_NAME = "MaterialInputs";
 
-// This variable describe the index of the textures for every input described by the material
+// This variable describes the index of the textures for every input described by the material
 // it should be replaced by a description of the shader's material (in a json file for example)
 static const std::unordered_map<std::string, uint32_t> MATERIAL_TEXTURE_MAPPING = {
-    {"diffuseColor", 0}, 
-    {"ambientColor", 1}
+    {"baseColor", 0}, 
+    {"metallic", 1},
+    {"roughness", 2},
+    {"emissionColor", 3}
 };
 
 

@@ -6,7 +6,6 @@
             "map": "Labyrinth.ppm",
             "rewards": [
                 {
-                    "id": 1,
                     "name": "Master Sword",
                     "origin": [18, 11],
                     "model": "Models/MasterSword.fbx",
@@ -16,7 +15,6 @@
                     "attackSpeed": 1.0
                 },
                 {
-                    "id": 1,
                     "name": "Sting Sword",
                     "origin": [14, 10],
                     "model": "Models/StingSword.fbx",
@@ -26,7 +24,6 @@
                     "attackSpeed": 1.0
                 },
                 {
-                    "id": 2,
                     "name": "Strange Mixture",
                     "origin": [20, 13],
                     "model": "Models/Potion.fbx",
@@ -37,7 +34,6 @@
             ],
             "monsters": [
                 {
-                    "id": 1,
                     "name": "Khrryh",
                     "origin": [22, 16],
                     "model": "Models/Slime.fbx",
@@ -48,7 +44,6 @@
                     "speed": 1.5
                 },
                 {
-                    "id": 1,
                     "name": "Khrryhaaarghh",
                     "origin": [20, 14],
                     "model": "Models/SlimeWarrior.fbx",

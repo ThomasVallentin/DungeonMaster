@@ -147,15 +147,15 @@ void ModelLoader::ProcessMaterials(const aiScene *scene)
     {
         auto aiMaterial = scene->mMaterials[i];
         MaterialPtr material = Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                                             resolver.Resolve("Shaders/default.frag")));
+                                                             resolver.Resolve("Shaders/pbrMaterial.frag")));
         aiColor3D color;
         if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color) != AI_FAILURE)
-            material->SetInputValue("diffuseColor", glm::vec3(color.r, color.g, color.b));
+            material->SetInputValue("baseColor", glm::vec3(color.r, color.g, color.b));
         else
-            material->SetInputValue("diffuseColor", glm::vec3(0.0, 1.0, 0.0));
+            material->SetInputValue("baseColor", glm::vec3(0.0, 1.0, 0.0));
         
         if (aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color) != AI_FAILURE)
-            material->SetInputValue("ambientColor", glm::vec3(color.r, color.g, color.b));
+            material->SetInputValue("emissionColor", glm::vec3(color.r, color.g, color.b));
 
         ResourceHandle<Material> handle = ResourceManager::CreateResource<Material>(
             m_loadedIdentifier + ":" + aiMaterial->GetName().C_Str(),

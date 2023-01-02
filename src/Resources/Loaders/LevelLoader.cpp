@@ -40,12 +40,6 @@ glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& 
 
 Entity LevelLoader::BuildPlayer()
 {
-    if (m_entrancePos == glm::vec2(-1.0f))
-    {
-        LOG_WARNING("Player position was not found, moving it to (0, 0) !");
-        m_entrancePos = glm::vec2(0.0f);
-    }
-
     ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Main Components
@@ -170,7 +164,6 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
 
     // Create entity & components
     Entity entity = scene->CreateEntity(name);
-    LOG_INFO("NAME %s", name.c_str());
     entity.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), 
                                                    glm::vec3(origin.x, 0.5f, -origin.y)));
     entity.EmplaceComponent<Components::Trigger>(entity, m_player, 0.2);
@@ -213,20 +206,26 @@ void LevelLoader::BuildMaterials()
         m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
     }
 
+    // Door
+    if(!(m_doorMat = ResourceManager::GetResource<Material>("doorMaterial")))
+    {
+        m_doorMat = ResourceManager::CreateResource<Material>("doorMaterial", Material::Create(defaultShader), false);
+        m_doorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Metal_Door/Albedo.jpg").Get());
+    }
 
     // Water
     if(!(m_waterMat = ResourceManager::GetResource<Material>("waterMaterial")))
     {
         m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial",
                                                             Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                                                                            resolver.Resolve("Shaders/water.frag"))), false);
+                                                                                          resolver.Resolve("Shaders/water.frag"))), false);
         m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.1, 0.2));
         m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.25, 0.5));
     }
 }
 
 
-ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std::string& mapPath)
+ResourceHandle<Prefab> LevelLoader::ProcessAndBuildLevelMap(const ImagePtr& map, const std::string& mapPath)
 {
     Resolver& resolver = Resolver::Get();
 
@@ -238,18 +237,32 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std
         const uint32_t width = map->GetWidth();
         const uint32_t height = map->GetHeight();
 
-        // The level prefab already exists, just find the entrance of the level
+        // The level prefab already exists, just gather the data for the rest of the level building
         for (int y=0 ; y < height ; y++)
         {
             for (size_t x=0 ; x < width ; x++)
             {
                 glm::vec4 pixel = GetPixel(pixels, x, y, width, height);
-                if (pixel == LevelCell::Entrance)
+                if (pixel == LevelCell::Door)
+                {
+                    bool verticalDoor = (GetPixel(pixels, x, y + 1, width, height) == LevelCell::Wall);
+                    m_doors.emplace_back(glm::vec2(x, -y), verticalDoor);
+                }
+
+                else if (pixel == LevelCell::Entrance)
                 {
                     if (m_entrancePos != glm::vec2(-1.0f))
                         LOG_WARNING("Multiple entrances have been specified, using the first one.");
                     else
                         m_entrancePos = glm::vec2(x, -y);
+                }
+
+                else if (pixel == LevelCell::Exit)
+                {
+                    if (m_exitPos != glm::vec2(-1.0f))
+                        LOG_WARNING("Multiple exits have been specified, using the first one.");
+                    else
+                        m_exitPos = glm::vec2(x, -y);
                 }
             }
         }
@@ -289,9 +302,15 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std
             if (pixel == LevelCell::Wall)
                 continue;
 
-            // Find the most common case as quickly as possible to avoid having to proceed too many if statements
-            if (pixel != LevelCell::Floor)  {
-                if (pixel == LevelCell::Entrance)
+            // Skip the most common case as quickly as possible to avoid having to proceed too many if statements
+            if (pixel != LevelCell::Floor) {
+                if (pixel == LevelCell::Door)
+                {
+                    bool verticalDoor = (GetPixel(pixels, x, y + 1, width, height) == LevelCell::Wall);
+                    m_doors.emplace_back(glm::vec2(x, -y), verticalDoor);
+                }
+
+                else if (pixel == LevelCell::Entrance)
                 {
                     if (m_entrancePos != glm::vec2(-1.0f))
                         LOG_WARNING("Multiple entrances have been specified, using the first one.");
@@ -406,6 +425,47 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std
     return prefab;
 }
 
+Entity LevelLoader::BuildDoor(const std::string& name,
+                              const glm::vec2& origin,
+                              const bool& verticalDoor) 
+{
+    ScenePtr scene = m_levelHandle.Get()->scene;
+
+    // Create entity & components
+    Entity door = scene->CreateEntity(name);
+    glm::mat4 doorMatrix = glm::translate(glm::mat4(1.0f), 
+                                          glm::vec3(origin.x, 0.5f, origin.y));
+    if (verticalDoor)
+    {
+        doorMatrix = glm::rotate(doorMatrix, (float)M_PI_2, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    door.EmplaceComponent<Components::Transform>(doorMatrix);
+    door.EmplaceComponent<Components::Trigger>(door, m_player, 2.0f);
+    door.EmplaceComponent<Components::Scriptable>(Components::CreateDoorLogic(door));
+
+    // A door is a simple quad for now, should be replaced by a proper model
+    std::string identifier = "DoorMesh";
+    ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>(identifier);
+    if (!mesh)
+    {
+        std::vector<Vertex> vertices = {{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+                                        {{ 0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+                                        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+                                        {{-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}}};
+        std::vector<uint32_t> indices = {0, 1, 3, 1, 2, 3};
+        mesh = ResourceManager::CreateResource<Mesh>(identifier,
+                                                    Mesh::Create(vertices, indices),
+                                                    true);
+    }
+
+    Entity model = door.AddChild("model");
+    model.EmplaceComponent<Components::Transform>();
+    model.EmplaceComponent<Components::Mesh>(mesh);
+    model.EmplaceComponent<Components::RenderMesh>(m_doorMat, true);
+
+    return door;
+}
+
 ResourceHandle<Level> LevelLoader::Load(const std::string& path)
 {
     Resolver& resolver = Resolver::Get();
@@ -448,12 +508,21 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
 
     // Build level map
     BuildMaterials();
-    auto floorPrefab = BuildLevelMap(level->map, mapPath);
+    auto floorPrefab = ProcessAndBuildLevelMap(level->map, mapPath);
     level->scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
-    // Building the player, camera, weapon and exit of the level
+    // Build the player
     m_player = BuildPlayer();
 
+    // Build doors
+    for (size_t i = 0 ; i < m_doors.size() ; i++)
+    {
+        BuildDoor(std::string("Door") + std::to_string(i),
+                  m_doors[i].first,
+                  m_doors[i].second);
+    }
+
+    // Build the monsters
     if (firstFloor.HasMember("monsters") && firstFloor["monsters"].IsArray())
     {
         for (const auto& monster : firstFloor["monsters"].GetArray())

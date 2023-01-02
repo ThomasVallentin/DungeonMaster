@@ -82,6 +82,15 @@ struct WeaponData
 Scriptable CreateWeaponLogic(const Entity& entity);
 
 
+struct DoorData
+{
+    bool opened = false;
+    Animation<glm::mat4> openAnimation;
+};
+
+Scriptable CreateDoorLogic(const Entity& entity);
+
+
 // General game logics
 Scriptable CreateTitleScreenLogic(const Entity& entity);
 Scriptable CreateGameOverLogic(const Entity& entity);

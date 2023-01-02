@@ -55,10 +55,12 @@ struct RenderMesh
 {
     RenderMesh() = default;
     RenderMesh(const ResourceHandle<Material>& material) : material(material) {}
+    RenderMesh(const ResourceHandle<Material>& material, const bool& doubleSided) : 
+            material(material), 
+            doubleSided(doubleSided) {}
 
     ResourceHandle<Material> material;
-    // bool castShadows;
-    // bool receiveShadows;
+    bool doubleSided = false;
 };
 
 

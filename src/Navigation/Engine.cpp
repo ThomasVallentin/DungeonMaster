@@ -59,6 +59,16 @@ void Engine::SetNavMap(const ImagePtr& navMap)
     m_navMapHasChanged = true;
 }
 
+uint32_t Engine::GetCell(const int& x, const int& y) const
+{
+    return m_navMap[-y * m_navWidth + x];
+}
+
+void Engine::SetCell(const int& x, const int& y, const CellFilters& value)
+{
+    m_navMap[-y * m_navWidth + x] = value;
+}
+
 void Engine::OnUpdate()
 {
     if (m_navMap.empty())
@@ -117,15 +127,10 @@ void Engine::RemoveAgent(const AgentPtr& agent)
     }
 }
 
-uint32_t Engine::GetCell(const uint32_t& x, const uint32_t& y) const
-{
-    return m_navMap[y * m_navWidth + x];
-}
-
 bool Engine::CellIsEmpty(const glm::vec2& cell, 
                          const CellFilters& filter) const
 {
-    uint32_t a = GetCell(cell.x, -cell.y);
+    uint32_t a = GetCell(cell.x, cell.y);
     return (a & filter);
 }
 

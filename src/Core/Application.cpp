@@ -121,13 +121,15 @@ void Application::OnUpdate()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glm::mat4 viewMatrix(1.0f);
+    glm::mat4 camModelMatrix(1.0f);
     glm::mat4 projMatrix(1.0f);
 
     Entity cameraEntity = m_scene->GetMainCamera();
     auto* camera = cameraEntity.FindComponent<Components::Camera>();
     if (camera)
     {
-        viewMatrix = glm::inverse(Components::Transform::ComputeWorldMatrix(cameraEntity));
+        camModelMatrix = Components::Transform::ComputeWorldMatrix(cameraEntity);
+        viewMatrix = glm::inverse(camModelMatrix);
         projMatrix = camera->camera.GetProjMatrix();
     }
 
@@ -154,12 +156,14 @@ void Application::OnUpdate()
 
             material->Bind();
             material->ApplyUniforms();
-            material->GetShader()->SetMat4("uViewMatrix", viewMatrix);
             material->GetShader()->SetMat4("uModelMatrix", modelMatrix);
+            material->GetShader()->SetMat4("uViewMatrix", viewMatrix);
+            material->GetShader()->SetMat4("uCameraModelMatrix", camModelMatrix);
             material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
             material->GetShader()->SetMat4("uMVPMatrix", viewProjMatrix * modelMatrix);
             material->GetShader()->SetVec3("uPointLight.position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));
             material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3) * 3.0f);  // Flicking torch effect
+            material->GetShader()->SetInt("uDoubleSided", meshRenderComp->doubleSided); 
             material->GetShader()->SetFloat("uTime", time); 
             mesh->Bind();
 

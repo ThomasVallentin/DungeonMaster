@@ -21,7 +21,7 @@ enum CellFilters
     Water = 1 << 2,
     Walls = 1 << 3,
 
-    Default = Floor | Doors,
+    Default = Floor,
     Flying = Default | Water,
     All = Floor | Doors | Water | Walls
 };
@@ -48,6 +48,7 @@ public:
     inline static Engine& Get() { return *s_instance; }
 
     void SetNavMap(const ImagePtr& navMap);
+    void SetCell(const int& x, const int& y, const CellFilters& value);
 
     void OnUpdate();
 
@@ -69,7 +70,7 @@ private:
     ~Engine() = default;
     
     void ComputeAgentPath(const AgentPtr& agent);
-    uint32_t GetCell(const uint32_t& x, const uint32_t& y) const;
+    uint32_t GetCell(const int& x, const int& y) const;
 
     std::vector<glm::vec2> ReconstructPath(const Cell& end) const;
 

@@ -52,8 +52,12 @@ private:
                        const glm::vec2& origin,
                        const std::string& modelIdentifier,
                        const uint32_t& damage);
+
+    ResourceHandle<Prefab> ProcessAndBuildLevelMap(const ImagePtr& map, const std::string& mapPath);
+    Entity BuildDoor(const std::string& name,
+                     const glm::vec2& origin,
+                     const bool& verticalDoor);
     void BuildMaterials();
-    ResourceHandle<Prefab> BuildLevelMap(const ImagePtr& map, const std::string& mapPath);
 
     ResourceHandle<Level> m_levelHandle;
 
@@ -61,8 +65,11 @@ private:
     glm::vec2 m_entrancePos{-1.0f};
     glm::vec2 m_exitPos{-1.0f};
 
+    std::vector<std::pair<glm::vec2, bool>> m_doors;
+
     ResourceHandle<Material> m_floorMat;
     ResourceHandle<Material> m_wallMat;
+    ResourceHandle<Material> m_doorMat;
     ResourceHandle<Material> m_waterMat;
 };
 

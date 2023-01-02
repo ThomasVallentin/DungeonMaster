@@ -427,6 +427,76 @@ nullptr);
 } 
 
 
+// == Door Logic ==
+
+Scriptable CreateDoorLogic(const Entity& entity)
+{
+    return Scriptable(
+        "DoorLogic",
+        entity,
+
+// DoorLogic::OnCreate
+[](Entity entity, std::any& dataBlock)
+{
+    dataBlock = std::make_any<DoorData>();
+},
+
+// DoorLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+    DoorData& data = std::any_cast<DoorData&>(dataBlock);
+    if (data.openAnimation.ended)
+    {
+        return;
+    }
+
+    Transform* transform = entity.FindChild("model").FindComponent<Transform>();
+    if (!transform)
+    {
+        return;
+    }
+
+    transform->transform = data.openAnimation.Evaluate(Time::GetDeltaTime());
+    if (data.openAnimation.ended)
+    {
+        data.opened = true;
+        glm::mat4 worldMatrix = Transform::ComputeWorldMatrix(entity);
+        Navigation::Engine::Get().SetCell(round(worldMatrix[3].x), round(worldMatrix[3].z), Navigation::CellFilters::Floor);
+    }
+},
+
+// DoorLogic::OnEvent
+[](Event* event, Entity entity, std::any& dataBlock)
+{
+    switch (event->GetType())
+    {
+        case TriggerEnterEvent::TypeId:
+        case TriggerStayEvent::TypeId:
+        {
+            if (Inputs::IsKeyPressed(KeyCode::Enter) || Inputs::IsKeyPressed(KeyCode::KeyPad_Enter))
+            {
+                DoorData& data = std::any_cast<DoorData&>(dataBlock);
+                if (data.opened)
+                {
+                    return;
+                }
+
+                data.openAnimation = {{{0.0f, glm::mat4(1.0f)},
+                                       {1.0f, glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.9f, 0.0f))}
+                                      },
+                                      InterpolationType::Smooth,
+                                      1.5f, false};
+                data.openAnimation.Start();
+            }
+        }
+    };
+},
+
+// DoorLogic::OnDestroy
+nullptr);
+}
+
+
 // == Title Screen Logic ==
 
 Scriptable CreateTitleScreenLogic(const Entity& entity)

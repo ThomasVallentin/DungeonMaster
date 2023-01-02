@@ -78,7 +78,7 @@ void main()
     // Return normals (utils)
     // fFragColor = vec4(normalize(vNormal), 1.0);
     // return;
-
+    
     vec3 color = SampleDiffuse();
     vec3 lighting = SamplePointLight(uPointLight, vWorldPos, normalize(vNormal));
 

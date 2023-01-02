@@ -270,32 +270,46 @@ Scriptable CreateMonsterLogic(const Entity& entity)
     glm::vec2 toTarget = targetPos - pos;
     float targetDistance = glm::length2(toTarget);
 
-    // Target is too far away
-    if (targetDistance > (data.viewDistance * data.viewDistance))
+    Navigation::Engine& navEngine = Navigation::Engine::Get();
+    glm::vec2 viewDir = glm::normalize(glm::vec2(worldMatrix[2].x, worldMatrix[2].z));
+    bool canSeeTarget = false;
+
+    // Target close enough
+    if (targetDistance <= (data.viewDistance * data.viewDistance))
     {
-        return;
+        glm::vec2 toTargetDir = glm::normalize(toTarget);
+
+        // Target is in the angle of view
+        if (std::max(glm::dot(viewDir, toTargetDir), 0.0f) >= (std::cos(glm::radians(data.angleOfView * 0.5f))))
+        {
+            canSeeTarget = navEngine.CanSeeCell(pos, targetPos);
+        }
     }
 
-    glm::vec2 viewDir = glm::normalize(glm::vec2(worldMatrix[2].x, worldMatrix[2].z));
-    glm::vec2 toTargetDir = glm::normalize(toTarget);
-
-    // Target is not in the angle of view
-    if (std::max(glm::dot(viewDir, toTargetDir), 0.0f) < (std::cos(glm::radians(data.angleOfView * 0.5f))))
+    // Something is blocking the view (a wall for example) and the monster doesn't have a path to follow
+    // -> Falling back on some partoling behaviour
+    if (!canSeeTarget)
     {
+        if (!navAgent->GetAgent()->HasPath())
+        {
+            glm::vec2 nextCell = pos + viewDir;
+            if (!navEngine.CellIsEmpty(nextCell, Navigation::CellFilters::Default))
+            {
+                nextCell = pos - viewDir;
+            }
+
+            navAgent->GetAgent()->SetDestination(glm::vec3(nextCell.x, 0.0f, nextCell.y));
+            data.attackDelay = 0.0;
+        }
         return;
     }
     
-    // Something is blocking the view (a wall for example)
-    Navigation::Engine& navEngine = Navigation::Engine::Get();
-    if (!navEngine.CanSeeCell(pos, targetPos))
-    {
-        return;
-    }
-
+    // The monster can see the target, start moving towards it
     navAgent->GetAgent()->SetDestination(glm::vec3(targetPos.x, 0.0f, targetPos.y));
 
     if (navAgent->GetAgent()->IsMoving())
     {
+        data.attackDelay = 0.0;
         return;
     }
 

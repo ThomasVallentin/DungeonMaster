@@ -58,7 +58,6 @@ struct MonsterData
     float strength = 1.0;
     float angleOfView = 120.0f;
     float viewDistance = 4.0f;
-    Navigation::CellFilters navFilter = Navigation::CellFilters::Flying;
 
 // Scripts cannot access to private variables in the current state of the engine, letting everything public for now
 // private: 

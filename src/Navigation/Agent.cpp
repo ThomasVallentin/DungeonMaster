@@ -58,14 +58,15 @@ void Agent::MakeProgress(const float& deltaTime)
         glm::vec3 dir = glm::normalize(glm::vec3(m_transform[2].x, 0.0, -m_transform[2].z));
         glm::vec3 nextDir = glm::normalize(glm::vec3(m_path[1].x - m_path[0].x, 0.0f, -(m_path[1].y - m_path[0].y)));
         bool cellIsFree = !Engine::Get().CellContainsAgent(m_path[1]);
-        if (std::abs(glm::dot(dir, nextDir)) < 0.999999)  // There can be some imprecision due to the matrix interpolation
+        float facingThePath = glm::dot(dir, nextDir);
+        if (facingThePath < 0.999999)  // There can be some imprecision due to the matrix interpolation
         {
             // Agent faces the wrong direction 
             // -> Orienting the character so that it faces the path
             m_interpolator = Animation<glm::mat4>{{{0.0f, m_transform},
                                                    {1.0f, m_transform * glm::toMat4(glm::rotation(nextDir, dir))}},
                                                   InterpolationType::Smooth,
-                                                  m_speed};
+                                                  (facingThePath > -0.00001) ? m_speed : (m_speed * 0.5f)};
             m_interpolator.Start();
             m_nextTransform = m_interpolator.Evaluate(deltaTime);
         }

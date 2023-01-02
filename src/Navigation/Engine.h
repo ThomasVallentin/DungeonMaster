@@ -22,7 +22,7 @@ enum CellFilters
     Walls = 1 << 3,
 
     Default = Floor,
-    Flying = Default | Water,
+    Vision = Default | Water,
     All = Floor | Doors | Water | Walls
 };
 
@@ -59,7 +59,7 @@ public:
     bool CellContainsAgent(const glm::vec2& cell);
     bool CanSeeCell(glm::vec2 source, 
                     glm::vec2 target, 
-                    const CellFilters& filter=CellFilters::Flying);
+                    const CellFilters& filter=CellFilters::Vision);
 
     AgentPtr CreateAgent();
     void RemoveAgent(const AgentPtr& agent);

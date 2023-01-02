@@ -23,21 +23,18 @@
 #include <rapidjson/document.h>
 
 
+#define ASSERT_LEVEL_DATA(condition, ...)   if (!(condition)) { LOG_ERROR(__VA_ARGS__); return ResourceHandle<Level>(); }
+#define ASSERT_AND_FREE_LEVEL_DATA(condition, path, ...)   if (!(condition)) {                                         \
+                                                                          ResourceManager::FreeResource<Level>(path);  \
+                                                                          LOG_ERROR(__VA_ARGS__);                                 \
+                                                                          return ResourceHandle<Level>(); }
+
+
 glm::vec4 GetPixel(const glm::vec4* map, const int& x, const int& y, const int& width, const int& height) {
     if (x < 0 || x >= width || y < 0 || y >= height)
         return glm::vec4(0, 0, 0, 1);
 
     return map[y * width + x];
-}
-
-Entity PushGameEntity(const std::string& name, const std::string& modelPath, const glm::vec3& origin, const ScenePtr& scene)
-{
-    auto modelHandle = ResourceManager::LoadModel(modelPath);
-    Entity root = scene->CopyEntity(modelHandle.Get()->GetRootEntity(), name);
-    root.GetComponent<Components::Transform>().transform =
-        glm::translate( glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) , origin);
-
-    return root;
 }
 
 
@@ -49,7 +46,7 @@ Entity LevelLoader::BuildPlayer()
         m_playerPos = glm::vec2(0.0f);
     }
 
-    ScenePtr scene = m_scene.Get();
+    ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Main Components
     Entity player = scene->CreateEntity("Player");
@@ -86,7 +83,7 @@ Entity LevelLoader::BuildMonster(const std::string& name,
                                  const float& strength,
                                  const float& speed)
 {
-    ScenePtr scene = m_scene.Get();
+    ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Character controller
     Entity monster = scene->CreateEntity(name);
@@ -120,7 +117,7 @@ Entity LevelLoader::BuildHeal(const std::string& name,
                     const std::string& modelIdentifier,
                     const uint32_t& healing)
 {
-    ScenePtr scene = m_scene.Get();
+    ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Create entity & components
     Entity entity = scene->CreateEntity(name);
@@ -150,7 +147,7 @@ Entity LevelLoader::BuildWeapon(const std::string& name,
                     const std::string& modelIdentifier,
                     const uint32_t& damage)
 {
-    ScenePtr scene = m_scene.Get();
+    ScenePtr scene = m_levelHandle.Get()->scene;
 
     // Create entity & components
     Entity entity = scene->CreateEntity(name);
@@ -184,45 +181,85 @@ void LevelLoader::BuildMaterials()
                                       resolver.Resolve("Shaders/default.frag"));
     
     // Floor
-    m_floorMat = ResourceManager::CreateResource<Material>("floorMaterial", Material::Create(defaultShader), false);
-    m_floorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
+    if(!(m_floorMat = ResourceManager::GetResource<Material>("floorMaterial")))
+    {
+        m_floorMat = ResourceManager::CreateResource<Material>("floorMaterial", Material::Create(defaultShader), false);
+        m_floorMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Cobblestone/Albedo.jpg").Get());
+    }
 
     // Wall
-    m_wallMat = ResourceManager::CreateResource<Material>("wallMaterial", Material::Create(defaultShader), false);
-    m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
+    if(!(m_wallMat = ResourceManager::GetResource<Material>("wallMaterial")))
+    {
+        m_wallMat = ResourceManager::CreateResource<Material>("wallMaterial", Material::Create(defaultShader), false);
+        m_wallMat.Get()->SetInputTexture("diffuseColor", ResourceManager::LoadTexture("Textures/Castle_Wall/Albedo.jpg").Get());
+    }
+
 
     // Water
-    m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial",
-                                                           Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
-                                                                                         resolver.Resolve("Shaders/water.frag"))), false);
-    m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.1, 0.2));
-    m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.25, 0.5));
+    if(!(m_waterMat = ResourceManager::GetResource<Material>("waterMaterial")))
+    {
+        m_waterMat = ResourceManager::CreateResource<Material>("waterMaterial",
+                                                            Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
+                                                                                            resolver.Resolve("Shaders/water.frag"))), false);
+        m_waterMat.Get()->SetInputValue("surfaceColor", glm::vec3(0.0, 0.1, 0.2));
+        m_waterMat.Get()->SetInputValue("deepColor", glm::vec3(0.0, 0.25, 0.5));
+    }
 }
 
 
-ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
+ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const ImagePtr& map, const std::string& mapPath)
 {
     Resolver& resolver = Resolver::Get();
 
-    std::string identifier = resolver.AsIdentifier(path);
-    auto prefab = ResourceManager::CreateResource<Prefab>(identifier);
-    auto prefabScene = prefab.Get()->GetInternalScene().lock();
+    std::string identifier = resolver.AsIdentifier(mapPath);
+    ResourceHandle<Prefab> prefab = ResourceManager::GetResource<Prefab>(identifier);
+    if (prefab)
+    {
+        const glm::vec4* pixels = map->GetPixels();
+        const uint32_t width = map->GetWidth();
+        const uint32_t height = map->GetHeight();
+
+        // The level prefab already exists, just find the entrance of the level
+        for (int y=0 ; y < height ; y++)
+        {
+            for (size_t x=0 ; x < width ; x++)
+            {
+                glm::vec4 pixel = GetPixel(pixels, x, y, width, height);
+                if (pixel == LevelCell::Entrance)
+                {
+                    if (m_playerPos != glm::vec2(-1.0f))
+                        LOG_WARNING("Multiple entrances have been specified, using the first one.");
+                    else
+                        m_playerPos = glm::vec2(x, -y);
+                }
+            }
+        }
+
+        return prefab;
+    }
+
+    prefab = ResourceManager::CreateResource<Prefab>(identifier);
+    ScenePtr prefabScene = prefab.Get()->GetInternalScene().lock();
     
     // A single mesh is used since all the level is only composed of quads
     // Keeping each one separated to allow us to use separated materials and culling 
-    std::vector<Vertex> vertices = {{{ 0.5f, 0.0f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-                                    {{ 0.5f, 0.0f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-                                    {{-0.5f, 0.0f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-                                    {{-0.5f, 0.0f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}}};
-    std::vector<uint32_t> indices = {0, 1, 3, 1, 2, 3};
-    auto mesh = ResourceManager::CreateResource<Mesh>(identifier + "QuadMesh", 
-                                                      Mesh::Create(vertices, indices),
-                                                      true);
+    std::string quadIdentifier = identifier + "QuadMesh";
+    ResourceHandle<Mesh> mesh = ResourceManager::GetResource<Mesh>(quadIdentifier);
+    if (!mesh)
+    {
+        std::vector<Vertex> vertices = {{{ 0.5f, 0.0f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+                                        {{ 0.5f, 0.0f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+                                        {{-0.5f, 0.0f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+                                        {{-0.5f, 0.0f,  0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}}};
+        std::vector<uint32_t> indices = {0, 1, 3, 1, 2, 3};
+        mesh = ResourceManager::CreateResource<Mesh>(quadIdentifier,
+                                                    Mesh::Create(vertices, indices),
+                                                    true);
+    }
 
-    ImagePtr image = Image::Read(resolver.Resolve(path));
-    const glm::vec4* pixels = image->GetPixels();
-    const uint32_t width = image->GetWidth();
-    const uint32_t height = image->GetHeight();
+    const glm::vec4* pixels = map->GetPixels();
+    const uint32_t width = map->GetWidth();
+    const uint32_t height = map->GetHeight();
 
     // Processing the image to generate the level
     for (int y=0 ; y < height ; y++)
@@ -339,7 +376,7 @@ ResourceHandle<Prefab> LevelLoader::BuildLevelMap(const std::string& path)
     return prefab;
 }
 
-ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
+ResourceHandle<Level> LevelLoader::Load(const std::string& path)
 {
     Resolver& resolver = Resolver::Get();
     std::string resolvedPath = resolver.Resolve(path);
@@ -348,115 +385,121 @@ ResourceHandle<Scene> LevelLoader::Load(const std::string& path)
     if (!ReadFile(resolvedPath, content))
     {
         LOG_ERROR("Could not load level %s", path.c_str());
+        return m_levelHandle;
     }
 
     rapidjson::Document document;
     document.Parse(content.c_str());
 
-    assert(document.HasMember("name"));
-    assert(document["name"].IsString());
+    ASSERT_LEVEL_DATA(document.HasMember("name"), "Invalid level name.");
+    ASSERT_LEVEL_DATA(document["name"].IsString(), "Invalid level name.");
     LOG_DEBUG("LevelLoader : Loading level %s (%s)", document["name"].GetString(), path);
     
-    assert(document.HasMember("floors"));
-    assert(document["floors"].IsArray());
-    assert(document["floors"].Capacity() > 0);
+    ASSERT_LEVEL_DATA(document.HasMember("floors"), "Invalid floors data.");
+    ASSERT_LEVEL_DATA(document["floors"].IsArray(), "Invalid floors data.");
+    ASSERT_LEVEL_DATA(document["floors"].Capacity() > 0, "Invalid floors data.");
     const auto& firstFloor = document["floors"][0];
 
-    assert(firstFloor.HasMember("name"));
-    assert(firstFloor["name"].IsString());
-    assert(firstFloor.HasMember("map"));
-    assert(firstFloor["map"].IsString());
+    ASSERT_LEVEL_DATA(firstFloor.HasMember("name"), "Invalid floor data.");
+    ASSERT_LEVEL_DATA(firstFloor["name"].IsString(), "Invalid floor data.");
+    ASSERT_LEVEL_DATA(firstFloor.HasMember("map"), "Invalid floor data.");
+    ASSERT_LEVEL_DATA(firstFloor["map"].IsString(), "Invalid floor data.");
 
-    m_scene = ResourceManager::CreateResource<Scene>(firstFloor["name"].GetString(), false);
-    auto scene = m_scene.Get();
+    // Initialize the resource
+    m_levelHandle = ResourceManager::CreateResource<Level>(path, false);
+    auto level = m_levelHandle.Get();
+    level->scene = Scene::Create();
+    level->floorName = firstFloor["name"].GetString();
 
-    BuildMaterials();
+    // Reading the map
+    std::string mapPath = std::filesystem::path(resolvedPath).replace_filename(firstFloor["map"].GetString());
+    level->map = Image::Read(mapPath);
+    ASSERT_LEVEL_DATA(level->map, "Could not open the level map");
 
     // Build level map
-    std::string mapPath = std::filesystem::path(resolvedPath).replace_filename(firstFloor["map"].GetString());
-    auto floorPrefab = BuildLevelMap(mapPath);
-    scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
+    BuildMaterials();
+    auto floorPrefab = BuildLevelMap(level->map, mapPath);
+    level->scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
     // Building the player, camera, weapon
     m_player = BuildPlayer();
 
-    assert(firstFloor.HasMember("monsters"));
-    assert(firstFloor["monsters"].IsArray());
-
-    for (const auto& monster : firstFloor["monsters"].GetArray())
+    if (firstFloor.HasMember("monsters") && firstFloor["monsters"].IsArray())
     {
-        assert(monster.HasMember("name"));
-        assert(monster["name"].IsString());
-        
-        assert(monster.HasMember("origin"));
-        assert(monster["origin"].IsArray());
-        assert(monster["origin"].Capacity() == 2);
-        
-        assert(monster.HasMember("model"));
-        assert(monster["model"].IsString());
-        
-        assert(monster.HasMember("health"));
-        assert(monster["health"].IsInt());
+        for (const auto& monster : firstFloor["monsters"].GetArray())
+        {
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("name"), path, "Invalid monster name.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["name"].IsString(), path, "Invalid monster name.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("origin"), path, "Invalid monster origin.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["origin"].IsArray(), path, "Invalid monster origin.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["origin"].Capacity() == 2, path, "Invalid monster origin.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("model"), path, "Invalid monster model.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["model"].IsString(), path, "Invalid monster model.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("health"), path, "Invalid monster health.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["health"].IsInt(), path, "Invalid monster health.");
 
-        assert(monster.HasMember("strength"));
-        assert(monster["strength"].IsFloat());
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("strength"), path, "Invalid monster strength.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["strength"].IsFloat(), path, "Invalid monster strength.");
 
-        assert(monster.HasMember("speed"));
-        assert(monster["speed"].IsFloat());
+            ASSERT_AND_FREE_LEVEL_DATA(monster.HasMember("speed"), path, "Invalid monster speed.");
+            ASSERT_AND_FREE_LEVEL_DATA(monster["speed"].IsFloat(), path, "Invalid monster speed.");
 
-        auto origin = monster["origin"].GetArray();
-        BuildMonster(monster["name"].GetString(),
-                     glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
-                     monster["model"].GetString(),
-                     monster["health"].GetInt(),
-                     monster["strength"].GetFloat(),
-                     monster["speed"].GetFloat());
+            auto origin = monster["origin"].GetArray();
+            BuildMonster(monster["name"].GetString(),
+                        glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
+                        monster["model"].GetString(),
+                        monster["health"].GetInt(),
+                        monster["strength"].GetFloat(),
+                        monster["speed"].GetFloat());
+        }
     }
 
-
-    assert(firstFloor.HasMember("rewards"));
-    assert(firstFloor["rewards"].IsArray());
-
-    for (const auto& reward : firstFloor["rewards"].GetArray())
+    if(firstFloor.HasMember("rewards") && firstFloor["rewards"].IsArray())
     {
-        assert(reward.HasMember("name"));
-        assert(reward["name"].IsString());
-        
-        assert(reward.HasMember("origin"));
-        assert(reward["origin"].IsArray());
-        assert(reward["origin"].Capacity() == 2);
-        
-        assert(reward.HasMember("model"));
-        assert(reward["model"].IsString());
-        
-        assert(reward.HasMember("type"));
-        assert(reward["type"].IsString());
-
-        std::string type = reward["type"].GetString();
-        if (type == "weapon")
+        for (const auto& reward : firstFloor["rewards"].GetArray())
         {
-            assert(reward.HasMember("damage"));
-            assert(reward["damage"].IsUint());
+            ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("name"), path, "Invalid reward name.");
+            ASSERT_AND_FREE_LEVEL_DATA(reward["name"].IsString(), path, "Invalid reward name.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("origin"), path, "Invalid reward origin.");
+            ASSERT_AND_FREE_LEVEL_DATA(reward["origin"].IsArray(), path, "Invalid reward origin.");
+            ASSERT_AND_FREE_LEVEL_DATA(reward["origin"].Capacity() == 2, path, "Invalid reward origin.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("model"), path, "Invalid reward model.");
+            ASSERT_AND_FREE_LEVEL_DATA(reward["model"].IsString(), path, "Invalid reward model.");
+            
+            ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("type"), path, "Invalid reward type.");
+            ASSERT_AND_FREE_LEVEL_DATA(reward["type"].IsString(), path, "Invalid reward type.");
 
-            auto origin = reward["origin"].GetArray();
-            BuildWeapon(reward["name"].GetString(),
+            std::string type = reward["type"].GetString();
+            if (type == "weapon")
+            {
+                ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("damage"), path, "Invalid weapon damage.");
+                ASSERT_AND_FREE_LEVEL_DATA(reward["damage"].IsUint(), path, "Invalid weapon damage.");
+
+                auto origin = reward["origin"].GetArray();
+                BuildWeapon(reward["name"].GetString(),
+                            glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
+                            reward["model"].GetString(),
+                            reward["damage"].GetUint());
+            }
+
+            else if (type == "heal")
+            {
+                ASSERT_AND_FREE_LEVEL_DATA(reward.HasMember("healing"), path, "Invalid heal healing.");
+                ASSERT_AND_FREE_LEVEL_DATA(reward["healing"].IsUint(), path, "Invalid heal healing.");
+
+                auto origin = reward["origin"].GetArray();
+                BuildHeal(reward["name"].GetString(),
                         glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
                         reward["model"].GetString(),
-                        reward["damage"].GetUint());
-        }
-
-        else if (type == "heal")
-        {
-            assert(reward.HasMember("healing"));
-            assert(reward["healing"].IsUint());
-
-            auto origin = reward["origin"].GetArray();
-            BuildHeal(reward["name"].GetString(),
-                      glm::vec2(origin[0].GetFloat(), origin[1].GetFloat()),
-                      reward["model"].GetString(),
-                      reward["healing"].GetUint());
+                        reward["healing"].GetUint());
+            }
         }
     }
 
-    return m_scene;
+    return m_levelHandle;
 }

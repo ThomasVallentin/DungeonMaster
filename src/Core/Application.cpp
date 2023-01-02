@@ -60,7 +60,9 @@ Application::Application(int argc, char* argv[])
 
     Scripting::Engine::Init();
     Navigation::Engine::Init();
-    GameManager::Init();
+    
+    GameManager& gameManager = GameManager::Init();
+    gameManager.SetNextLevel("Levels/Labyrinth.json");
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
     m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8, {GL_RGBA32F} });
@@ -77,12 +79,7 @@ void Application::Run()
 {
     m_isRunning = true;
 
-    auto& resolver = Resolver::Get(); 
-
-    SetMainScene(ResourceManager::LoadLevel("Levels/Labyrinth.json").Get());
-
-    Navigation::Engine& navEngine = Navigation::Engine::Get();
-    navEngine.SetNavMap(Image::Read(resolver.Resolve("Levels/Labyrinth.ppm")));
+    GameManager::Get().StartGame();
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     while (m_isRunning)
@@ -139,7 +136,6 @@ void Application::OnUpdate()
     // Rendering the scene
     for (Entity entity : m_scene->Traverse())
     {
-        
         auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
         if (meshRenderComp)
         {

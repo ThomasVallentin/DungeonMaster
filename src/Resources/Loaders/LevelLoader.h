@@ -1,14 +1,19 @@
 #ifndef LEVELLOADER_H
 #define LEVELLOADER_H
 
-#include "Resources/Resource.h"
-#include "Resources/Prefab.h"
+#include "Game/Level.h"
 
 #include "Scene/Entity.h"
 
 #include "Renderer/Material.h"
 
+#include "Resources/Resource.h"
+#include "Resources/Prefab.h"
+
+#include "Core/Foundations.h"
+
 #include <glm/glm.hpp>
+
 
 namespace LevelCell
 {
@@ -26,7 +31,9 @@ public:
     LevelLoader() = default;
     ~LevelLoader() = default;
 
-    ResourceHandle<Scene> Load(const std::string& path);
+    ResourceHandle<Level> Load(const std::string& path);
+
+    inline ResourceHandle<Level> GetLevel() const { return m_levelHandle; }
 
 private:
     Entity BuildPlayer();
@@ -45,9 +52,9 @@ private:
                        const std::string& modelIdentifier,
                        const uint32_t& damage);
     void BuildMaterials();
-    ResourceHandle<Prefab> BuildLevelMap(const std::string& path);
+    ResourceHandle<Prefab> BuildLevelMap(const ImagePtr& map, const std::string& mapPath);
 
-    ResourceHandle<Scene> m_scene;
+    ResourceHandle<Level> m_levelHandle;
 
     glm::vec2 m_playerPos{-1.0f};
     Entity m_player;

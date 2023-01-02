@@ -43,12 +43,12 @@ ResourceHandle<Texture> ResourceManager::LoadTexture(const std::string& path)
 }
 
 
-ResourceHandle<Scene> ResourceManager::LoadLevel(const std::string& path) 
+ResourceHandle<Level> ResourceManager::LoadLevel(const std::string& path) 
 {
     auto& resolver = Resolver::Get();
 
     std::string identifier = resolver.AsIdentifier(path);
-    if (auto handle = GetResource<Scene>(identifier)) 
+    if (auto handle = GetResource<Level>(identifier)) 
     {
         return handle;
     }

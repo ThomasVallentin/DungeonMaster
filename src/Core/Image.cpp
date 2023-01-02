@@ -36,7 +36,14 @@ ImagePtr Image::Read(const std::string& path,
     if (colorSpace == ColorSpace::None)
     {
         const size_t dot = path.find_last_of(".");
-        colorSpace = GuessColorSpace(path.substr(dot));
+        if (dot != std::string::npos)
+        {
+            colorSpace = GuessColorSpace(path.substr(dot));
+        }
+        else
+        {
+            colorSpace = ColorSpace::Raw;
+        }
     }
 
     // Simple gamma handling based on the input colorspace of the image. 

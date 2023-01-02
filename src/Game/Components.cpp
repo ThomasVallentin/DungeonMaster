@@ -441,9 +441,10 @@ nullptr,
 // GameOverLogic::OnUpdate
 [](Entity entity, std::any& dataBlock)
 {
-    if (Inputs::IsKeyPressed(KeyCode::Enter))
+    if (Inputs::IsKeyPressed(KeyCode::Enter) || Inputs::IsKeyPressed(KeyCode::Backspace))
     {
-        GameManager::Get().StartGame();
+        LOG_INFO("AAAAAH");
+        GameManager::Get().RestartGame();
     }
 },
 
@@ -452,8 +453,8 @@ nullptr,
 
 // GameOverLogic::OnDestroy
 nullptr);
-}
 
+}
 
 
 } // Namespace Components

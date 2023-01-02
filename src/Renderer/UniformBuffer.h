@@ -21,6 +21,7 @@ public:
     ~UniformBuffer();
 
     void Attach(const uint32_t& index) const;
+    void Detach(const uint32_t& index) const;
 
     void Bind() const;
     void Unbind() const;

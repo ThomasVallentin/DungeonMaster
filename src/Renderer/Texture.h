@@ -40,6 +40,8 @@ public:
                            const GLenum& internalFormat = GL_RGBA8);
     static TexturePtr FromImage(const ImagePtr& image, const GLenum& internalFormat = GL_RGBA8);
 
+    static void BindFromId(const GLuint& id, const GLuint& unit);
+
 private:
     Texture();
     Texture(const uint32_t &width, const uint32_t &height,

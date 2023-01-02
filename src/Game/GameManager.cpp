@@ -1,5 +1,7 @@
 #include "GameManager.h"
 
+#include "Core/Resolver.h"
+
 
 GameManager* GameManager::s_instance = nullptr;
 
@@ -56,4 +58,20 @@ void GameManager::Clear()
 void GameManager::ShowLooseScreen() const
 {
     LOG_INFO("LOOSE !");
+    ScenePtr scene = Scene::Create();
+
+    Entity camera = scene->CreateEntity();
+    camera.EmplaceComponent<Components::Camera>();
+
+    Entity gameOverScreen = scene->CreateEntity();
+    gameOverScreen.EmplaceComponent<Components::RenderImage>(ResourceManager::LoadTexture("Textures/GameOver.png"));
+    gameOverScreen.EmplaceComponent<Components::Scriptable>(Components::CreateGameOverLogic(gameOverScreen));
+
+    Application& application = Application::Get();
+    application.SetMainScene(scene);
+}
+
+void GameManager::StartGame()
+{
+
 }

@@ -77,10 +77,17 @@ void Texture::Bind(const GLuint& unit) const
     glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
+void Texture::BindFromId(const GLuint& id, const GLuint& unit)
+{
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, id);
+}
+
 void Texture::Unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
 
 bool Texture::IsValid() const
 {

@@ -22,6 +22,11 @@ void UniformBuffer::Attach(const uint32_t& index) const
     glBindBufferBase(GL_UNIFORM_BUFFER, index, m_id);
 }
 
+void UniformBuffer::Detach(const uint32_t& index) const
+{
+    glBindBufferBase(GL_UNIFORM_BUFFER, index, 0);
+}
+
 void UniformBuffer::Bind() const
 {
     glBindBuffer(GL_UNIFORM_BUFFER, m_id);

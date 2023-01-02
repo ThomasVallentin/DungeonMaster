@@ -6,9 +6,6 @@
 #include "Core/Application.h"
 #include "Core/Resolver.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <filesystem>
 
 
@@ -42,7 +39,7 @@ ResourceHandle<Texture> ResourceManager::LoadTexture(const std::string& path)
         return ResourceHandle<Texture>();
     }
 
-    return CreateResource<Texture>(identifier, Texture::FromImage(image));
+    return CreateResource<Texture>(identifier, Texture::FromImage(image, GL_RGBA32F));
 }
 
 

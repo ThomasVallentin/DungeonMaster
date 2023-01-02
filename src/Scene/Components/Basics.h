@@ -61,6 +61,15 @@ struct RenderMesh
     // bool receiveShadows;
 };
 
+
+struct RenderImage
+{
+    RenderImage() = default;
+    RenderImage(const ResourceHandle<Texture>& image) : image(image) {}
+
+    ResourceHandle<Texture> image;
+};
+
 } // Namespace Components::
 
 

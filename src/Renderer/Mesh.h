@@ -42,6 +42,7 @@ public:
     void SetIndices(const std::vector<uint32_t> &indices);
 
     inline void Bind() const { m_vertexArray->Bind(); }
+    inline void Unbind() const { m_vertexArray->Unbind(); }
     inline uint32_t GetElementCount() const { return m_vertexArray->GetIndexBuffer()->GetCount(); }
 
     static MeshPtr Create();

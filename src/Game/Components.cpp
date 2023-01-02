@@ -171,17 +171,14 @@ Scriptable CreateCharacterController(const Entity& entity)
 
             if (!character->IsAlive())
             {
-                entity.Remove();
+                GameManager::Get().ShowLooseScreen();
             }
         }
     }
 },
 
 // CharacterController::OnDestroy
-[](Entity entity, std::any& dataBlock)
-{
-    GameManager::Get().ShowLooseScreen();
-}
+nullptr
 
 );
 
@@ -428,5 +425,35 @@ nullptr,
 // WeaponLogic::OnDestroy
 nullptr);
 } 
+
+
+// == Game Over Logic ==
+
+Scriptable CreateGameOverLogic(const Entity& entity)
+{
+    return Scriptable(
+        "GameOverLogic",
+        entity,
+
+// GameOverLogic::OnCreate
+nullptr,
+
+// GameOverLogic::OnUpdate
+[](Entity entity, std::any& dataBlock)
+{
+    if (Inputs::IsKeyPressed(KeyCode::Enter))
+    {
+        GameManager::Get().StartGame();
+    }
+},
+
+// GameOverLogic::OnEvent
+nullptr,
+
+// GameOverLogic::OnDestroy
+nullptr);
+}
+
+
 
 } // Namespace Components

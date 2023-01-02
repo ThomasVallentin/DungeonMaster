@@ -56,15 +56,21 @@ Application& Application::Init(int argc, char* argv[])
 Application::Application(int argc, char* argv[])
 {
     std::string appPath = argv[0];
-    Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
+    Resolver& resolver = Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
     Scripting::Engine::Init();
     Navigation::Engine::Init();
     GameManager::Init();
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
-    m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8 });
+    m_renderBuffer = FrameBuffer::Create({ 1280, 720, 8, {GL_RGBA32F} });
+    m_postProcessBuffer = FrameBuffer::Create({ 1280, 720, 1, {GL_RGBA32F} });
     m_scene = Scene::Create();   
+
+    m_renderImageShader = Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
+                                       resolver.Resolve("Shaders/sprite.frag"));
+    m_postProcessShader = Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
+                                       resolver.Resolve("Shaders/postProcess.frag"));
 }
 
 void Application::Run()
@@ -74,7 +80,6 @@ void Application::Run()
     auto& resolver = Resolver::Get(); 
 
     SetMainScene(ResourceManager::LoadLevel("Levels/Labyrinth.json").Get());
-    m_scene->GetMainCamera().GetComponent<Components::Camera>().camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
 
     Navigation::Engine& navEngine = Navigation::Engine::Get();
     navEngine.SetNavMap(Image::Read(resolver.Resolve("Levels/Labyrinth.ppm")));
@@ -98,6 +103,12 @@ void Application::OnUpdate()
 {
     double time = Time::GetTime();
 
+    // Switching scenes in a safe spot to avoid unwanted accesses
+    if (m_nextScene)
+    {
+        SwitchScenes();
+    }
+
     // Update Navigation
     Navigation::Engine& navEngine = Navigation::Engine::Get();
     navEngine.OnUpdate();
@@ -105,32 +116,39 @@ void Application::OnUpdate()
     // Updating Scripts
     Scripting::Engine::Get().OnUpdate();
 
-    // Rendering part, should be handled by a separated Renderer class
+    // Clearing all the FrameBuffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+    m_postProcessBuffer->Bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     m_renderBuffer->Bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    // Update game here
+    glm::mat4 viewMatrix(1.0f);
+    glm::mat4 projMatrix(1.0f);
+
     Entity cameraEntity = m_scene->GetMainCamera();
     auto* camera = cameraEntity.FindComponent<Components::Camera>();
-    if (!camera)
+    if (camera)
     {
-        m_renderBuffer->Unbind();
-        return;
+        viewMatrix = glm::inverse(Components::Transform::ComputeWorldMatrix(cameraEntity));
+        projMatrix = camera->camera.GetProjMatrix();
     }
 
-    glm::mat4 viewMatrix = glm::inverse(Components::Transform::ComputeWorldMatrix(cameraEntity));
-    glm::mat4 projMatrix = camera->camera.GetProjMatrix();
     glm::mat4 viewProjMatrix = projMatrix * viewMatrix;
 
+    // Rendering the scene
     for (Entity entity : m_scene->Traverse())
     {
-        auto* meshComp = entity.FindComponent<Components::Mesh>();
-        auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
         
-        if (meshComp && meshRenderComp)
+        auto* meshRenderComp = entity.FindComponent<Components::RenderMesh>();
+        if (meshRenderComp)
         {
+            auto* meshComp = entity.FindComponent<Components::Mesh>();
+            if (!meshComp)
+            {
+                continue;
+            }
+            
             glm::mat4 modelMatrix = Components::Transform::ComputeWorldMatrix(entity);
 
             auto material = meshRenderComp->material.Get();
@@ -144,21 +162,51 @@ void Application::OnUpdate()
             material->GetShader()->SetMat4("uModelMatrix", modelMatrix);
             material->GetShader()->SetMat3("uNormalMatrix", glm::transpose(glm::inverse(glm::mat3(modelMatrix))));
             material->GetShader()->SetMat4("uMVPMatrix", viewProjMatrix * modelMatrix);
-            material->GetShader()->SetVec3("uPointLight.position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));  // Flicking torch effect
+            material->GetShader()->SetVec3("uPointLight.position", glm::vec3(glm::inverse(viewMatrix) * glm::vec4(0, 0, 0, 1)));
             material->GetShader()->SetVec3("uPointLight.color", glm::vec3(0.8 + (std::abs(sin(time * 2.3)) * 2 + sin(0.5 + time * 7.7)) * 0.3) * 3.0f);  // Flicking torch effect
             material->GetShader()->SetFloat("uTime", time); 
             mesh->Bind();
 
             glDrawElements(GL_TRIANGLES, 
-                            mesh->GetElementCount(),
-                            GL_UNSIGNED_INT,
-                            nullptr);
+                           mesh->GetElementCount(),
+                           GL_UNSIGNED_INT,
+                           nullptr);
+
+            mesh->Unbind();
+            material->Unbind();
+            continue;
         }
 
+        auto* renderImage = entity.FindComponent<Components::RenderImage>();
+        if (renderImage)
+        {
+            VertexArrayPtr varray = VertexArray::Create();
+            varray->Bind();
+
+            m_renderImageShader->Bind();
+            renderImage->image.Get()->Bind(0);
+            m_renderImageShader->SetInt("uTexture", 0);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+            varray->Unbind();
+            continue;
+        }
     }
 
-    m_renderBuffer->Blit(0, m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
+    // Blit the render to the "post processing" buffer (non-multisampled)
+    m_renderBuffer->Blit(m_postProcessBuffer->GetId(), m_renderBuffer->GetWidth(), m_renderBuffer->GetHeight());
     m_renderBuffer->Unbind();
+
+    // Applying post processing in the main frame buffer
+    VertexArrayPtr varray = VertexArray::Create();
+    varray->Bind();
+
+    m_postProcessShader->Bind();
+    Texture::BindFromId(m_postProcessBuffer->GetColorAttachmentId(0), 0);
+    Texture::BindFromId(m_postProcessBuffer->GetDepthAttachmentId(), 1);
+    m_postProcessShader->SetInt("uBeauty", 0);
+    m_postProcessShader->SetInt("uDepth", 1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    varray->Unbind();
 }
 
 void Application::EmitEvent(Event* event)
@@ -182,6 +230,7 @@ void Application::EmitEvent(Event* event)
             }
 
             m_renderBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
+            m_postProcessBuffer->Resize(resizeEvent->GetWidth(), resizeEvent->GetHeight());
             break;
         }
     }
@@ -194,14 +243,19 @@ ScenePtr Application::GetMainScene() const
 
 void Application::SetMainScene(const ScenePtr& scene)
 {
-    m_scene = scene;
+    m_nextScene = scene;
+}
+
+void Application::SwitchScenes()
+{
+    m_scene = m_nextScene;
     Scripting::Engine& engine = Scripting::Engine::Get();
     GameManager& gameManager = GameManager::Get();
     
     engine.Clear();
     gameManager.Clear();
     
-    for (const auto& entity : scene->Traverse())
+    for (const auto& entity : m_scene->Traverse())
     {
         Components::Scripted* script = entity.FindComponent<Components::Scriptable>();
         if (script)
@@ -227,5 +281,13 @@ void Application::SetMainScene(const ScenePtr& scene)
             gameManager.AddMonster(entity);
         }
     }
+
+    Entity mainCamera = m_scene->GetMainCamera();
+    if (mainCamera)
+    {
+        mainCamera.GetComponent<Components::Camera>().camera.SetAspectRatio((float)m_window->GetWidth() / (float)m_window->GetHeight());
+    }
+
+    m_nextScene = nullptr;
 }
 

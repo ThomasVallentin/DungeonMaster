@@ -46,31 +46,6 @@ const int diffuseColorTexture = 0;
 const int ambientColorTexture = 1;
 
 
-// == HELPER FUNCTIONS ==
-
-vec3 ODT_Gamma(vec3 color, float gamma)
-{
-    return pow(color, vec3(1.0 / gamma));
-}
-
-// From Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
-vec3 Tonemap_ACESFilmic(vec3 x) {
-    const float a = 2.51;
-    const float b = 0.03;
-    const float c = 2.43;
-    const float d = 0.59;
-    const float e = 0.14;
-    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-}
-
-vec3 AddExponentialFog(vec3 baseColor, float distance, float density) 
-{
-    float fogAmount = 1.0 - exp( -distance * density );
-    vec3 fogColor = vec3(0.5, 0.6, 0.7);
-    return fogColor * fogAmount + baseColor * (1.0 - fogAmount);
-}
-
-
 // == MATERIAL SAMPLING FUNCTIONS ==
 
 vec3 SamplePointLight(PointLight light, vec3 pos , vec3 normal)
@@ -108,11 +83,6 @@ void main()
     vec3 lighting = SamplePointLight(uPointLight, vWorldPos, normalize(vNormal));
 
     color *= lighting;
-    // color = AddExponentialFog(color, vDepth, 0.03);
-
-    // fFragColor = vec4(SampleDiffuse() * clamp(dot(-normalize(uLightDirection), normalize(vNormal)), 0, 1), 1.0);
-    color = Tonemap_ACESFilmic(color);
-    color = ODT_Gamma(color, 2.2);  // Pseudo sRGB ODT;
 
     fFragColor = vec4(color, 1.0);
 }

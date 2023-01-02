@@ -8,18 +8,22 @@ void InternalFormatToDataFormat(const GLenum& format, GLenum& dataFormat, GLenum
     switch (format) {
         case GL_RED:            
         case GL_R8:                  dataFormat = GL_RED; dataType = GL_UNSIGNED_INT; break;
+        case GL_R16F:                dataFormat = GL_RED; dataType = GL_HALF_FLOAT; break;
         case GL_R32F:                dataFormat = GL_RED; dataType = GL_FLOAT; break;
 
         case GL_RG: 
         case GL_RG8:                 dataFormat = GL_RG; dataType = GL_UNSIGNED_INT; break;
+        case GL_RG16F:               dataFormat = GL_RG; dataType = GL_HALF_FLOAT; break;
         case GL_RG32F:               dataFormat = GL_RG; dataType = GL_FLOAT; break;
 
         case GL_RGB:
         case GL_RGB8:                dataFormat = GL_RGB; dataType = GL_UNSIGNED_INT; break;
+        case GL_RGB16F:              dataFormat = GL_RGB; dataType = GL_HALF_FLOAT; break;
         case GL_RGB32F:              dataFormat = GL_RGB; dataType = GL_FLOAT; break;
 
         case GL_RGBA:
         case GL_RGBA8:               dataFormat = GL_RGBA; dataType = GL_UNSIGNED_INT; break;
+        case GL_RGBA16F:             dataFormat = GL_RGBA; dataType = GL_HALF_FLOAT; break;
         case GL_RGBA32F:             dataFormat = GL_RGBA; dataType = GL_FLOAT; break;
 
         case GL_DEPTH_COMPONENT24:   dataFormat = GL_DEPTH_COMPONENT; dataType = GL_UNSIGNED_INT; break;

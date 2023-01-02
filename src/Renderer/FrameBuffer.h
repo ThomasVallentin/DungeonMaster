@@ -32,6 +32,7 @@ public:
     void Bind() const;
     void Unbind() const;
     bool IsValid() const;
+    inline GLuint GetId() const { return m_id; }
 
     inline uint32_t GetWidth() const { return m_specs.width; }
     inline uint32_t GetHeight() const { return m_specs.height; }

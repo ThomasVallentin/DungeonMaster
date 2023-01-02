@@ -82,6 +82,9 @@ struct WeaponData
 Scriptable CreateWeaponLogic(const Entity& entity);
 
 
+Scriptable CreateGameOverLogic(const Entity& entity);
+
+
 } // Namespace Components
 
 

@@ -33,6 +33,7 @@ void Material::Bind() const
 void Material::Unbind() const
 {
     m_shader->Unbind();
+    m_uniformBuffer->Detach(m_uniformBlock.index);
 }
 
 void Material::SetInputTexture(const std::string& name, const TexturePtr& texture)

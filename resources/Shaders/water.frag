@@ -159,8 +159,5 @@ void main()
 {
     vec3 color = SampleMaterial(vWorldPos, normalize(vNormal));
 
-    color = Tonemap_ACESFilmic(color);
-    color = ODT_Gamma(color, 2.2);  // Pseudo sRGB ODT;
-
     fFragColor = vec4(color, 1.0);
 }

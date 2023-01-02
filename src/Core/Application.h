@@ -5,6 +5,7 @@
 
 #include "Renderer/FrameBuffer.h"
 #include "Renderer/Camera.h"
+#include "Renderer/Shader.h"
 
 #include "Scene/Scene.h"
 
@@ -36,6 +37,7 @@ private:
     ~Application() = default;
 
     void OnUpdate();
+    void SwitchScenes();
 
     uint32_t m_exitCode = 0;
 
@@ -43,8 +45,13 @@ private:
     bool m_isRunning;
 
     FrameBufferPtr m_renderBuffer;
+    FrameBufferPtr m_postProcessBuffer;
 
     ScenePtr m_scene;
+    ScenePtr m_nextScene = nullptr;
+
+    ShaderPtr m_renderImageShader;
+    ShaderPtr m_postProcessShader;
 
 private:
     static Application* s_instance;

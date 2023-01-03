@@ -17,13 +17,6 @@ out vec4 fFragColor;
 
 // == HELPER FUNCTIONS ==
 
-vec3 AddExponentialFog(vec3 baseColor, float distance, float density) 
-{
-    float fogAmount = 1.0 - exp( -distance * density );
-    vec3 fogColor = vec3(0.5, 0.6, 0.7);
-    return fogColor * fogAmount + baseColor * (1.0 - fogAmount);
-}
-
 vec3 ODT_Gamma(vec3 color, float gamma)
 {
     return pow(color, vec3(1.0 / gamma));
@@ -50,6 +43,4 @@ void main()
     color = ODT_Gamma(color, 2.2);  // Pseudo sRGB ODT;
 
     fFragColor = vec4(color, 1.0);
-
-    // fFragColor = vec4(vTexCoords, 1.0, 1.0);
 }

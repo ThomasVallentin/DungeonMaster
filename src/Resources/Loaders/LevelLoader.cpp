@@ -592,6 +592,17 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
     auto floorPrefab = ProcessAndBuildLevelMap(level->map, mapPath);
     if (!floorPrefab)
     {
+        LOG_ERROR("Invalid level !");
+        return ResourceHandle<Level>();
+    }
+    if (m_entrancePos == glm::vec2(-1.0f))
+    {
+        LOG_ERROR("Invalid level, you need an entrance to the dungeon !");
+        return ResourceHandle<Level>();
+    }
+    if (m_exitPos == glm::vec2(-1.0f))
+    {
+        LOG_ERROR("Invalid level, you need an exit to the dungeon !");
         return ResourceHandle<Level>();
     }
 

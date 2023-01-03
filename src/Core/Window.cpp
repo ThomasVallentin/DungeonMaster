@@ -110,10 +110,10 @@ Window::Window(const WindowSettings& settings) :
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         return;
 
-    LOG_INFO("Successfully loaded OpenGL !\n"
-             "            Vendor: %s\n"
-             "            Renderer: %s\n"
-             "            Version: %s", 
+    LOG_DEBUG("Successfully loaded OpenGL !\n"
+              "            Vendor: %s\n"
+              "            Renderer: %s\n"
+              "            Version: %s", 
               glGetString(GL_VENDOR), 
               glGetString(GL_RENDERER), 
               glGetString(GL_VERSION));
@@ -122,10 +122,11 @@ Window::Window(const WindowSettings& settings) :
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(GlErrorHandler, 0);
 
-
-    // Enabling depth
+    // OpenGL global configuration
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 Window::~Window()

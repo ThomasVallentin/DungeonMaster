@@ -24,14 +24,27 @@ layout(std140, binding = 0) uniform MaterialInputs
     float roughness;
     bool  roughnessUseTexture;
     
+    vec3 transmissionColor;
+    bool transmissionColorUseTexture;
+
     vec3  emissionColor;
     bool  emissionColorUseTexture;
 };
 
 
+// == CONSTANTS ==
+
+const int baseColorTexture = 0;
+const int metallicTexture = 1;
+const int roughnessTexture = 2;
+const int transmissionColorTexture = 3;
+const int emissionColorTexture = 4;
+
+const int pointLightCount = 1;
+
 // == UNIFORMS ==
 
-uniform sampler2D uTextures[4];
+uniform sampler2D uTextures[5];
 
 struct PointLight
 {
@@ -40,7 +53,6 @@ struct PointLight
     float decay;
 };
 
-const int pointLightCount = 1;
 uniform PointLight uPointLights[pointLightCount];
 
 
@@ -49,13 +61,6 @@ uniform PointLight uPointLights[pointLightCount];
 out vec4 fFragColor;
 
 
-// == CONSTANTS ==
-
-const int baseColorTexture = 0;
-const int metallicTexture = 1;
-const int roughnessTexture = 2;
-const int emissionColorTexture = 3;
-
 // == MATERIAL SAMPLING FUNCTIONS ==
 
 struct MaterialSample
@@ -63,6 +68,7 @@ struct MaterialSample
     vec3  baseColor;
     float metallic;
     float roughness;
+    vec3  transmissionColor;
     vec3  emissionColor;
 };
 
@@ -86,8 +92,14 @@ float SampleRoughness()
                texture(uTextures[roughnessTexture], vTexCoords).r,
                float(roughnessUseTexture));
 }
+vec3 SampleTransmissionColor()
+{
+    return mix(transmissionColor, 
+               texture(uTextures[transmissionColorTexture], vTexCoords).rgb,
+               float(transmissionColorUseTexture));
+}
 
-vec3 SampleEmission()
+vec3 SampleEmissionColor()
 {
     return mix(emissionColor, 
                texture(uTextures[emissionColorTexture], vTexCoords).rgb,
@@ -100,7 +112,8 @@ MaterialSample SampleMaterial()
         SampleBaseColor(),
         SampleMetallic(),
         SampleRoughness(),
-        SampleEmission()
+        SampleTransmissionColor(),
+        SampleEmissionColor()
     );
 }
 
@@ -197,7 +210,8 @@ void main()
         Lo += BRDF_CookTorrance_Microfacet(vertexToLight, vVertexToCam, normal, matSample, lightRadiance);
     }
 
+    Lo *= 1.0 - matSample.transmissionColor;
     Lo += matSample.emissionColor;
 
-    fFragColor = vec4(Lo, 1.0);
+    fFragColor = vec4(Lo, 1.0 - (transmissionColor.x + transmissionColor.y + transmissionColor.z) / 3.0);
 }

@@ -31,7 +31,6 @@ Renderer::Renderer()
     m_blitTextureArray = VertexArray::Create();
     m_blitTextureShader = Shader::Open(resolver.Resolve("Shaders/fullScreen.vert"), 
                                        resolver.Resolve("Shaders/sprite.frag"));
-
 }
 
 void Renderer::SetRenderBuffer(const FrameBufferPtr& renderBuffer)

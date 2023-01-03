@@ -10,7 +10,8 @@ static const std::unordered_map<std::string, uint32_t> MATERIAL_TEXTURE_MAPPING 
     {"baseColor", 0}, 
     {"metallic", 1},
     {"roughness", 2},
-    {"emissionColor", 3}
+    {"transmissionColor", 3},
+    {"emissionColor", 4}
 };
 
 

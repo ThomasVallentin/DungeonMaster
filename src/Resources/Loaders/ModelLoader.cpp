@@ -149,6 +149,8 @@ void ModelLoader::ProcessMaterials(const aiScene *scene)
         MaterialPtr material = Material::Create(Shader::Open(resolver.Resolve("Shaders/default.vert"),
                                                              resolver.Resolve("Shaders/pbrMaterial.frag")));
         aiColor3D color;
+        // Should sample the pbr material but assimp has some issues with it.
+        // Using the Blinn/Phong keys instead
         if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color) != AI_FAILURE)
             material->SetInputValue("baseColor", glm::vec3(color.r, color.g, color.b));
         else
@@ -156,6 +158,9 @@ void ModelLoader::ProcessMaterials(const aiScene *scene)
         
         if (aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color) != AI_FAILURE)
             material->SetInputValue("emissionColor", glm::vec3(color.r, color.g, color.b));
+
+        if (aiMaterial->Get(AI_MATKEY_COLOR_TRANSPARENT, color) != AI_FAILURE)
+            material->SetInputValue("transmissionColor", glm::vec3(color.r, color.g, color.b));
 
         ResourceHandle<Material> handle = ResourceManager::CreateResource<Material>(
             m_loadedIdentifier + ":" + aiMaterial->GetName().C_Str(),

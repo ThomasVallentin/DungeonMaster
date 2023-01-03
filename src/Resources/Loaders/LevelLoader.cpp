@@ -44,7 +44,13 @@ Entity LevelLoader::BuildPlayer()
 
     // Main Components
     Entity player = scene->CreateEntity("Player");
-    player.EmplaceComponent<Components::Transform>(glm::translate(glm::mat4(1.0f), glm::vec3(m_entrancePos.x, 0.5f, m_entrancePos.y)));
+    player.EmplaceComponent<Components::Transform>(
+        glm::rotate(
+            glm::translate(glm::mat4(1.0f), 
+                           glm::vec3(m_entrancePos.x, 0.5f, m_entrancePos.y)),
+            m_entranceOrientation,
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        ));
     auto& controller = player.EmplaceComponent<Components::Scriptable>(Components::CreateCharacterController(player));
     player.EmplaceComponent<Components::NavAgent>(player);
     player.EmplaceComponent<Components::CharacterData>(10.0f);
@@ -257,15 +263,50 @@ ResourceHandle<Prefab> LevelLoader::ProcessAndBuildLevelMap(const ImagePtr& map,
                 else if (pixel == LevelCell::Entrance)
                 {
                     if (m_entrancePos != glm::vec2(-1.0f))
-                        LOG_WARNING("Multiple entrances have been specified, using the first one.");
-                    else
-                        m_entrancePos = glm::vec2(x, -y);
+                    {
+                        LOG_ERROR("Multiple entrances have been specified.");
+                        return ResourceHandle<Prefab>();
+                    }
+
+                    bool xBorder = x == 0 || x == width - 1;
+                    bool yBorder = y == 0 || y == height - 1;
+                    if (!(xBorder ^ yBorder))
+                    {
+                        LOG_ERROR("The entrance has to be on a border of the level and not in a corner.");
+                        return ResourceHandle<Prefab>();
+                    }
+                    
+                    m_entrancePos = glm::vec2(x, -y);
+
+                    if (x == 0)
+                    {
+                        m_entranceOrientation = -M_PI_2;
+                    }
+                    else if (x == width - 1)
+                    {
+                        m_entranceOrientation = M_PI_2;
+                    }
+                    else if (y == height - 1)
+                    {
+                        m_entranceOrientation = M_PI;
+                    }
                 }
 
                 else if (pixel == LevelCell::Exit)
                 {
                     if (m_exitPos != glm::vec2(-1.0f))
-                        LOG_WARNING("Multiple exits have been specified, using the first one.");
+                    {
+                        LOG_ERROR("Multiple exits have been specified.");
+                        return ResourceHandle<Prefab>();
+                    }
+
+                    bool xBorder = x == 0 || x == width - 1;
+                    bool yBorder = y == 0 || y == height - 1;
+                    if (!(xBorder ^ yBorder))
+                    {
+                        LOG_ERROR("The exit has to be on a border of the level and not in a corner.");
+                        return ResourceHandle<Prefab>();
+                    }
                     else
                         m_exitPos = glm::vec2(x, -y);
                 }
@@ -307,7 +348,7 @@ ResourceHandle<Prefab> LevelLoader::ProcessAndBuildLevelMap(const ImagePtr& map,
             if (pixel == LevelCell::Wall)
                 continue;
 
-            // Skip the most common case as quickly as possible to avoid having to proceed too many if statements
+            // Skip the most common case as quickly as possible to avoid having to process too many if statements
             if (pixel != LevelCell::Floor) {
                 if (pixel == LevelCell::Door)
                 {
@@ -318,15 +359,50 @@ ResourceHandle<Prefab> LevelLoader::ProcessAndBuildLevelMap(const ImagePtr& map,
                 else if (pixel == LevelCell::Entrance)
                 {
                     if (m_entrancePos != glm::vec2(-1.0f))
-                        LOG_WARNING("Multiple entrances have been specified, using the first one.");
-                    else
-                        m_entrancePos = glm::vec2(x, -y);
+                    {
+                        LOG_ERROR("Multiple entrances have been specified.");
+                        return ResourceHandle<Prefab>();
+                    }
+
+                    bool xBorder = x == 0 || x == width - 1;
+                    bool yBorder = y == 0 || y == height - 1;
+                    if (!(xBorder ^ yBorder))
+                    {
+                        LOG_ERROR("The entrance has to be on a border of the level and not in a corner.");
+                        return ResourceHandle<Prefab>();
+                    }
+
+                    m_entrancePos = glm::vec2(x, -y);
+
+                    if (x == 0)
+                    {
+                        m_entranceOrientation = -M_PI_2;
+                    }
+                    else if (x == width - 1)
+                    {
+                        m_entranceOrientation = M_PI_2;
+                    }
+                    else if (y == height - 1)
+                    {
+                        m_entranceOrientation = M_PI;
+                    }
                 }
 
                 else if (pixel == LevelCell::Exit)
                 {
                     if (m_exitPos != glm::vec2(-1.0f))
-                        LOG_WARNING("Multiple exits have been specified, using the first one.");
+                    {
+                        LOG_ERROR("Multiple exits have been specified.");
+                        return ResourceHandle<Prefab>();
+                    }
+
+                    bool xBorder = x == 0 || x == width - 1;
+                    bool yBorder = y == 0 || y == height - 1;
+                    if (!(xBorder ^ yBorder))
+                    {
+                        LOG_ERROR("The exit has to be on a border of the level and not in a corner.");
+                        return ResourceHandle<Prefab>();
+                    }
                     else
                         m_exitPos = glm::vec2(x, -y);
                 }
@@ -514,6 +590,11 @@ ResourceHandle<Level> LevelLoader::Load(const std::string& path)
     // Build level map
     BuildMaterials();
     auto floorPrefab = ProcessAndBuildLevelMap(level->map, mapPath);
+    if (!floorPrefab)
+    {
+        return ResourceHandle<Level>();
+    }
+
     level->scene->CopyEntity(floorPrefab.Get()->GetRootEntity(), "Floor");
 
     // Build the player

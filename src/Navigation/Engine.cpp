@@ -61,6 +61,9 @@ void Engine::SetNavMap(const ImagePtr& navMap)
 
 uint32_t Engine::GetCell(const int& x, const int& y) const
 {
+    if (x < 0 || x >= m_navWidth || -y < 0 || -y >= m_navHeight)
+        return CellFilters::None;
+
     return m_navMap[-y * m_navWidth + x];
 }
 

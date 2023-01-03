@@ -102,6 +102,7 @@ void GameManager::LoadLevel(const std::string& levelIdentifier, const uint32_t& 
     LevelPtr level = ResourceManager::LoadLevel(resolver.Resolve(levelIdentifier)).Get();
     if (!level)
     {
+        Application::Get().Stop();
         return;
     }
 

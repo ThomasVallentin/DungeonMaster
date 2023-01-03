@@ -65,6 +65,7 @@ private:
 
     Entity m_player;
     glm::vec2 m_entrancePos{-1.0f};
+    float m_entranceOrientation = 0.0f;
     glm::vec2 m_exitPos{-1.0f};
 
     std::vector<std::pair<glm::vec2, bool>> m_doors;

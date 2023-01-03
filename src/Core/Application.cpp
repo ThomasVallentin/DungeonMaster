@@ -52,6 +52,13 @@ Application& Application::Init(int argc, char* argv[])
 
 Application::Application(int argc, char* argv[])
 {
+    if (argc != 2)
+    {
+        LOG_ERROR("Invalid arg count, you have to pass an identifier to a json file describing a level.");
+        m_exitCode = 1;
+        return;
+    }
+
     std::string appPath = argv[0];
     Resolver& resolver = Resolver::Init(std::filesystem::canonical(appPath).remove_filename().parent_path().parent_path());
 
@@ -59,7 +66,7 @@ Application::Application(int argc, char* argv[])
     Navigation::Engine::Init();
     
     GameManager& gameManager = GameManager::Init();
-    gameManager.SetNextLevel("Levels/Labyrinth.json");
+    gameManager.SetNextLevel(argv[1]);
 
     m_window = std::make_unique<Window>(WindowSettings{1280, 720, "Dungeon Master"});
 
@@ -74,6 +81,11 @@ Application::Application(int argc, char* argv[])
 
 void Application::Run()
 {
+    if (m_exitCode)
+    {
+        return;
+    }
+
     m_isRunning = true;
 
     GameManager::Get().ShowTitleScreen();

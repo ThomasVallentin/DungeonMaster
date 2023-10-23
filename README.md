@@ -4,6 +4,8 @@
 
 Ce projet est réalisé au sein du Master 2 : Sciences de l'Image de l'IGM (Université Gustave eiffel). L'objectif est de créer un jeu vidéo inspiré du célèbre Dungeon Master en utilisant la librairie OpenGL. 
 
+[Lien vers la démo vidéo](https://drive.google.com/file/d/1f00EFASyQ0NYUHK83t1ttETJDu4aWn0e/view?usp=share_link)
+
 ## Build
 
 Voici les dépendances du projet :
